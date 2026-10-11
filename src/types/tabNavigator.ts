@@ -24,4 +24,5 @@ export type ProfileStackParamList = {
     memberId: string;
   };
   AddHouseholdMember: undefined;
+  ResidentialAddress: undefined;
 };
