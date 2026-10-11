@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { getProfileOverview, ProfileOverview, updatePreferredLanguage } from "../../services/profile/profileService";
 import { supabase } from "../../lib/supabase";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -16,6 +16,7 @@ import Modal from "../../components/ui/Modal";
 import {SupportedLanguage} from "../../i18n/types";
 import {changeLanguage} from "../../i18n";
 import AlertDialog from "../../components/ui/AlertDialog";
+import {useFocusEffect} from "@react-navigation/native";
 
 type ProfileRowProps = {
   icon: typeof UserRound;
@@ -133,9 +134,11 @@ export default function ProfileScreen({
     }
   }, []);
 
-  useEffect(() => {
-    void loadProfile();
-  }, [loadProfile]);
+  useFocusEffect(
+      useCallback(() => {
+        void loadProfile();
+      }, [loadProfile])
+  );
 
   const initials = useMemo(
       () =>
@@ -410,6 +413,7 @@ export default function ProfileScreen({
                     ? `${profile.address.city}, ${profile.address.stateTerritory}`
                     : t("profile.residentialAddress.noAddress")
               }
+              onPress={() => navigation.navigate("ResidentialAddress")}
             />
           </Card>
         </Section>
