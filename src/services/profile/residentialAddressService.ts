@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import type { RegisterResidenceFormData } from "../../schemas/registration";
 import { getCurrentProfileId } from "./profileService";
+import { STATE_TERRITORY_MAP } from "../../constants/registration";
 
 export type ResidentialAddress = {
   id: string;
@@ -65,7 +66,7 @@ export const updateResidentialAddress =
             address_line_2: values.addressLine2?.trim() || null,
             postcode: values.postcode,
             city: values.city.trim(),
-            state_territory: values.stateTerritory,
+            state_territory: STATE_TERRITORY_MAP[values.stateTerritory as keyof typeof STATE_TERRITORY_MAP],
           })
           .eq("id", addressId)
           .eq("profile_id", profileId)
