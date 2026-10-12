@@ -4,13 +4,14 @@ import { getHouseholdMembers, HouseholdMemberSummary } from "../../../services/p
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { ChevronRight, UsersRound } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import Screen from "../../../components/layout/Screen";
 import ScreenHeader from "../../../components/layout/ScreenHeader";
 import Button from "../../../components/ui/Button";
 import Card from "../../../components/ui/Card";
 import Section from "../../../components/layout/Section";
+import {useFocusEffect} from "@react-navigation/native";
 
 type HouseholdScreenProps = NativeStackScreenProps<ProfileStackParamList, "Household">;
 
@@ -97,9 +98,11 @@ export default function HouseholdScreen({
         }
       }, []);
 
-  useEffect(() => {
-    void loadHouseholdMembers();
-  }, [loadHouseholdMembers]);
+  useFocusEffect(
+      useCallback(() => {
+        void loadHouseholdMembers();
+      }, [loadHouseholdMembers])
+  );
 
   const formatDateOfBirth = (
       dateOfBirth: string | null
