@@ -162,7 +162,11 @@ export const createHouseholdMember =
         citizenship: input.citizenship || null,
         is_dependent: input.isDependent,
         employment_status: input.employmentStatus || null,
-        occupation: input.occupation || null,
+        occupation:
+            input.employmentStatus === "employed" ||
+            input.employmentStatus === "self_employed"
+                ? input.occupation.trim() || null
+                : null,
         monthly_income:
             input.monthlyIncome.trim() === ""
                 ? null
@@ -174,7 +178,7 @@ export const createHouseholdMember =
                 : null,
         institution_type:
             input.isStudent === true
-                ? input.studyMode || null
+                ? input.institutionType || null
                 : null,
         is_oku: input.isOku,
         oku_registered:
