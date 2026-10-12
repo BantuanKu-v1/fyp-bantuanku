@@ -423,6 +423,7 @@ const ms = {
       residentialAddress: {
         title: "Alamat Kediaman",
         noAddress: "Tiada alamat diberikan",
+        country: "Negara",
       },
 
       language: {

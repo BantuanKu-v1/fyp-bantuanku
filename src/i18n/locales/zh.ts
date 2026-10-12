@@ -427,6 +427,7 @@ const zh = {
       residentialAddress: {
         title: "居住地址",
         noAddress: "尚未提供地址",
+        country: "国家",
       },
 
       language: {
