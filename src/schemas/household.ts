@@ -44,19 +44,32 @@ export const addHouseholdMemberSchema = (t: TFunction) => {
       .safeExtend({
         identificationNumber: z
             .string()
-            .trim(),
+            .trim()
+            .min(1, t("validation.required")),
 
         gender: z
             .union([
               z.literal(""),
               z.enum(["male", "female"]),
-            ]),
+            ])
+            .refine(
+                (value) => value !== "",
+                {
+                  message: t("validation.required")
+                }
+            ),
 
         citizenship: z
             .union([
               z.literal(""),
               z.enum(CITIZENSHIP_VALUES),
-            ]),
+            ])
+            .refine(
+                (value) => value !== "",
+                {
+                  message: t("validation.required")
+                }
+            ),
 
         isDependent: z
             .boolean()
@@ -108,7 +121,13 @@ export const addHouseholdMemberSchema = (t: TFunction) => {
 
         isOku: z
             .boolean()
-            .nullable(),
+            .nullable()
+            .refine(
+                (value) => value !== null,
+                {
+                  message: t("validation.required")
+                }
+            ),
 
         okuRegistered: z
             .boolean()
@@ -193,6 +212,36 @@ export const addHouseholdMemberSchema = (t: TFunction) => {
               code: "custom",
               path: ["identificationNumber"],
               message: t("validation.identificationNumberInvalid")
+            });
+          }
+        }
+
+        // Student Information
+        if (data.isStudent === true) {
+          if (data.studyMode === "") {
+            ctx.addIssue({
+              code: "custom",
+              path: ["studyMode"],
+              message: t("validation.required")
+            });
+          }
+
+          if (data.institutionType === "") {
+            ctx.addIssue({
+              code: "custom",
+              path: ["institutionType"],
+              message: t("validation.required")
+            });
+          }
+        }
+
+        // OKU Information
+        if (data.isOku === true) {
+          if (data.okuRegistered === null) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["okuRegistered"],
+              message: t("validation.required")
             });
           }
         }
