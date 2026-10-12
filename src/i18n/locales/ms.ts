@@ -21,6 +21,11 @@ const ms = {
 
       selectDate: "Pilih tarikh",
       selectOption: "Pilih pilihan",
+
+      discardChanges: {
+        title: "Buang perubahan?",
+        message: "Anda mempunyai perubahan yang belum disimpan. Jika anda keluar sekarang, perubahan tersebut akan hilang.",
+      },
     },
 
     language: {
@@ -317,11 +322,6 @@ const ms = {
 
         notProvided: "Tidak diberikan",
         updateFailed: "Nombor telefon anda tidak dapat dikemaskini. Sila cuba lagi.",
-
-        discardChanges: {
-          title: "Buang perubahan?",
-          message: "Perubahan anda tidak akan disimpan.",
-        },
       },
 
       household: {
@@ -359,7 +359,7 @@ const ms = {
 
           sections: {
             basicInformation: "Maklumat Asas",
-            employmentIncome: "Pekerjaan & Pendapatan",
+            employmentIncome: "Pekerjaan & Pendidikan",
             education: "Pendidikan",
             disability: "Ketidakupayaan / OKU",
           },
@@ -388,7 +388,7 @@ const ms = {
 
             employed: "Bekerja",
             selfEmployed: "Bekerja Sendiri",
-            unemployed: "Menganggur",
+            unemployed: "Tidak Bekerja",
             student: "Pelajar",
             retired: "Bersara",
             homemaker: "Suri Rumah",
@@ -445,6 +445,8 @@ const ms = {
     },
 
     validation: {
+      required: "Medan ini wajib diisi.",
+
       emailRequired: "E-mel diperlukan.",
       emailInvalid: "Masukkan alamat e-mel yang sah.",
 

@@ -21,6 +21,11 @@ const en = {
 
       selectDate: "Select a date",
       selectOption: "Select an option",
+
+      discardChanges: {
+        title: "Discard changes?",
+        message: "You have unsaved changes. If you leave now, your changes will be lost.",
+      },
     },
 
     language: {
@@ -316,11 +321,6 @@ const en = {
 
         notProvided: "Not provided",
         updateFailed: "Unable to update your mobile number. Please try again.",
-
-        discardChanges: {
-          title: "Discard changes?",
-          message: "Your changes will not be saved.",
-        },
       },
 
       household: {
@@ -358,7 +358,7 @@ const en = {
 
           sections: {
             basicInformation: "Basic Information",
-            employmentIncome: "Employment & Income",
+            employmentIncome: "Employment & Education",
             education: "Education",
             disability: "Disability / OKU",
           },
@@ -386,7 +386,7 @@ const en = {
 
             employed: "Employed",
             selfEmployed: "Self-employed",
-            unemployed: "Unemployed",
+            unemployed: "Not Employed",
             student: "Student",
             retired: "Retired",
             homemaker: "Homemaker",
@@ -443,6 +443,8 @@ const en = {
     },
 
     validation: {
+      required: "This field is required.",
+
       emailRequired: "Email is required.",
       emailInvalid: "Enter a valid email address.",
 

@@ -21,6 +21,11 @@ const zh = {
 
       selectDate: "选择日期",
       selectOption: "请选择",
+
+      discardChanges: {
+        title: "放弃更改？",
+        message: "您有尚未保存的更改。如果现在离开，这些更改将会丢失。",
+      },
     },
 
     language: {
@@ -321,11 +326,6 @@ const zh = {
 
         notProvided: "未提供",
         updateFailed: "无法更新您的手机号码，请重试。",
-
-        discardChanges: {
-          title: "放弃更改？",
-          message: "您所做的更改将不会被保存。",
-        },
       },
 
       household: {
@@ -363,7 +363,7 @@ const zh = {
 
           sections: {
             basicInformation: "基本资料",
-            employmentIncome: "就业与收入",
+            employmentIncome: "就业与教育",
             education: "教育",
             disability: "残障 / OKU",
           },
@@ -392,7 +392,7 @@ const zh = {
 
             employed: "受雇",
             selfEmployed: "自雇",
-            unemployed: "失业",
+            unemployed: "未就业",
             student: "学生",
             retired: "退休",
             homemaker: "家庭主妇 / 主夫",
@@ -449,6 +449,8 @@ const zh = {
     },
 
     validation: {
+      required: "此项为必填项。",
+
       emailRequired: "请输入电子邮箱。",
       emailInvalid: "请输入有效的电子邮箱地址。",
 
