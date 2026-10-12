@@ -236,7 +236,7 @@ export const addHouseholdMemberSchema = (t: TFunction) => {
         }
 
         // OKU Information
-        if (data.isOku === true) {
+        if (data.isOku) {
           if (data.okuRegistered === null) {
             ctx.addIssue({
               code: "custom",
