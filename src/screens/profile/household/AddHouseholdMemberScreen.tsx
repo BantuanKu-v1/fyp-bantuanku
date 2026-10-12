@@ -1,14 +1,15 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/tabNavigator";
 import { useTranslation } from "react-i18next";
-import {useEffect, useMemo, useRef, useState} from "react";
+import { useEffect, useMemo, useRef, useState} from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AddHouseholdMemberFormData, addHouseholdMemberSchema } from "../../../schemas/household";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createHouseholdMember } from "../../../services/profile/householdService";
 import { HouseholdRelationshipValue } from "../../../constants/registration";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { formatMyKad, getDobFromMyKad, getGenderFromMyKad } from "../../../lib/myKad";
+import { NavigationAction, usePreventRemove } from "@react-navigation/native";
 
 import Screen from "../../../components/layout/Screen";
 import ScreenHeader from "../../../components/layout/ScreenHeader";
@@ -17,7 +18,6 @@ import Select from "../../../components/ui/Select";
 import DateInput from "../../../components/ui/DatePicker";
 import Button from "../../../components/ui/Button";
 import AlertDialog from "../../../components/ui/AlertDialog";
-import Section from "../../../components/layout/Section";
 
 type AddHouseholdMemberScreenProps = NativeStackScreenProps<ProfileStackParamList, "AddHouseholdMember">;
 
@@ -35,8 +35,6 @@ const toYesNoValue = (value: boolean | null): YesNoValue => {
   return "";
 };
 
-
-
 const fromYesNoValue = (value: string): boolean | null => {
   if (value === "yes") {
     return true;
@@ -50,12 +48,15 @@ const fromYesNoValue = (value: string): boolean | null => {
 };
 
 export default function AddHouseholdMemberScreen({
-    navigation
-}: AddHouseholdMemberScreenProps) {
+                                                   navigation
+                                                 }: AddHouseholdMemberScreenProps) {
   const { t, i18n } = useTranslation();
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [allowNavigation, setAllowNavigation] = useState(false);
+  const pendingNavigationAction = useRef<NavigationAction | null>(null);
 
   const schema = useMemo(
       () => addHouseholdMemberSchema(t),
@@ -99,10 +100,6 @@ export default function AddHouseholdMemberScreen({
   const genderOptions = useMemo(
       () => [
         {
-          label: t("common.notProvided"),
-          value: ""
-        },
-        {
           label: t("profile.household.add.options.male"),
           value: "male"
         },
@@ -115,10 +112,6 @@ export default function AddHouseholdMemberScreen({
 
   const citizenshipOptions = useMemo(
       () => [
-        {
-          label: t("common.notProvided"),
-          value: ""
-        },
         {
           label: t("profile.household.add.options.malaysian"),
           value: "malaysian"
@@ -148,10 +141,10 @@ export default function AddHouseholdMemberScreen({
           label: t("profile.household.add.options.unemployed"),
           value: "unemployed"
         },
-        {
-          label: t("profile.household.add.options.student"),
-          value: "student"
-        },
+        // {
+        //   label: t("profile.household.add.options.student"),
+        //   value: "student"
+        // },
         {
           label: t("profile.household.add.options.retired"),
           value: "retired"
@@ -169,6 +162,19 @@ export default function AddHouseholdMemberScreen({
           label: t("common.notProvided"),
           value: ""
         },
+        {
+          label: t("common.yes"),
+          value: "yes"
+        },
+        {
+          label: t("common.no"),
+          value: "no"
+        },
+      ], [t, i18n.resolvedLanguage]
+  );
+
+  const requiredYesNoOptions = useMemo(
+      () => [
         {
           label: t("common.yes"),
           value: "yes"
@@ -228,7 +234,7 @@ export default function AddHouseholdMemberScreen({
     watch,
     setValue,
     trigger,
-    formState: { errors, submitCount }
+    formState: { errors, submitCount, isDirty }
   } = useForm<AddHouseholdMemberFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -250,13 +256,21 @@ export default function AddHouseholdMemberScreen({
     }
   });
 
+  usePreventRemove(
+      isDirty && !allowNavigation,
+      ({ data }) => {
+        pendingNavigationAction.current = data.action;
+        setShowDiscardDialog(true);
+      }
+  );
+
   const relationship = watch("relationship");
   const employmentStatus = watch("employmentStatus");
   const citizenship = watch("citizenship");
   const isStudent = watch("isStudent");
   const isOku = watch("isOku");
 
-  const showDependentQuestion = relationship != "";
+  const showDependentQuestion = relationship !== "";
   const showOccupation = employmentStatus === "employed" || employmentStatus === "self_employed";
   const showEducationFields = isStudent === true;
   const showOkuRegistration = isOku === true;
@@ -285,6 +299,15 @@ export default function AddHouseholdMemberScreen({
     }
   }, [showOccupation, setValue]);
 
+  // useEffect(() => {
+  //   if (employmentStatus === "student" && isStudent !== true) {
+  //     setValue("isStudent", true, {
+  //       shouldDirty: true,
+  //       shouldValidate: true
+  //     });
+  //   }
+  // }, [employmentStatus, isStudent, setValue]);
+
   useEffect(() => {
     if (!showEducationFields) {
       setValue("studyMode", "");
@@ -309,33 +332,26 @@ export default function AddHouseholdMemberScreen({
       setSubmitting(true);
       setError(false);
 
-      const memberId =
-          await createHouseholdMember({
-            fullName: data.fullName,
-            relationship: data.relationship,
-            dateOfBirth: data.dateOfBirth,
-            identificationNumber: data.identificationNumber,
-            gender: data.gender,
-            citizenship: data.citizenship,
-            isDependent: data.isDependent,
-            employmentStatus: data.employmentStatus,
-            occupation: data.occupation,
-            monthlyIncome: data.monthlyIncome,
-            isStudent: data.isStudent,
-            studyMode: data.studyMode,
-            institutionType: data.institutionType,
-            isOku: data.isOku,
-            okuRegistered: data.okuRegistered
-          });
+      await createHouseholdMember({
+        fullName: data.fullName,
+        relationship: data.relationship,
+        dateOfBirth: data.dateOfBirth,
+        identificationNumber: data.identificationNumber,
+        gender: data.gender,
+        citizenship: data.citizenship,
+        isDependent: data.isDependent,
+        employmentStatus: data.employmentStatus,
+        occupation: data.occupation,
+        monthlyIncome: data.monthlyIncome,
+        isStudent: data.isStudent,
+        studyMode: data.studyMode,
+        institutionType: data.institutionType,
+        isOku: data.isOku,
+        okuRegistered: data.okuRegistered
+      });
 
-      // navigation.replace(
-      //     "HouseholdMember",
-      //     {
-      //       memberId
-      //     }
-      // );
-
-      navigation.navigate("Household");
+      setAllowNavigation(true);
+      navigation.popTo("Household");
     } catch (submitError) {
       if (__DEV__) {
         console.error("[PROFILE] Failed to create household member", submitError);
@@ -347,6 +363,31 @@ export default function AddHouseholdMemberScreen({
     }
   };
 
+  const handleDiscard = () => {
+    setShowDiscardDialog(false);
+    setAllowNavigation(true);
+  };
+
+  useEffect(() => {
+    if (allowNavigation && pendingNavigationAction.current) {
+      const action = pendingNavigationAction.current;
+      pendingNavigationAction.current = null;
+
+      navigation.dispatch(action);
+    }
+  }, [allowNavigation, navigation]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !isDirty || allowNavigation
+    });
+  }, [navigation, isDirty, allowNavigation]);
+
+  const handleKeepEditing = () => {
+    pendingNavigationAction.current = null;
+    setShowDiscardDialog(false);
+  };
+
   return (
       <Screen>
         <ScreenHeader
@@ -355,348 +396,356 @@ export default function AddHouseholdMemberScreen({
             className="mb-8"
         />
 
-        <View className="gap-6">
+        <View className="gap-8">
           {/* Basic Information */}
-          <Section title={t("profile.household.add.sections.basicInformation")}>
-            <View className="gap-6">
-              {/* Full Name */}
-              <Controller
-                  control={control}
-                  name="fullName"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                          label={t("profile.household.member.fullName")}
-                          value={value}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          error={errors.fullName?.message}
-                          autoCapitalize="words"
-                          autoCorrect={false}
-                          required
-                      />
-                  )}
-              />
+          <View className="gap-6">
+            <Text className="text-lg font-semibold text-foreground">
+              {t("profile.household.add.sections.basicInformation")}
+            </Text>
 
-              {/* Relationship */}
-              <Controller
-                  control={control}
-                  name="relationship"
-                  render={({ field: { onChange, value } }) => (
-                      <Select
-                          label={t("profile.household.member.relationship")}
-                          title={t("profile.household.add.selectRelationship")}
-                          value={value}
-                          onChange={onChange}
-                          options={relationshipOptions}
-                          error={errors.relationship?.message}
-                          required
-                      />
-                  )}
-              />
+            {/* Full Name */}
+            <Controller
+                control={control}
+                name="fullName"
+                render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                        label={t("profile.household.member.fullName")}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.fullName?.message}
+                        autoCapitalize="words"
+                        autoCorrect={false}
+                        required
+                    />
+                )}
+            />
 
-              {/* Citizenship */}
-              <Controller
-                  control={control}
-                  name="citizenship"
-                  render={({ field: { onChange, value } }) => (
-                      <Select
-                          label={t("profile.household.add.fields.citizenship")}
-                          title={t("profile.household.add.fields.citizenship")}
-                          value={value}
-                          options={citizenshipOptions}
-                          onChange={onChange}
-                          error={errors.citizenship?.message}
-                      />
-                  )}
-              />
+            {/* Relationship */}
+            <Controller
+                control={control}
+                name="relationship"
+                render={({ field: { onChange, value } }) => (
+                    <Select
+                        label={t("profile.household.member.relationship")}
+                        title={t("profile.household.add.selectRelationship")}
+                        value={value}
+                        onChange={onChange}
+                        options={relationshipOptions}
+                        error={errors.relationship?.message}
+                        required
+                    />
+                )}
+            />
 
-              {/* IC Number */}
-              <Controller
-                  control={control}
-                  name="identificationNumber"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                          label={t("profile.household.add.fields.identificationNumber")}
-                          value={value}
-                          onChangeText={(text) => {
-                            if (citizenship !== "malaysian") {
-                              onChange(text);
-                              return;
-                            }
+            {/* Citizenship */}
+            <Controller
+                control={control}
+                name="citizenship"
+                render={({ field: { onChange, value } }) => (
+                    <Select
+                        label={t("profile.household.add.fields.citizenship")}
+                        title={t("profile.household.add.fields.citizenship")}
+                        value={value}
+                        options={citizenshipOptions}
+                        onChange={onChange}
+                        error={errors.citizenship?.message}
+                        required
+                    />
+                )}
+            />
 
-                            const formatted = formatMyKad(text);
-                            onChange(formatted);
+            {/* IC Number */}
+            <Controller
+                control={control}
+                name="identificationNumber"
+                render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                        label={t("profile.household.add.fields.identificationNumber")}
+                        value={value}
+                        onChangeText={(text) => {
+                          if (citizenship !== "malaysian") {
+                            onChange(text);
+                            return;
+                          }
 
-                            const dateOfBirth = getDobFromMyKad(formatted);
-                            const gender = dateOfBirth ? getGenderFromMyKad(formatted) : null;
+                          const formatted = formatMyKad(text);
+                          onChange(formatted);
 
-                            if (dateOfBirth && !dobManuallyEdited.current) {
-                              setValue("dateOfBirth", dateOfBirth, {
-                                shouldValidate: true,
-                                shouldDirty: true
-                              });
+                          const dateOfBirth = getDobFromMyKad(formatted);
+                          const gender = dateOfBirth ? getGenderFromMyKad(formatted) : null;
 
-                              setDobDerivedFromMyKad(true);
-                            } else if (dobDerivedFromMyKad) {
-                              setValue("dateOfBirth", null, {
-                                shouldDirty: true
-                              });
+                          if (dateOfBirth && !dobManuallyEdited.current) {
+                            setValue("dateOfBirth", dateOfBirth, {
+                              shouldValidate: true,
+                              shouldDirty: true
+                            });
 
-                              setDobDerivedFromMyKad(false);
-                            }
+                            setDobDerivedFromMyKad(true);
+                          } else if (dobDerivedFromMyKad) {
+                            setValue("dateOfBirth", null, {
+                              shouldDirty: true
+                            });
 
-                            if (gender && !genderManuallyEdited.current) {
-                              setValue("gender", gender, {
-                                shouldValidate: true,
-                                shouldDirty: true
-                              });
+                            setDobDerivedFromMyKad(false);
+                          }
 
-                              setGenderDerivedFromMyKad(true);
-                            } else if (genderDerivedFromMyKad && !genderManuallyEdited.current) {
-                              setValue("gender", "", {
-                                shouldDirty: true
-                              });
+                          if (gender && !genderManuallyEdited.current) {
+                            setValue("gender", gender, {
+                              shouldValidate: true,
+                              shouldDirty: true
+                            });
 
-                              setGenderDerivedFromMyKad(false);
-                            }
+                            setGenderDerivedFromMyKad(true);
+                          } else if (genderDerivedFromMyKad && !genderManuallyEdited.current) {
+                            setValue("gender", "", {
+                              shouldDirty: true
+                            });
 
-                            if (formatted.length === 14) {
-                              void trigger("identificationNumber");
-                            }
-                          }}
-                          onBlur={onBlur}
-                          error={errors.identificationNumber?.message}
-                          keyboardType={
-                            citizenship === "malaysian"
+                            setGenderDerivedFromMyKad(false);
+                          }
+
+                          if (formatted.length === 14) {
+                            void trigger("identificationNumber");
+                          }
+                        }}
+                        onBlur={onBlur}
+                        error={errors.identificationNumber?.message}
+                        keyboardType={
+                          citizenship === "malaysian"
                               ? "number-pad"
                               : "default"
-                          }
-                          maxLength={
-                            citizenship === "malaysian"
+                        }
+                        maxLength={
+                          citizenship === "malaysian"
                               ? 14
                               : undefined
-                          }
-                          autoCapitalize="characters"
-                          autoCorrect={false}
-                      />
-                  )}
-              />
+                        }
+                        autoCapitalize="characters"
+                        autoCorrect={false}
+                        required
+                    />
+                )}
+            />
 
-              {/* DOB */}
-              <Controller
-                  control={control}
-                  name="dateOfBirth"
-                  render={({ field: { onChange, value } }) => (
-                      <DateInput
-                          label={t("profile.household.member.dateOfBirth")}
-                          value={value ?? undefined}
-                          onChange={(date) => {
-                            onChange(date);
-                            setDobDerivedFromMyKad(false);
-                            dobManuallyEdited.current = true;
-                          }}
-                          minimumDate={minimumDateOfBirth}
-                          maximumDate={maximumDateOfBirth}
-                          error={errors.dateOfBirth?.message}
-                          helperText={
-                            dobDerivedFromMyKad
+            {/* DOB */}
+            <Controller
+                control={control}
+                name="dateOfBirth"
+                render={({ field: { onChange, value } }) => (
+                    <DateInput
+                        label={t("profile.household.member.dateOfBirth")}
+                        value={value ?? undefined}
+                        onChange={(date) => {
+                          onChange(date);
+                          setDobDerivedFromMyKad(false);
+                          dobManuallyEdited.current = true;
+                        }}
+                        minimumDate={minimumDateOfBirth}
+                        maximumDate={maximumDateOfBirth}
+                        error={errors.dateOfBirth?.message}
+                        helperText={
+                          dobDerivedFromMyKad
                               ? t("auth.register.personal.dobFromIc")
                               : undefined
-                          }
-                          required
-                      />
-                  )}
-              />
+                        }
+                        required
+                    />
+                )}
+            />
 
-              {/* Gender */}
-              <Controller
-                  control={control}
-                  name="gender"
-                  render={({ field: { onChange, value } }) => (
-                      <Select
-                          label={t("profile.household.add.fields.gender")}
-                          title={t("profile.household.add.fields.gender")}
-                          value={value}
-                          options={genderOptions}
-                          onChange={(selected) => {
-                            onChange(selected);
-                            setGenderDerivedFromMyKad(false);
-                            genderManuallyEdited.current = true;
-                          }}
-                          error={errors.gender?.message}
-                      />
-                  )}
-              />
+            {/* Gender */}
+            <Controller
+                control={control}
+                name="gender"
+                render={({ field: { onChange, value } }) => (
+                    <Select
+                        label={t("profile.household.add.fields.gender")}
+                        title={t("profile.household.add.fields.gender")}
+                        value={value}
+                        options={genderOptions}
+                        onChange={(selected) => {
+                          onChange(selected);
+                          setGenderDerivedFromMyKad(false);
+                          genderManuallyEdited.current = true;
+                        }}
+                        error={errors.gender?.message}
+                        required
+                    />
+                )}
+            />
 
-              {/* Dependent */}
-              {showDependentQuestion && (
-                  <Controller
+            {/* Dependent */}
+            {showDependentQuestion && (
+                <Controller
                     control={control}
                     name="isDependent"
                     render={({ field: { onChange, value } }) => (
                         <Select
-                          label={t("profile.household.add.fields.isDependent")}
-                          title={t("profile.household.add.fields.isDependent")}
-                          value={toYesNoValue(value)}
-                          options={yesNoOptions}
-                          onChange={(selected) => onChange(fromYesNoValue(selected))}
-                          error={errors.isDependent?.message}
+                            label={t("profile.household.add.fields.isDependent")}
+                            title={t("profile.household.add.fields.isDependent")}
+                            value={toYesNoValue(value)}
+                            options={yesNoOptions}
+                            onChange={(selected) => onChange(fromYesNoValue(selected))}
+                            error={errors.isDependent?.message}
                         />
                     )}
-                  />
-              )}
-            </View>
-          </Section>
+                />
+            )}
+          </View>
 
-          {/* Employment & Income */}
-          <Section title={t("profile.household.add.sections.employmentIncome")}>
-            <View className="gap-6">
-              {/* Employment Status */}
-              <Controller
+          {/* Employment & Education */}
+          <View className="gap-6">
+            <Text className="text-lg font-semibold text-foreground">
+              {t("profile.household.add.sections.employmentIncome")}
+            </Text>
+
+            {/* Employment Status */}
+            <Controller
                 control={control}
                 name="employmentStatus"
                 render={({ field: { onChange, value } }) => (
                     <Select
-                      label={t("profile.household.add.fields.employmentStatus")}
-                      title={t("profile.household.add.fields.employmentStatus")}
-                      value={value}
-                      options={employmentStatusOptions}
-                      onChange={onChange}
-                      error={errors.employmentStatus?.message}
+                        label={t("profile.household.add.fields.employmentStatus")}
+                        title={t("profile.household.add.fields.employmentStatus")}
+                        value={value}
+                        options={employmentStatusOptions}
+                        onChange={onChange}
+                        error={errors.employmentStatus?.message}
                     />
                 )}
-              />
+            />
 
-              {/* Occupation */}
-              {showOccupation && (
-                  <Controller
+            {/* Occupation */}
+            {showOccupation && (
+                <Controller
                     control={control}
                     name="occupation"
                     render={({ field: { onChange, onBlur, value } }) => (
                         <Input
-                          label={t("profile.household.add.fields.occupation")}
-                          value={value}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          error={errors.occupation?.message}
+                            label={t("profile.household.add.fields.occupation")}
+                            value={value}
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            error={errors.occupation?.message}
                         />
                     )}
-                  />
-              )}
+                />
+            )}
 
-              {/* Monthly Income */}
-              <Controller
+            {/* Monthly Income */}
+            <Controller
                 control={control}
                 name="monthlyIncome"
                 render={({ field: { onChange, onBlur, value } }) => (
                     <Input
-                      label={t("profile.household.add.fields.monthlyIncome")}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      error={errors.monthlyIncome?.message}
-                      keyboardType="decimal-pad"
+                        label={t("profile.household.add.fields.monthlyIncome")}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.monthlyIncome?.message}
+                        keyboardType="decimal-pad"
                     />
                 )}
-              />
-            </View>
-          </Section>
+            />
 
-          {/* Education */}
-          <Section title={t("profile.household.add.sections.education")}>
-            <View className="gap-6">
-              {/* Student Status */}
-              <Controller
+            {/* Student Status */}
+            <Controller
                 control={control}
                 name="isStudent"
                 render={({ field: { onChange, value } }) => (
                     <Select
-                      label={t("profile.household.add.fields.isStudent")}
-                      title={t("profile.household.add.fields.isStudent")}
-                      value={toYesNoValue(value)}
-                      options={yesNoOptions}
-                      onChange={(selected) => onChange(fromYesNoValue(selected))}
-                      error={errors.isStudent?.message}
+                        label={t("profile.household.add.fields.isStudent")}
+                        title={t("profile.household.add.fields.isStudent")}
+                        value={toYesNoValue(value)}
+                        options={yesNoOptions}
+                        onChange={(selected) => onChange(fromYesNoValue(selected))}
+                        error={errors.isStudent?.message}
                     />
                 )}
-              />
+            />
 
-              {/* Student Mode */}
-              {showEducationFields && (
-                  <>
-                    <Controller
+            {/* Student Mode */}
+            {showEducationFields && (
+                <>
+                  <Controller
                       control={control}
                       name="studyMode"
                       render={({ field: { onChange, value } }) => (
                           <Select
-                            label={t("profile.household.add.fields.studyMode")}
-                            title={t("profile.household.add.fields.studyMode")}
-                            value={value}
-                            options={studyModeOptions}
-                            onChange={onChange}
-                            error={errors.studyMode?.message}
+                              label={t("profile.household.add.fields.studyMode")}
+                              title={t("profile.household.add.fields.studyMode")}
+                              value={value}
+                              options={studyModeOptions}
+                              onChange={onChange}
+                              error={errors.studyMode?.message}
+                              required
                           />
                       )}
-                    />
+                  />
 
-                    {/* Institution Type */}
-                    <Controller
+                  {/* Institution Type */}
+                  <Controller
                       control={control}
                       name="institutionType"
                       render={({ field: { onChange, value } }) => (
                           <Select
-                            label={t("profile.household.add.fields.institutionType")}
-                            title={t("profile.household.add.fields.institutionType")}
-                            value={value}
-                            options={institutionTypeOptions}
-                            onChange={onChange}
-                            error={errors.institutionType?.message}
+                              label={t("profile.household.add.fields.institutionType")}
+                              title={t("profile.household.add.fields.institutionType")}
+                              value={value}
+                              options={institutionTypeOptions}
+                              onChange={onChange}
+                              error={errors.institutionType?.message}
+                              required
                           />
                       )}
-                    />
-                  </>
-              )}
-            </View>
-          </Section>
+                  />
+                </>
+            )}
+          </View>
 
           {/* Disability / OKU */}
-          <Section title={t("profile.household.add.sections.disability")}>
-            <View className="gap-6">
-              {/* OKU Status */}
-              <Controller
+          <View className="gap-6">
+            <Text className="text-lg font-semibold text-foreground">
+              {t("profile.household.add.sections.disability")}
+            </Text>
+
+            {/* OKU Status */}
+            <Controller
                 control={control}
                 name="isOku"
                 render={({ field: { onChange, value } }) => (
                     <Select
-                      label={t("profile.household.add.fields.isOku")}
-                      title={t("profile.household.add.fields.isOku")}
-                      value={toYesNoValue(value)}
-                      options={yesNoOptions}
-                      onChange={(selected) => onChange(fromYesNoValue(selected))}
-                      error={errors.isOku?.message}
+                        label={t("profile.household.add.fields.isOku")}
+                        title={t("profile.household.add.fields.isOku")}
+                        value={toYesNoValue(value)}
+                        options={requiredYesNoOptions}
+                        onChange={(selected) => onChange(fromYesNoValue(selected))}
+                        error={errors.isOku?.message}
+                        required
                     />
                 )}
-              />
+            />
 
-              {/* OKU Registration */}
-              {showOkuRegistration && (
-                  <Controller
+            {/* OKU Registration */}
+            {showOkuRegistration && (
+                <Controller
                     control={control}
                     name="okuRegistered"
                     render={({ field: { onChange, value } }) => (
                         <Select
-                          label={t("profile.household.add.fields.okuRegistered")}
-                          title={t("profile.household.add.fields.okuRegistered")}
-                          value={toYesNoValue(value)}
-                          options={yesNoOptions}
-                          onChange={(selected) => onChange(fromYesNoValue(selected))}
-                          error={errors.okuRegistered?.message}
+                            label={t("profile.household.add.fields.okuRegistered")}
+                            title={t("profile.household.add.fields.okuRegistered")}
+                            value={toYesNoValue(value)}
+                            options={requiredYesNoOptions}
+                            onChange={(selected) => onChange(fromYesNoValue(selected))}
+                            error={errors.okuRegistered?.message}
+                            required
                         />
                     )}
-                  />
-              )}
-            </View>
-          </Section>
+                />
+            )}
+          </View>
 
           <Button
               fullWidth
@@ -707,6 +756,7 @@ export default function AddHouseholdMemberScreen({
           </Button>
         </View>
 
+        {/* Error Alert */}
         <AlertDialog
             visible={error}
             variant="error"
@@ -715,6 +765,20 @@ export default function AddHouseholdMemberScreen({
             confirmText={t("common.ok")}
             onConfirm={() => setError(false)}
             onDismiss={() => setError(false)}
+        />
+
+        {/* Discard Alert */}
+        <AlertDialog
+            visible={showDiscardDialog}
+            variant="warning"
+            confirmVariant="destructive"
+            title={t("common.discardChanges.title")}
+            message={t("common.discardChanges.message")}
+            confirmText={t("common.discard")}
+            cancelText={t("common.keepEditing")}
+            onConfirm={handleDiscard}
+            onCancel={handleKeepEditing}
+            onDismiss={handleKeepEditing}
         />
       </Screen>
   );
