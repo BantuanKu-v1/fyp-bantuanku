@@ -5,7 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import { CitizenshipValue } from "../../../constants/registration";
-import { formatMyKad, getDobFromMyKad } from "../../../lib/myKad";
+import { formatMyKad, getDobFromMyKad } from "../../../utils/myKad";
 
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";

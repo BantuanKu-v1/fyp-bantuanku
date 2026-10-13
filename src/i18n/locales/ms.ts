@@ -15,6 +15,10 @@ const ms = {
       discard: "Buang",
       keepEditing: "Teruskan mengedit",
 
+      retry: "Cuba Lagi",
+      error: "Sesuatu telah berlaku",
+      errorDescription: "Kami tidak dapat memuatkan maklumat ini. Sila cuba lagi.",
+
       yes: "Ya",
       no: "Tidak",
       notProvided: "Tidak dinyatakan",
@@ -185,6 +189,7 @@ const ms = {
             selfEmployed: "Bekerja sendiri",
             unemployed: "Menganggur",
             retired: "Bersara",
+            homemaker: "Suri rumah",
             notWorking: "Tidak bekerja",
           },
 
@@ -295,7 +300,7 @@ const ms = {
       sections: {
         personal: "Peribadi",
         householdFinancial: "Isi Rumah & Kewangan",
-        contactResidence: "Hubungan & Tempat Tinggal",
+        residence: "Tempat Tinggal",
         preferences: "Keutamaan",
         account: "Akaun",
       },
@@ -332,11 +337,17 @@ const ms = {
 
         members: "Ahli Isi Rumah",
         addMember: "Tambah Ahli Isi Rumah",
+        editMember: "Edit Ahli Isi Rumah",
         notProvided: "Tidak dinyatakan",
 
         empty: {
           title: "Tiada Ahli Isi Rumah",
           description: "Tambah individu yang tinggal dalam isi rumah yang sama dengan anda.",
+        },
+
+        loadError: {
+          title: "Tidak Dapat Memuatkan Maklumat Ahli Isi Rumah",
+          description: "Kami tidak dapat memuatkan maklumat ahli isi rumah ini. Sila cuba lagi.",
         },
 
         relationship: {
@@ -388,10 +399,10 @@ const ms = {
 
             employed: "Bekerja",
             selfEmployed: "Bekerja Sendiri",
-            unemployed: "Tidak Bekerja",
-            student: "Pelajar",
+            unemployed: "Menganggur",
             retired: "Bersara",
             homemaker: "Suri Rumah",
+            notWorking: "Tidak bekerja",
 
             fullTime: "Sepenuh Masa",
             partTime: "Separuh Masa",
@@ -404,6 +415,11 @@ const ms = {
 
           errorTitle: "Gagal Menambah Ahli Isi Rumah",
           errorDescription: "Kami tidak dapat menyimpan maklumat ahli isi rumah ini. Sila cuba lagi.",
+        },
+
+        edit: {
+          errorTitle: "Gagal Mengemas Kini Ahli Isi Rumah",
+          errorDescription: "Kami tidak dapat mengemas kini maklumat ahli isi rumah ini. Sila cuba lagi.",
         },
       },
 

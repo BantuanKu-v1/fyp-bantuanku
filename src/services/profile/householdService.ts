@@ -27,6 +27,7 @@ export type HouseholdMember = {
   okuRegistered: boolean | null;
 };
 
+// Retrieve a summary of all household members for the household list
 export const getHouseholdMembers =
     async (): Promise<HouseholdMemberSummary[]> => {
       const profileId = await getCurrentProfileId();
@@ -59,6 +60,7 @@ export const getHouseholdMembers =
       }));
     };
 
+// Retrieve the full details of a specific household member by ID
 export const getHouseholdMember =
     async (
         memberId: string
@@ -195,3 +197,66 @@ export const createHouseholdMember =
 
   return data.id;
 };
+
+export const updateHouseholdMember =
+    async (
+        memberId: string,
+        input: CreateHouseholdMemberInput
+    ): Promise<void> => {
+      const profileId = await getCurrentProfileId();
+
+      const year = input.dateOfBirth.getFullYear();
+      const month = String(input.dateOfBirth.getMonth() + 1).padStart(2, "0");
+      const day = String(input.dateOfBirth.getDate()).padStart(2, "0");
+
+      const {
+        data,
+        error
+      } = await supabase
+          .from("household_members")
+          .update({
+            full_name: input.fullName.trim(),
+            identification_no: input.identificationNumber.trim() || null,
+            relationship: input.relationship,
+            date_of_birth: `${year}-${month}-${day}`,
+            gender: input.gender || null,
+            citizenship: input.citizenship || null,
+            is_dependent: input.isDependent,
+            employment_status: input.employmentStatus || null,
+            occupation:
+                input.employmentStatus === "employed" ||
+                input.employmentStatus === "self_employed"
+                    ? input.occupation.trim() || null
+                    : null,
+            monthly_income:
+                input.monthlyIncome.trim() === ""
+                    ? null
+                    : Number(input.monthlyIncome),
+            is_student: input.isStudent,
+            study_mode:
+                input.isStudent === true
+                    ? input.studyMode || null
+                    : null,
+            institution_type:
+                input.isStudent === true
+                    ? input.institutionType || null
+                    : null,
+            is_oku: input.isOku,
+            oku_registered:
+                input.isOku === true
+                    ? input.okuRegistered
+                    : null
+          })
+          .eq("id", memberId)
+          .eq("profile_id", profileId)
+          .select("id")
+          .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error("Household member not found or update not permitted.");
+      }
+    };

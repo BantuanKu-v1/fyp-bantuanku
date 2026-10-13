@@ -23,6 +23,9 @@ export type ProfileStackParamList = {
   HouseholdMember: {
     memberId: string;
   };
+  EditHouseholdMember: {
+    memberId: string;
+  }
   AddHouseholdMember: undefined;
   ResidentialAddress: undefined;
 };

@@ -6,7 +6,7 @@ import {
   HOUSEHOLD_RELATIONSHIP_VALUES,
   MYKAD_BIRTHPLACE_CODES
 } from "../constants/registration";
-import { getDobFromMyKad } from "../lib/myKad";
+import { getDobFromMyKad } from "../utils/myKad";
 
 export const householdMemberSchema = (t: TFunction) => z.object({
   fullName: z

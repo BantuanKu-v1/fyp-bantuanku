@@ -15,6 +15,10 @@ const zh = {
       discard: "放弃",
       keepEditing: "继续编辑",
 
+      retry: "重试",
+      error: "发生错误",
+      errorDescription: "无法加载此信息，请重试。",
+
       yes: "是",
       no: "否",
       notProvided: "未提供",
@@ -186,6 +190,7 @@ const zh = {
             selfEmployed: "自雇",
             unemployed: "失业",
             retired: "退休",
+            homemaker: "家庭主妇／主夫",
             notWorking: "没有工作",
           },
 
@@ -299,7 +304,7 @@ const zh = {
       sections: {
         personal: "个人",
         householdFinancial: "家庭与财务",
-        contactResidence: "联系与住址",
+        residence: "住址",
         preferences: "偏好设置",
         account: "账户",
       },
@@ -336,11 +341,17 @@ const zh = {
 
         members: "家庭成员",
         addMember: "添加家庭成员",
+        editMember: "编辑家庭成员",
         notProvided: "未提供",
 
         empty: {
           title: "暂无家庭成员",
           description: "添加与您居住在同一家庭的成员。",
+        },
+
+        loadError: {
+          title: "无法加载家庭成员资料",
+          description: "无法加载此家庭成员的资料，请重试。",
         },
 
         relationship: {
@@ -392,10 +403,10 @@ const zh = {
 
             employed: "受雇",
             selfEmployed: "自雇",
-            unemployed: "未就业",
-            student: "学生",
+            unemployed: "失业",
             retired: "退休",
-            homemaker: "家庭主妇 / 主夫",
+            homemaker: "家庭主妇／主夫",
+            notWorking: "没有工作",
 
             fullTime: "全日制",
             partTime: "非全日制",
@@ -408,6 +419,11 @@ const zh = {
 
           errorTitle: "无法添加家庭成员",
           errorDescription: "无法保存该家庭成员的资料，请重试。",
+        },
+
+        edit: {
+          errorTitle: "无法更新家庭成员",
+          errorDescription: "无法更新该家庭成员的资料，请重试。",
         },
       },
 
@@ -492,6 +508,7 @@ const zh = {
 
       householdMemberNameRequired: "请输入家庭成员姓名。",
       relationshipRequired: "请选择与援助领取者的关系。",
+
       householdMemberDobRequired: "请输入家庭成员的出生日期。",
 
       identificationNumberInvalid: "请输入有效的身份证明号码。",

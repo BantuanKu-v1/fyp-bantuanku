@@ -52,6 +52,7 @@ export const EMPLOYMENT_STATUS_VALUES = [
   "self_employed",
   "unemployed",
   "retired",
+  "homemaker",
   "not_working",
 ] as const;
 

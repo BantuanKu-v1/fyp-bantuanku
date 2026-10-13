@@ -6,6 +6,9 @@ import { BriefcaseBusiness, ChevronRight, Globe2, House, UserRound, UsersRound }
 import { useTranslation } from "react-i18next";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../types/tabNavigator";
+import {SupportedLanguage} from "../../i18n/types";
+import {changeLanguage} from "../../i18n";
+import { useFocusEffect } from "@react-navigation/native";
 
 import Screen from "../../components/layout/Screen";
 import ScreenHeader from "../../components/layout/ScreenHeader";
@@ -13,10 +16,8 @@ import Button from "../../components/ui/Button";
 import Section from "../../components/layout/Section";
 import Card from "../../components/ui/Card";
 import Modal from "../../components/ui/Modal";
-import {SupportedLanguage} from "../../i18n/types";
-import {changeLanguage} from "../../i18n";
 import AlertDialog from "../../components/ui/AlertDialog";
-import {useFocusEffect} from "@react-navigation/native";
+import ErrorState from "../../components/feedback/ErrorState";
 
 type ProfileRowProps = {
   icon: typeof UserRound;
@@ -179,6 +180,7 @@ export default function ProfileScreen({
       self_employed: "selfEmployed",
       unemployed: "unemployed",
       retired: "retired",
+      homemaker: "homemaker",
       not_working: "notWorking",
     };
 
@@ -315,26 +317,15 @@ export default function ProfileScreen({
               description={t("profile.description")}
           />
 
-          <View className="mt-8">
-            <Text className="text-base font-medium text-foreground">
-              {t("profile.errors.loadTitle")}
-            </Text>
-
-            <Text className="mt-2 text-sm text-muted-foreground">
-              {t("profile.errors.loadDescription")}
-            </Text>
-
-            <Button
-              variant="outline"
-              onPress={() => {
-                setLoading(true);
-                void loadProfile();
-              }}
-              className="mt-4"
-            >
-              {t("profile.errors.tryAgain")}
-            </Button>
-          </View>
+          <ErrorState
+            className="mt-8"
+            title={t("profile.errors.loadTitle")}
+            description={t("profile.errors.loadDescription")}
+            onRetry={() => {
+              setLoading(true);
+              void loadProfile();
+            }}
+          />
         </Screen>
     );
   }
@@ -399,9 +390,9 @@ export default function ProfileScreen({
           </Card>
         </Section>
 
-        {/* Contact and Residence */}
+        {/* Residence */}
         <Section
-            title={t("profile.sections.contactResidence")}
+            title={t("profile.sections.residence")}
             className="mt-8"
         >
           <Card padding="none">

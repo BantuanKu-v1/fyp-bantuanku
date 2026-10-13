@@ -7,7 +7,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { STATE_TERRITORY_MAP, StateTerritoryValue } from "../constants/registration";
 import { SupportedLanguage } from "../i18n/types";
-import { getGenderFromMyKad } from "../lib/myKad";
+import { getGenderFromMyKad } from "../utils/myKad";
 
 type CompleteRegistrationData = {
   account: RegisterFormData;

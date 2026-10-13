@@ -15,6 +15,10 @@ const en = {
       discard: "Discard",
       keepEditing: "Keep Editing",
 
+      retry: "Try Again",
+      error: "Something went wrong",
+      errorDescription: "We couldn't load this information. Please try again.",
+
       yes: "Yes",
       no: "No",
       notProvided: "Not provided",
@@ -185,6 +189,7 @@ const en = {
             selfEmployed: "Self-employed",
             unemployed: "Unemployed",
             retired: "Retired",
+            homemaker: "Homemaker",
             notWorking: "Not working",
           },
 
@@ -294,7 +299,7 @@ const en = {
       sections: {
         personal: "Personal",
         householdFinancial: "Household & Financial",
-        contactResidence: "Contact & Residence",
+        residence: "Residence",
         preferences: "Preferences",
         account: "Account",
       },
@@ -331,11 +336,17 @@ const en = {
 
         members: "Household Members",
         addMember: "Add Household Member",
+        editMember: "Edit Household Member",
         notProvided: "Not provided",
 
         empty: {
           title: "No Household Members",
           description: "Add people who live in the same household as you.",
+        },
+
+        loadError: {
+          title: "Unable to Load Household Member",
+          description: "We couldn't load this household member's information. Please try again.",
         },
 
         relationship: {
@@ -386,10 +397,10 @@ const en = {
 
             employed: "Employed",
             selfEmployed: "Self-employed",
-            unemployed: "Not Employed",
-            student: "Student",
+            unemployed: "Unemployed",
             retired: "Retired",
             homemaker: "Homemaker",
+            notWorking: "Not working",
 
             fullTime: "Full-time",
             partTime: "Part-time",
@@ -402,6 +413,11 @@ const en = {
 
           errorTitle: "Unable to Add Household Member",
           errorDescription: "We couldn't save this household member. Please try again.",
+        },
+
+        edit: {
+          errorTitle: "Unable to Update Household Member",
+          errorDescription: "We couldn't update this household member. Please try again.",
         },
       },
 
