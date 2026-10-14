@@ -2,12 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import { getProfileOverview, ProfileOverview, updatePreferredLanguage } from "../../services/profile/profileService";
 import { supabase } from "../../lib/supabase";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import { BriefcaseBusiness, ChevronRight, Globe2, House, UserRound, UsersRound } from "lucide-react-native";
+import { ChevronRight, Globe2, House, UserRound, UsersRound } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../types/tabNavigator";
-import {SupportedLanguage} from "../../i18n/types";
-import {changeLanguage} from "../../i18n";
+import { SupportedLanguage } from "../../i18n/types";
+import { changeLanguage } from "../../i18n";
 import { useFocusEffect } from "@react-navigation/native";
 
 import Screen from "../../components/layout/Screen";
@@ -169,29 +169,6 @@ export default function ProfileScreen({
         }
     );
   };
-
-  const getEmploymentStatus = () => {
-    if (!profile?.employmentStatus) {
-      return t("profile.incomeEmployment.noInformation");
-    }
-
-    const statusKeys: Record<string, string> = {
-      employed: "employed",
-      self_employed: "selfEmployed",
-      unemployed: "unemployed",
-      retired: "retired",
-      homemaker: "homemaker",
-      not_working: "notWorking",
-    };
-
-    const statusKey = statusKeys[profile.employmentStatus];
-
-    if (!statusKey) {
-      return t("profile.incomeEmployment.noInformation");
-    }
-
-    return t(`profile.incomeEmployment.status.${statusKey}`);
-  }
 
   const getLanguageLabel = () => {
     switch (profile?.preferredLanguage) {
@@ -368,9 +345,9 @@ export default function ProfileScreen({
           </Card>
         </Section>
 
-        {/* Household and Financial */}
+        {/* Household */}
         <Section
-            title={t("profile.sections.householdFinancial")}
+            title={t("profile.sections.household")}
             className="mt-8"
         >
           <Card padding="none">
@@ -379,13 +356,6 @@ export default function ProfileScreen({
               title={t("profile.household.title")}
               description={getHouseholdDescription()}
               onPress={() => navigation.navigate("Household")}
-              showDivider
-            />
-
-            <ProfileRow
-              icon={BriefcaseBusiness}
-              title={t("profile.incomeEmployment.title")}
-              description={getEmploymentStatus()}
             />
           </Card>
         </Section>
