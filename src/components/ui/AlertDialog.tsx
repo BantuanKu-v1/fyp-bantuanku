@@ -134,34 +134,18 @@ export default function AlertDialog({
               </View>
 
               <View className="mt-6 gap-3">
-                {confirmVariant === "destructive" ? (
-                    <Pressable
-                      className={`
-                        min-h-12
-                        items-center
-                        justify-center
-                        rounded-xl
-                        bg-error
-                        px-4
-                        ${loading ? "opacity-50" : ""}
-                      `}
-                      onPress={onConfirm}
-                      disabled={loading}
-                      accessibilityRole="button"
-                    >
-                      <Text className="text-base font-semibold text-white">
-                        {confirmText}
-                      </Text>
-                    </Pressable>
-                ) : (
-                    <Button
-                      fullWidth
-                      onPress={onConfirm}
-                      disabled={loading}
-                    >
-                      {confirmText}
-                    </Button>
-                )}
+                <Button
+                    variant={
+                      confirmVariant === "destructive"
+                          ? "destructive"
+                          : "primary"
+                    }
+                    fullWidth
+                    onPress={onConfirm}
+                    loading={loading}
+                >
+                  {confirmText}
+                </Button>
 
                 {cancelText && onCancel && (
                     <Pressable

@@ -11,11 +11,25 @@ const en = {
       complete: "Complete",
       edit: "Edit",
       save: "Save",
+      saving: "Saving...",
       discard: "Discard",
       keepEditing: "Keep Editing",
 
+      retry: "Try Again",
+      error: "Something went wrong",
+      errorDescription: "We couldn't load this information. Please try again.",
+
+      yes: "Yes",
+      no: "No",
+      notProvided: "Not provided",
+
       selectDate: "Select a date",
       selectOption: "Select an option",
+
+      discardChanges: {
+        title: "Discard changes?",
+        message: "You have unsaved changes. If you leave now, your changes will be lost.",
+      },
     },
 
     language: {
@@ -159,8 +173,8 @@ const en = {
           stateTerritory: "State / Federal Territory",
           selectStateTerritory: "Select state or Federal Territory",
 
-          "locationAutoHelper": "City and state are automatically filled based on your postcode.",
-          "locationManualHelper": "We couldn't retrieve your location. Please enter your city and state manually."
+          locationAutoHelper: "City and state are automatically filled based on your postcode.",
+          locationManualHelper: "We couldn't retrieve your location. Please enter your city and state manually.",
         },
 
         householdIncome: {
@@ -175,6 +189,7 @@ const en = {
             selfEmployed: "Self-employed",
             unemployed: "Unemployed",
             retired: "Retired",
+            homemaker: "Homemaker",
             notWorking: "Not working",
           },
 
@@ -283,8 +298,8 @@ const en = {
 
       sections: {
         personal: "Personal",
-        householdFinancial: "Household & Financial",
-        contactResidence: "Contact & Residence",
+        household: "Household",
+        residence: "Residence",
         preferences: "Preferences",
         account: "Account",
       },
@@ -309,13 +324,17 @@ const en = {
         malaysian: "Malaysian",
         nonMalaysian: "Non-Malaysian",
 
-        notProvided: "Not provided",
-        updateFailed: "Unable to update your mobile number. Please try again.",
+        maritalStatus: "Marital Status",
+        homePhone: "Home Phone",
 
-        discardChanges: {
-          title: "Discard changes?",
-          message: "Your changes will not be saved.",
-        },
+        personalCircumstances: "Personal Circumstances",
+        financialInformation: "Financial Information",
+        studentStatus: "Student Status",
+        okuStatus: "OKU Status",
+
+        updateCircumstancesFailed: "Unable to update your personal circumstances. Please try again.",
+        updateFinancialFailed: "Unable to update your financial information. Please try again.",
+        updateHomePhoneFailed: "Unable to update your home phone number. Please try again.",
       },
 
       household: {
@@ -323,6 +342,94 @@ const en = {
         youOnly: "You only",
         oneMember: "You + 1 household member",
         multipleMembers: "You + {{count}} household members",
+
+        members: "Household Members",
+        addMember: "Add Household Member",
+        editMember: "Edit Household Member",
+        completeInformation: "Complete missing information",
+        missingInformation: "Missing",
+        moreFields: "+{{count}} more",
+
+        empty: {
+          title: "No Household Members",
+          description: "Add people who live in the same household as you.",
+        },
+
+        loadError: {
+          title: "Unable to Load Household Member",
+          description: "We couldn't load this household member's information. Please try again.",
+        },
+
+        relationship: {
+          spouse: "Spouse",
+          child: "Child",
+          parent: "Parent",
+          sibling: "Sibling",
+          grandchild: "Grandchild",
+          other: "Other",
+        },
+
+        member: {
+          fullName: "Full Name",
+          relationship: "Relationship",
+          dateOfBirth: "Date of Birth",
+        },
+
+        add: {
+          selectRelationship: "Select relationship",
+
+          sections: {
+            basicInformation: "Basic Information",
+            employmentIncome: "Employment & Education",
+            education: "Education",
+            disability: "Disability / OKU",
+          },
+
+          fields: {
+            citizenship: "Citizenship",
+            identificationNumber: "IC / Identification Number",
+            gender: "Gender",
+            isDependent: "Is this person financially dependent on you?",
+            employmentStatus: "Employment Status",
+            occupation: "Occupation",
+            monthlyIncome: "Monthly Income (RM)",
+            isStudent: "Is this person currently a student?",
+            studyMode: "Study Mode",
+            institutionType: "Institution Type",
+            isOku: "Is this person a Person with Disabilities (OKU)?",
+            okuRegistered: "Is this person registered as OKU?",
+          },
+
+          options: {
+            male: "Male",
+            female: "Female",
+            malaysian: "Malaysian",
+            nonMalaysian: "Non-Malaysian",
+
+            employed: "Employed",
+            selfEmployed: "Self-employed",
+            unemployed: "Unemployed",
+            retired: "Retired",
+            homemaker: "Homemaker",
+            notWorking: "Not working",
+
+            fullTime: "Full-time",
+            partTime: "Part-time",
+
+            school: "School",
+            college: "College",
+            university: "University",
+            other: "Other",
+          },
+
+          errorTitle: "Unable to Add Household Member",
+          errorDescription: "We couldn't save this household member. Please try again.",
+        },
+
+        edit: {
+          errorTitle: "Unable to Update Household Member",
+          errorDescription: "We couldn't update this household member. Please try again.",
+        },
       },
 
       incomeEmployment: {
@@ -341,14 +448,19 @@ const en = {
       residentialAddress: {
         title: "Residential Address",
         noAddress: "No address provided",
+        country: "Country",
       },
 
       language: {
         title: "Language",
+
+        selectLanguageTitle: "Select Language",
+        selectLanguageDescription: "Choose the language you would like to use.",
       },
 
       account: {
         signOut: "Sign Out",
+        signOutDescription: "Are you sure you want to sign out of your account?",
       },
 
       errors: {
@@ -359,6 +471,8 @@ const en = {
     },
 
     validation: {
+      required: "This field is required.",
+
       emailRequired: "Email is required.",
       emailInvalid: "Enter a valid email address.",
 
@@ -374,6 +488,8 @@ const en = {
       myKadNumberInvalid: "Enter a valid IC number.",
 
       dateOfBirthRequired: "Date of birth is required.",
+      dateOfBirthInvalid: "Enter a valid date of birth.",
+      dateOfBirthMismatch: "Date of birth does not match the IC number.",
 
       citizenshipRequired: "Citizenship is required.",
 
@@ -397,8 +513,9 @@ const en = {
 
       householdMemberNameRequired: "Household member's name is required.",
       relationshipRequired: "Relationship is required.",
-
       householdMemberDobRequired: "Household member's date of birth is required.",
+
+      identificationNumberInvalid: "Enter a valid identification number.",
     },
   },
 };

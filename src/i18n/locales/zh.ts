@@ -11,11 +11,25 @@ const zh = {
       complete: "完成",
       edit: "编辑",
       save: "保存",
+      saving: "正在保存...",
       discard: "放弃",
       keepEditing: "继续编辑",
 
+      retry: "重试",
+      error: "发生错误",
+      errorDescription: "无法加载此信息，请重试。",
+
+      yes: "是",
+      no: "否",
+      notProvided: "未提供",
+
       selectDate: "选择日期",
       selectOption: "请选择",
+
+      discardChanges: {
+        title: "放弃更改？",
+        message: "您有尚未保存的更改。如果现在离开，这些更改将会丢失。",
+      },
     },
 
     language: {
@@ -160,8 +174,8 @@ const zh = {
           stateTerritory: "州属／联邦直辖区",
           selectStateTerritory: "选择州属或联邦直辖区",
 
-          "locationAutoHelper": "城市和州属将根据您的邮政编码自动填写。",
-          "locationManualHelper": "无法获取您的位置信息，请手动填写城市和州属。"
+          locationAutoHelper: "城市和州属将根据您的邮政编码自动填写。",
+          locationManualHelper: "无法获取您的位置信息，请手动填写城市和州属。"
         },
 
         householdIncome: {
@@ -176,6 +190,7 @@ const zh = {
             selfEmployed: "自雇",
             unemployed: "失业",
             retired: "退休",
+            homemaker: "家庭主妇／主夫",
             notWorking: "没有工作",
           },
 
@@ -288,8 +303,8 @@ const zh = {
 
       sections: {
         personal: "个人",
-        householdFinancial: "家庭与财务",
-        contactResidence: "联系与住址",
+        household: "家庭",
+        residence: "住址",
         preferences: "偏好设置",
         account: "账户",
       },
@@ -314,13 +329,18 @@ const zh = {
         malaysian: "马来西亚公民",
         nonMalaysian: "非马来西亚公民",
 
-        notProvided: "未提供",
-        updateFailed: "无法更新您的手机号码，请重试。",
+        maritalStatus: "婚姻状况",
+        homePhone: "住宅电话",
 
-        discardChanges: {
-          title: "放弃更改？",
-          message: "您所做的更改将不会被保存。",
-        },
+        personalCircumstances: "个人情况",
+        financialInformation: "财务信息",
+        studentStatus: "学生身份",
+        okuStatus: "残障人士（OKU）身份",
+
+        updateFailed: "无法更新您的手机号码，请重试。",
+        updateCircumstancesFailed: "无法更新个人情况，请重试。",
+        updateFinancialFailed: "无法更新财务信息，请重试。",
+        updateHomePhoneFailed: "无法更新住宅电话号码，请重试。",
       },
 
       household: {
@@ -328,6 +348,95 @@ const zh = {
         youOnly: "仅您一人",
         oneMember: "您 + 1 位家庭成员",
         multipleMembers: "您 + {{count}} 位家庭成员",
+
+        members: "家庭成员",
+        addMember: "添加家庭成员",
+        editMember: "编辑家庭成员",
+        completeInformation: "补充缺失资料",
+        missingInformation: "缺少",
+        moreFields: "另有 {{count}} 项",
+
+        empty: {
+          title: "暂无家庭成员",
+          description: "添加与您居住在同一家庭的成员。",
+        },
+
+        loadError: {
+          title: "无法加载家庭成员资料",
+          description: "无法加载此家庭成员的资料，请重试。",
+        },
+
+        relationship: {
+          spouse: "配偶",
+          child: "子女",
+          parent: "父母",
+          sibling: "兄弟姐妹",
+          grandchild: "孙子女 / 外孙子女",
+          other: "其他",
+        },
+
+        member: {
+          fullName: "姓名",
+          relationship: "关系",
+          dateOfBirth: "出生日期",
+        },
+
+        add: {
+          selectRelationship: "选择关系",
+
+          sections: {
+            basicInformation: "基本资料",
+            employmentIncome: "就业与教育",
+            education: "教育",
+            disability: "残障 / OKU",
+          },
+
+          fields: {
+            citizenship: "国籍",
+            identificationNumber: "身份证明号码",
+            gender: "性别",
+            isDependent: "此人在经济上是否依赖您？",
+            employmentStatus: "就业状况",
+            occupation: "职业",
+            monthlyIncome: "每月收入（RM）",
+            isStudent: "此人是否为学生？",
+            studyMode: "学习模式",
+            institutionType: "教育机构类型",
+            isOku: "此人是否为残障人士（OKU）？",
+            okuRegistered: "此人是否已注册为残障人士（OKU）？",
+          },
+
+          options: {
+            male: "男",
+            female: "女",
+
+            malaysian: "马来西亚公民",
+            nonMalaysian: "非马来西亚公民",
+
+            employed: "受雇",
+            selfEmployed: "自雇",
+            unemployed: "失业",
+            retired: "退休",
+            homemaker: "家庭主妇／主夫",
+            notWorking: "没有工作",
+
+            fullTime: "全日制",
+            partTime: "非全日制",
+
+            school: "学校",
+            college: "学院",
+            university: "大学",
+            other: "其他",
+          },
+
+          errorTitle: "无法添加家庭成员",
+          errorDescription: "无法保存该家庭成员的资料，请重试。",
+        },
+
+        edit: {
+          errorTitle: "无法更新家庭成员",
+          errorDescription: "无法更新该家庭成员的资料，请重试。",
+        },
       },
 
       incomeEmployment: {
@@ -346,14 +455,19 @@ const zh = {
       residentialAddress: {
         title: "居住地址",
         noAddress: "尚未提供地址",
+        country: "国家",
       },
 
       language: {
         title: "语言",
+
+        selectLanguageTitle: "选择语言",
+        selectLanguageDescription: "选择您想使用的语言。"
       },
 
       account: {
         signOut: "退出登录",
+        signOutDescription: "确定要退出当前账户吗？"
       },
 
       errors: {
@@ -364,6 +478,8 @@ const zh = {
     },
 
     validation: {
+      required: "此项为必填项。",
+
       emailRequired: "请输入电子邮箱。",
       emailInvalid: "请输入有效的电子邮箱地址。",
 
@@ -379,6 +495,8 @@ const zh = {
       myKadNumberInvalid: "请输入有效的身份证号码。",
 
       dateOfBirthRequired: "请选择出生日期。",
+      dateOfBirthInvalid: "请输入有效的出生日期。",
+      dateOfBirthMismatch: "出生日期与身份证号码不一致。",
 
       citizenshipRequired: "请选择国籍。",
 
@@ -404,6 +522,8 @@ const zh = {
       relationshipRequired: "请选择与援助领取者的关系。",
 
       householdMemberDobRequired: "请输入家庭成员的出生日期。",
+
+      identificationNumberInvalid: "请输入有效的身份证明号码。",
     },
   },
 };

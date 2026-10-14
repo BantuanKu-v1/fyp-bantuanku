@@ -1,11 +1,11 @@
-import {useTranslation} from "react-i18next";
-import {useAuth} from "../../../contexts/AuthContext";
-import {useEffect, useMemo, useState} from "react";
-import {ResetPasswordFormData, resetPasswordSchema} from "../../../schemas/auth";
-import {Controller, useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {supabase} from "../../../lib/supabase";
-import {KeyboardAvoidingView, Platform, Text, View} from "react-native";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useEffect, useMemo, useState } from "react";
+import { ResetPasswordFormData, resetPasswordSchema } from "../../../schemas/auth";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "../../../lib/supabase";
+import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 
 import AuthBackground from "../../../components/auth/AuthBackground";
 import Screen from "../../../components/layout/Screen";

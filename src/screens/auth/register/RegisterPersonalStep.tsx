@@ -1,11 +1,11 @@
-import { RegisterPersonalFormData, registerPersonalSchema } from "../../../schemas/auth";
+import { RegisterPersonalFormData, registerPersonalSchema } from "../../../schemas/registration";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import { CitizenshipValue } from "../../../constants/registration";
-import { getDobFromMyKad } from "../../../lib/myKad";
+import { formatMyKad, getDobFromMyKad } from "../../../utils/myKad";
 
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
@@ -18,20 +18,6 @@ type RegisterPersonalStepProps = {
   onBack: () => void;
   onContinue: (data: RegisterPersonalFormData) => void;
   myKadError?: string;
-};
-
-const formatMyKad = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 12);
-
-  if (digits.length <= 6) {
-    return digits;
-  }
-
-  if (digits.length <= 8) {
-    return `${digits.slice(0, 6)}-${digits.slice(6)}`;
-  }
-
-  return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
 };
 
 const formatMobileNumber = (value: string) => {

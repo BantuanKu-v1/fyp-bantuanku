@@ -10,12 +10,26 @@ const ms = {
       remove: "Buang",
       complete: "Selesai",
       edit: "Edit",
-      save: "Simpan", // TBC
+      save: "Simpan",
+      saving: "Menyimpan",
       discard: "Buang",
       keepEditing: "Teruskan mengedit",
 
+      retry: "Cuba Lagi",
+      error: "Sesuatu telah berlaku",
+      errorDescription: "Kami tidak dapat memuatkan maklumat ini. Sila cuba lagi.",
+
+      yes: "Ya",
+      no: "Tidak",
+      notProvided: "Tidak dinyatakan",
+
       selectDate: "Pilih tarikh",
       selectOption: "Pilih pilihan",
+
+      discardChanges: {
+        title: "Buang perubahan?",
+        message: "Anda mempunyai perubahan yang belum disimpan. Jika anda keluar sekarang, perubahan tersebut akan hilang.",
+      },
     },
 
     language: {
@@ -159,8 +173,8 @@ const ms = {
           stateTerritory: "Negeri / Wilayah Persekutuan",
           selectStateTerritory: "Pilih negeri atau Wilayah Persekutuan",
 
-          "locationAutoHelper": "Bandar dan negeri diisi secara automatik berdasarkan poskod anda.",
-          "locationManualHelper": "Kami tidak dapat mendapatkan lokasi anda. Sila masukkan bandar dan negeri secara manual."
+          locationAutoHelper: "Bandar dan negeri diisi secara automatik berdasarkan poskod anda.",
+          locationManualHelper: "Kami tidak dapat mendapatkan lokasi anda. Sila masukkan bandar dan negeri secara manual."
         },
 
         householdIncome: {
@@ -175,6 +189,7 @@ const ms = {
             selfEmployed: "Bekerja sendiri",
             unemployed: "Menganggur",
             retired: "Bersara",
+            homemaker: "Suri rumah",
             notWorking: "Tidak bekerja",
           },
 
@@ -284,8 +299,8 @@ const ms = {
 
       sections: {
         personal: "Peribadi",
-        householdFinancial: "Isi Rumah & Kewangan",
-        contactResidence: "Hubungan & Tempat Tinggal",
+        household: "Isi Rumah",
+        residence: "Tempat Tinggal",
         preferences: "Keutamaan",
         account: "Akaun",
       },
@@ -310,13 +325,17 @@ const ms = {
         malaysian: "Warganegara Malaysia",
         nonMalaysian: "Bukan Warganegara Malaysia",
 
-        notProvided: "Tidak diberikan",
-        updateFailed: "Nombor telefon anda tidak dapat dikemaskini. Sila cuba lagi.",
+        maritalStatus: "Status Perkahwinan",
+        homePhone: "Telefon Rumah",
 
-        discardChanges: {
-          title: "Buang perubahan?",
-          message: "Perubahan anda tidak akan disimpan.",
-        },
+        personalCircumstances: "Maklumat Peribadi Tambahan",
+        financialInformation: "Maklumat Kewangan",
+        studentStatus: "Status Pelajar",
+        okuStatus: "Status OKU",
+
+        updateCircumstancesFailed: "Maklumat peribadi tambahan anda tidak dapat dikemaskini. Sila cuba lagi.",
+        updateFinancialFailed: "Maklumat kewangan anda tidak dapat dikemaskini. Sila cuba lagi.",
+        updateHomePhoneFailed: "Tidak dapat mengemas kini nombor telefon rumah anda. Sila cuba lagi.",
       },
 
       household: {
@@ -324,6 +343,95 @@ const ms = {
         youOnly: "Anda sahaja",
         oneMember: "Anda + 1 ahli isi rumah",
         multipleMembers: "Anda + {{count}} ahli isi rumah",
+
+        members: "Ahli Isi Rumah",
+        addMember: "Tambah Ahli Isi Rumah",
+        editMember: "Edit Ahli Isi Rumah",
+        completeInformation: "Lengkapkan maklumat yang belum diisi",
+        missingInformation: "Belum diisi",
+        moreFields: "+{{count}} lagi",
+
+        empty: {
+          title: "Tiada Ahli Isi Rumah",
+          description: "Tambah individu yang tinggal dalam isi rumah yang sama dengan anda.",
+        },
+
+        loadError: {
+          title: "Tidak Dapat Memuatkan Maklumat Ahli Isi Rumah",
+          description: "Kami tidak dapat memuatkan maklumat ahli isi rumah ini. Sila cuba lagi.",
+        },
+
+        relationship: {
+          spouse: "Pasangan",
+          child: "Anak",
+          parent: "Ibu / Bapa",
+          sibling: "Adik-beradik",
+          grandchild: "Cucu",
+          other: "Lain-lain",
+        },
+
+        member: {
+          fullName: "Nama Penuh",
+          relationship: "Hubungan",
+          dateOfBirth: "Tarikh Lahir",
+        },
+
+        add: {
+          selectRelationship: "Pilih hubungan",
+
+          sections: {
+            basicInformation: "Maklumat Asas",
+            employmentIncome: "Pekerjaan & Pendidikan",
+            education: "Pendidikan",
+            disability: "Ketidakupayaan / OKU",
+          },
+
+          fields: {
+            citizenship: "Kewarganegaraan",
+            identificationNumber: "No. Kad Pengenalan / Pengenalan Diri",
+            gender: "Jantina",
+            isDependent: "Adakah individu ini bergantung kepada anda dari segi kewangan?",
+            employmentStatus: "Status Pekerjaan",
+            occupation: "Pekerjaan",
+            monthlyIncome: "Pendapatan Bulanan (RM)",
+            isStudent: "Adakah individu ini seorang pelajar?",
+            studyMode: "Mod Pengajian",
+            institutionType: "Jenis Institusi",
+            isOku: "Adakah individu ini orang kurang upaya (OKU)?",
+            okuRegistered: "Adakah individu ini berdaftar sebagai OKU?",
+          },
+
+          options: {
+            male: "Lelaki",
+            female: "Perempuan",
+
+            malaysian: "Warganegara Malaysia",
+            nonMalaysian: "Bukan Warganegara Malaysia",
+
+            employed: "Bekerja",
+            selfEmployed: "Bekerja Sendiri",
+            unemployed: "Menganggur",
+            retired: "Bersara",
+            homemaker: "Suri Rumah",
+            notWorking: "Tidak bekerja",
+
+            fullTime: "Sepenuh Masa",
+            partTime: "Separuh Masa",
+
+            school: "Sekolah",
+            college: "Kolej",
+            university: "Universiti",
+            other: "Lain-lain",
+          },
+
+          errorTitle: "Gagal Menambah Ahli Isi Rumah",
+          errorDescription: "Kami tidak dapat menyimpan maklumat ahli isi rumah ini. Sila cuba lagi.",
+        },
+
+        edit: {
+          errorTitle: "Gagal Mengemas Kini Ahli Isi Rumah",
+          errorDescription: "Kami tidak dapat mengemas kini maklumat ahli isi rumah ini. Sila cuba lagi.",
+        },
       },
 
       incomeEmployment: {
@@ -342,14 +450,19 @@ const ms = {
       residentialAddress: {
         title: "Alamat Kediaman",
         noAddress: "Tiada alamat diberikan",
+        country: "Negara",
       },
 
       language: {
         title: "Bahasa",
+
+        selectLanguageTitle: "Pilih Bahasa",
+        selectLanguageDescription: "Pilih bahasa yang ingin anda gunakan."
       },
 
       account: {
         signOut: "Log Keluar",
+        signOutDescription: "Adakah anda pasti mahu log keluar daripada akaun anda?"
       },
 
       errors: {
@@ -360,6 +473,8 @@ const ms = {
     },
 
     validation: {
+      required: "Medan ini wajib diisi.",
+
       emailRequired: "E-mel diperlukan.",
       emailInvalid: "Masukkan alamat e-mel yang sah.",
 
@@ -375,6 +490,8 @@ const ms = {
       myKadNumberInvalid: "Masukkan nombor kad pengenalan yang sah.",
 
       dateOfBirthRequired: "Tarikh lahir diperlukan.",
+      dateOfBirthInvalid: "Masukkan tarikh lahir yang sah.",
+      dateOfBirthMismatch: "Tarikh lahir tidak sepadan dengan nombor kad pengenalan.",
 
       citizenshipRequired: "Kewarganegaraan diperlukan.",
 
@@ -398,8 +515,9 @@ const ms = {
 
       householdMemberNameRequired: "Nama ahli isi rumah diperlukan.",
       relationshipRequired: "Hubungan diperlukan.",
-
       householdMemberDobRequired: "Tarikh lahir ahli isi rumah diperlukan.",
+
+      identificationNumberInvalid: "Masukkan nombor pengenalan yang sah.",
     },
   },
 };

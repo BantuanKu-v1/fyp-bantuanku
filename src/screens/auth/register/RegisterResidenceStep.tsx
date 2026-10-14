@@ -1,4 +1,4 @@
-import { RegisterResidenceFormData, registerResidenceSchema } from "../../../schemas/auth";
+import { RegisterResidenceFormData, registerResidenceSchema } from "../../../schemas/registration";
 import { useTranslation } from "react-i18next";
 import {useEffect, useMemo, useState} from "react";
 import { Controller, useForm } from "react-hook-form";

@@ -1,4 +1,4 @@
-import { RegisterHouseholdIncomeFormData, registerHouseholdIncomeSchema } from "../../../schemas/auth";
+import { RegisterHouseholdIncomeFormData, registerHouseholdIncomeSchema } from "../../../schemas/registration";
 import { useTranslation } from "react-i18next";
 import {useEffect, useMemo, useState} from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";

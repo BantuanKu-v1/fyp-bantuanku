@@ -19,4 +19,13 @@ export type AuthStackParamList = {
 export type ProfileStackParamList = {
   ProfileOverview: undefined;
   PersonalInformation: undefined;
+  Household: undefined;
+  HouseholdMember: {
+    memberId: string;
+  };
+  EditHouseholdMember: {
+    memberId: string;
+  }
+  AddHouseholdMember: undefined;
+  ResidentialAddress: undefined;
 };

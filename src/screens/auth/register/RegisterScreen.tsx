@@ -1,12 +1,12 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../../types/tabNavigator";
 import { useState } from "react";
+import { RegisterFormData } from "../../../schemas/auth";
 import {
-  RegisterFormData,
   RegisterHouseholdIncomeFormData,
   RegisterPersonalFormData,
   RegisterResidenceFormData
-} from "../../../schemas/auth";
+} from "../../../schemas/registration";
 import { KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SelectedDocument } from "../../../types/documents";
@@ -28,8 +28,8 @@ import AlertDialog from "../../../components/ui/AlertDialog";
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
 export default function RegisterScreen({
-                                         navigation
-                                       }: Props) {
+    navigation
+}: Props) {
   const { t } = useTranslation();
   const { refreshRegistrationStatus, setRegistrationInProgress } = useAuth();
 

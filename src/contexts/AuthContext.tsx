@@ -2,6 +2,8 @@ import { Session, User } from "@supabase/supabase-js";
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import * as Linking from "expo-linking";
+import {getPreferredLanguage} from "../services/profile/profileService";
+import {changeLanguage} from "../i18n";
 
 /**
  * Authentication and registration state flow:
@@ -82,6 +84,24 @@ export default function AuthProvider({
   ) => {
     passwordRecoveryInProgressRef.current = inProgress;
     setPasswordRecoveryInProgressState(inProgress);
+  };
+
+  const syncPreferredLanguage = async (
+      currentSession: Session
+  )=> {
+    try {
+      const preferredLanguage = await getPreferredLanguage(currentSession.user.id);
+
+      if (!preferredLanguage) {
+        return;
+      }
+
+      await changeLanguage(preferredLanguage);
+    } catch (error) {
+      if (__DEV__) {
+        console.error("[AUTH] Failed to sync preferred language:", error);
+      }
+    }
   };
 
   const checkRegistrationStatus = async (
@@ -336,6 +356,10 @@ export default function AuthProvider({
         setSession(currentSession);
 
         await checkRegistrationStatus(currentSession);
+
+        if (currentSession) {
+          await syncPreferredLanguage(currentSession);
+        }
       }
 
       if (!mounted) {
@@ -375,7 +399,10 @@ export default function AuthProvider({
             }
 
             setTimeout(() => {
-              void checkRegistrationStatus(nextSession);
+              void (async () => {
+                await checkRegistrationStatus(nextSession);
+                await syncPreferredLanguage(nextSession);
+              })();
             }, 0);
           }
       );
@@ -383,8 +410,8 @@ export default function AuthProvider({
       authSubscription = subscription;
 
       const handleUrl = ({
-                           url
-                         }: {
+          url
+      }: {
         url: string
       }) => {
         void handlePasswordRecoveryUrl(url);

@@ -1,13 +1,13 @@
+import { RegisterFormData } from "../schemas/auth";
 import {
-  RegisterFormData,
   RegisterHouseholdIncomeFormData,
   RegisterPersonalFormData,
   RegisterResidenceFormData
-} from "../schemas/auth";
+} from "../schemas/registration";
 import { supabase } from "../lib/supabase";
 import { STATE_TERRITORY_MAP, StateTerritoryValue } from "../constants/registration";
 import { SupportedLanguage } from "../i18n/types";
-import { getGenderFromMyKad } from "../lib/myKad";
+import { getGenderFromMyKad } from "../utils/myKad";
 
 type CompleteRegistrationData = {
   account: RegisterFormData;

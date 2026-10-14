@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { ActivityIndicator, Pressable, type PressableProps, Text } from "react-native";
 
-type ButtonVariant = "primary" | "secondary" | "outline";
+type ButtonVariant = "primary" | "secondary" | "outline" | "destructive";
 type ButtonSize = "sm" | "md" | "lg";
 type ButtonHaptic = "light" | "medium" | "heavy" | "none";
 
@@ -18,12 +18,14 @@ const containerVariants: Record<ButtonVariant, string> = {
   primary: "bg-primary",
   secondary: "bg-secondary",
   outline: "border border-primary bg-transparent",
+  destructive: "bg-red-600",
 }
 
 const textVariants: Record<ButtonVariant, string> = {
   primary: "text-white",
   secondary: "text-primary",
   outline: "text-primary",
+  destructive: "text-white",
 }
 
 const sizeVariants: Record<ButtonSize, string> = {
@@ -96,7 +98,7 @@ export default function Button({
         {loading ? (
             <ActivityIndicator
               color={
-                variant === "primary"
+                variant === "primary" || variant === "destructive"
                   ? "#FFFFFF"
                   : "#0352CE"
               }
