@@ -324,7 +324,17 @@ const en = {
         malaysian: "Malaysian",
         nonMalaysian: "Non-Malaysian",
 
-        updateFailed: "Unable to update your mobile number. Please try again.",
+        maritalStatus: "Marital Status",
+        homePhone: "Home Phone",
+
+        personalCircumstances: "Personal Circumstances",
+        financialInformation: "Financial Information",
+        studentStatus: "Student Status",
+        okuStatus: "OKU Status",
+
+        updateCircumstancesFailed: "Unable to update your personal circumstances. Please try again.",
+        updateFinancialFailed: "Unable to update your financial information. Please try again.",
+        updateHomePhoneFailed: "Unable to update your home phone number. Please try again.",
       },
 
       household: {

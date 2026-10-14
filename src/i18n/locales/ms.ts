@@ -325,8 +325,17 @@ const ms = {
         malaysian: "Warganegara Malaysia",
         nonMalaysian: "Bukan Warganegara Malaysia",
 
+        maritalStatus: "Status Perkahwinan",
+        homePhone: "Telefon Rumah",
 
-        updateFailed: "Nombor telefon anda tidak dapat dikemaskini. Sila cuba lagi.",
+        personalCircumstances: "Maklumat Peribadi Tambahan",
+        financialInformation: "Maklumat Kewangan",
+        studentStatus: "Status Pelajar",
+        okuStatus: "Status OKU",
+
+        updateCircumstancesFailed: "Maklumat peribadi tambahan anda tidak dapat dikemaskini. Sila cuba lagi.",
+        updateFinancialFailed: "Maklumat kewangan anda tidak dapat dikemaskini. Sila cuba lagi.",
+        updateHomePhoneFailed: "Tidak dapat mengemas kini nombor telefon rumah anda. Sila cuba lagi.",
       },
 
       household: {

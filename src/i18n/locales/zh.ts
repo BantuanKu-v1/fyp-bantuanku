@@ -329,7 +329,18 @@ const zh = {
         malaysian: "马来西亚公民",
         nonMalaysian: "非马来西亚公民",
 
+        maritalStatus: "婚姻状况",
+        homePhone: "住宅电话",
+
+        personalCircumstances: "个人情况",
+        financialInformation: "财务信息",
+        studentStatus: "学生身份",
+        okuStatus: "残障人士（OKU）身份",
+
         updateFailed: "无法更新您的手机号码，请重试。",
+        updateCircumstancesFailed: "无法更新个人情况，请重试。",
+        updateFinancialFailed: "无法更新财务信息，请重试。",
+        updateHomePhoneFailed: "无法更新住宅电话号码，请重试。",
       },
 
       household: {
