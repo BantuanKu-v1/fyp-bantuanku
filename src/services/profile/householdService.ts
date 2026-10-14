@@ -1,11 +1,14 @@
 import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "./profileService";
+import { getMissingHouseholdFields } from "../../utils/householdCompleteness";
 
 export type HouseholdMemberSummary = {
   id: string;
   fullName: string;
+  identificationNumber: string | null;
   relationship: string;
   dateOfBirth: string | null;
+  missingFields: string[];
 };
 
 export type HouseholdMember = {
@@ -38,11 +41,19 @@ export const getHouseholdMembers =
       } = await supabase
           .from("household_members")
           .select(`
-        id,
-        full_name,
-        relationship,
-        date_of_birth
-      `)
+            id,
+            full_name,
+            identification_no,
+            relationship,
+            date_of_birth,
+            gender,
+            citizenship,
+            is_student,
+            study_mode,
+            institution_type,
+            is_oku,
+            oku_registered
+          `)
           .eq("profile_id", profileId)
           .order("created_at", {
             ascending: true
@@ -52,12 +63,30 @@ export const getHouseholdMembers =
         throw error;
       }
 
-      return data.map((member) => ({
-        id: member.id,
-        fullName: member.full_name,
-        relationship: member.relationship,
-        dateOfBirth: member.date_of_birth
-      }));
+      return data.map((member) => {
+        const missingFields = getMissingHouseholdFields({
+          fullName: member.full_name,
+          relationship: member.relationship,
+          identificationNumber: member.identification_no,
+          dateOfBirth: member.date_of_birth,
+          gender: member.gender,
+          citizenship: member.citizenship,
+          isStudent: member.is_student,
+          studyMode: member.study_mode,
+          institutionType: member.institution_type,
+          isOku: member.is_oku,
+          okuRegistered: member.oku_registered
+        });
+
+        return {
+          id: member.id,
+          fullName: member.full_name,
+          identificationNumber: member.identification_no,
+          relationship: member.relationship,
+          dateOfBirth: member.date_of_birth,
+          missingFields
+        };
+      });
     };
 
 // Retrieve the full details of a specific household member by ID
@@ -133,7 +162,7 @@ export type CreateHouseholdMemberInput = {
   occupation: string;
   monthlyIncome: string;
   isStudent: boolean | null;
-  studyMode: string,
+  studyMode: string;
   institutionType: string;
   isOku: boolean | null;
   okuRegistered: boolean | null;
@@ -143,60 +172,60 @@ export const createHouseholdMember =
     async (
         input: CreateHouseholdMemberInput
     ): Promise<string> => {
-  const profileId = await getCurrentProfileId();
+      const profileId = await getCurrentProfileId();
 
-  const year = input.dateOfBirth.getFullYear();
-  const month = String(input.dateOfBirth.getMonth() + 1).padStart(2, "0");
-  const day = String(input.dateOfBirth.getDate()).padStart(2, "0");
+      const year = input.dateOfBirth.getFullYear();
+      const month = String(input.dateOfBirth.getMonth() + 1).padStart(2, "0");
+      const day = String(input.dateOfBirth.getDate()).padStart(2, "0");
 
-  const {
-    data,
-    error
-  } = await supabase
-      .from("household_members")
-      .insert({
-        profile_id: profileId,
-        full_name: input.fullName.trim(),
-        identification_no: input.identificationNumber.trim() || null,
-        relationship: input.relationship,
-        date_of_birth: `${year}-${month}-${day}`,
-        gender: input.gender || null,
-        citizenship: input.citizenship || null,
-        is_dependent: input.isDependent,
-        employment_status: input.employmentStatus || null,
-        occupation:
-            input.employmentStatus === "employed" ||
-            input.employmentStatus === "self_employed"
-                ? input.occupation.trim() || null
-                : null,
-        monthly_income:
-            input.monthlyIncome.trim() === ""
-                ? null
-                : Number(input.monthlyIncome),
-        is_student: input.isStudent,
-        study_mode:
-            input.isStudent === true
-                ? input.studyMode || null
-                : null,
-        institution_type:
-            input.isStudent === true
-                ? input.institutionType || null
-                : null,
-        is_oku: input.isOku,
-        oku_registered:
-            input.isOku === true
-                ? input.okuRegistered
-                : null
-      })
-      .select("id")
-      .single();
+      const {
+        data,
+        error
+      } = await supabase
+          .from("household_members")
+          .insert({
+            profile_id: profileId,
+            full_name: input.fullName.trim(),
+            identification_no: input.identificationNumber.trim() || null,
+            relationship: input.relationship,
+            date_of_birth: `${year}-${month}-${day}`,
+            gender: input.gender || null,
+            citizenship: input.citizenship || null,
+            is_dependent: input.isDependent,
+            employment_status: input.employmentStatus || null,
+            occupation:
+                input.employmentStatus === "employed" ||
+                input.employmentStatus === "self_employed"
+                    ? input.occupation.trim() || null
+                    : null,
+            monthly_income:
+                input.monthlyIncome.trim() === ""
+                    ? null
+                    : Number(input.monthlyIncome),
+            is_student: input.isStudent,
+            study_mode:
+                input.isStudent === true
+                    ? input.studyMode || null
+                    : null,
+            institution_type:
+                input.isStudent === true
+                    ? input.institutionType || null
+                    : null,
+            is_oku: input.isOku,
+            oku_registered:
+                input.isOku === true
+                    ? input.okuRegistered
+                    : null
+          })
+          .select("id")
+          .single();
 
-  if (error) {
-    throw error;
-  }
+      if (error) {
+        throw error;
+      }
 
-  return data.id;
-};
+      return data.id;
+    };
 
 export const updateHouseholdMember =
     async (
