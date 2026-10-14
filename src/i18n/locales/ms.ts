@@ -299,7 +299,7 @@ const ms = {
 
       sections: {
         personal: "Peribadi",
-        householdFinancial: "Isi Rumah & Kewangan",
+        household: "Isi Rumah",
         residence: "Tempat Tinggal",
         preferences: "Keutamaan",
         account: "Akaun",
@@ -325,7 +325,7 @@ const ms = {
         malaysian: "Warganegara Malaysia",
         nonMalaysian: "Bukan Warganegara Malaysia",
 
-        notProvided: "Tidak diberikan",
+
         updateFailed: "Nombor telefon anda tidak dapat dikemaskini. Sila cuba lagi.",
       },
 
@@ -338,7 +338,9 @@ const ms = {
         members: "Ahli Isi Rumah",
         addMember: "Tambah Ahli Isi Rumah",
         editMember: "Edit Ahli Isi Rumah",
-        notProvided: "Tidak dinyatakan",
+        completeInformation: "Lengkapkan maklumat yang belum diisi",
+        missingInformation: "Belum diisi",
+        moreFields: "+{{count}} lagi",
 
         empty: {
           title: "Tiada Ahli Isi Rumah",

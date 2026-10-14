@@ -303,7 +303,7 @@ const zh = {
 
       sections: {
         personal: "个人",
-        householdFinancial: "家庭与财务",
+        household: "家庭",
         residence: "住址",
         preferences: "偏好设置",
         account: "账户",
@@ -329,7 +329,6 @@ const zh = {
         malaysian: "马来西亚公民",
         nonMalaysian: "非马来西亚公民",
 
-        notProvided: "未提供",
         updateFailed: "无法更新您的手机号码，请重试。",
       },
 
@@ -342,7 +341,9 @@ const zh = {
         members: "家庭成员",
         addMember: "添加家庭成员",
         editMember: "编辑家庭成员",
-        notProvided: "未提供",
+        completeInformation: "补充缺失资料",
+        missingInformation: "缺少",
+        moreFields: "另有 {{count}} 项",
 
         empty: {
           title: "暂无家庭成员",
@@ -381,7 +382,7 @@ const zh = {
 
           fields: {
             citizenship: "国籍",
-            identificationNumber: "身份证 / 身份证明号码",
+            identificationNumber: "身份证明号码",
             gender: "性别",
             isDependent: "此人在经济上是否依赖您？",
             employmentStatus: "就业状况",

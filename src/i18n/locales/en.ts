@@ -298,7 +298,7 @@ const en = {
 
       sections: {
         personal: "Personal",
-        householdFinancial: "Household & Financial",
+        household: "Household",
         residence: "Residence",
         preferences: "Preferences",
         account: "Account",
@@ -324,7 +324,6 @@ const en = {
         malaysian: "Malaysian",
         nonMalaysian: "Non-Malaysian",
 
-        notProvided: "Not provided",
         updateFailed: "Unable to update your mobile number. Please try again.",
       },
 
@@ -337,7 +336,9 @@ const en = {
         members: "Household Members",
         addMember: "Add Household Member",
         editMember: "Edit Household Member",
-        notProvided: "Not provided",
+        completeInformation: "Complete missing information",
+        missingInformation: "Missing",
+        moreFields: "+{{count}} more",
 
         empty: {
           title: "No Household Members",
