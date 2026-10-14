@@ -116,7 +116,7 @@ export default function PersonalInfoScreen({
       mobileNumber: string | null
   ) => {
     if (!mobileNumber) {
-      return t("profile.personalInformation.notProvided");
+      return t("common.notProvided");
     }
 
     if (mobileNumber.length <= 3) {
@@ -128,7 +128,7 @@ export default function PersonalInfoScreen({
 
   const getGenderLabel = () => {
     if (!personalInformation?.gender) {
-      return t("profile.personalInformation.notProvided");
+      return t("common.notProvided");
     }
 
     return t(`profile.personalInformation.${personalInformation.gender}`);
