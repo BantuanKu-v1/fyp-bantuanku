@@ -14,8 +14,6 @@ export type ProfileOverview = {
   } | null;
 };
 
-
-
 export const getCurrentProfileId =
     async (): Promise<string> => {
       const {
