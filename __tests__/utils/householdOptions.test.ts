@@ -6,7 +6,7 @@ import {
   fromYesNoValue,
   type HouseholdOption,
   type YesNoValue,
-} from "../../src/utils/householdOptions";
+} from "../../src/utils/household/householdOptions";
 
 // Mock translation function
 const t = ((key: string) => `translated:${key}`) as TFunction;

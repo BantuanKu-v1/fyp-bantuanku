@@ -10,7 +10,7 @@ import {
   HOUSEHOLD_YES_NO_KEYS,
   HOUSEHOLD_OPTIONAL_YES_NO_KEYS
 } from "../constants/household";
-import { getHouseholdOptions } from "../utils/householdOptions";
+import { getHouseholdOptions } from "../utils/household/householdOptions";
 
 export default function useHouseholdOptions() {
   const { t, i18n } = useTranslation();

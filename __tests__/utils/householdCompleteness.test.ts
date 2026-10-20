@@ -2,7 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import {
   getMissingHouseholdFields,
   type HouseholdCompletenessData,
-} from "../../src/utils/householdCompleteness";
+} from "../../src/utils/household/householdCompleteness";
 
 // Test data
 const validMember = (): HouseholdCompletenessData => ({

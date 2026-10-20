@@ -1,6 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "./profileService";
-import { getMissingHouseholdFields } from "../../utils/householdCompleteness";
+import { getMissingHouseholdFields } from "../../utils/household/householdCompleteness";
 
 export type HouseholdMemberSummary = {
   id: string;
