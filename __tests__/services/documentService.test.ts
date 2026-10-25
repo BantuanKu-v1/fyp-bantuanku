@@ -157,7 +157,7 @@ describe("Document Service", () => {
     mockStorageFrom.mockReturnValue(storage as never);
     mockDatabaseFrom.mockReturnValue(databaseQuery as never);
 
-    mockFetch = jest.fn<typeof fetch>();
+    mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -165,7 +165,7 @@ describe("Document Service", () => {
           .mockResolvedValue(fileBody),
     } as unknown as Response);
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     consoleErrorSpy = jest.spyOn(console, "error")
         .mockImplementation(() => {});

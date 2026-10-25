@@ -575,7 +575,9 @@ export default function RegisterHouseholdIncomeStep({
             <View className="flex-1">
               <Button
                 fullWidth
-                onPress={handleSubmit(onContinue)}
+                onPress={() => {
+                  void handleSubmit(onContinue)();
+                }}
               >
                 {t("common.continue")}
               </Button>

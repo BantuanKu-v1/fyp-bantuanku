@@ -140,7 +140,9 @@ export default function ForgotPasswordScreen({
                               autoComplete="email"
                               textContentType="emailAddress"
                               returnKeyType="send"
-                              onSubmitEditing={handleSubmit(onSubmit)}
+                              onSubmitEditing={() => {
+                                void handleSubmit(onSubmit)();
+                              }}
                               required
                             />
                         )}
@@ -149,7 +151,9 @@ export default function ForgotPasswordScreen({
                       <Button
                         fullWidth
                         loading={isSubmitting}
-                        onPress={handleSubmit(onSubmit)}
+                        onPress={() => {
+                          void handleSubmit(onSubmit)();
+                        }}
                       >
                         {t("auth.forgotPassword.sendResetLink")}
                       </Button>

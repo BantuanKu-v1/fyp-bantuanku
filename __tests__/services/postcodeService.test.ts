@@ -65,7 +65,7 @@ describe("Postcode Service", () => {
 
     originalFetch = globalThis.fetch;
 
-    mockFetch = jest.fn<typeof fetch>();
+    mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
     globalThis.fetch = mockFetch;
 
