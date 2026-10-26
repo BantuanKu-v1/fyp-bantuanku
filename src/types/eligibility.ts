@@ -16,10 +16,14 @@ export type EligibilityOperator =
   | "in" // Value exists in a specified list
   | "not_in"; // Value does not exist in a specified list
 
+// Supported values for eligibility comparisons
+export type EligibilityValue = string | number | boolean;
+
 // Information used by the eligibility engine
 export interface EligibilityFacts {
   // Personal information
   age: number | null;
+  ageByBirthYear: number | null;
   citizenship: string | null;
   residenceCountry: string | null;
   state: string | null;
@@ -31,7 +35,7 @@ export interface EligibilityFacts {
   householdSize: number | null;
   perCapitaHouseholdIncome: number | null;
 
-  // Household Information
+  // Household information
   numberOfDependents: number | null;
   numberOfEligibleChildren: number | null;
   hasChildren: boolean | null;
@@ -53,6 +57,7 @@ export interface EligibilityFacts {
   // Living arrangement information
   residesInJkmInstitution: boolean | null;
   residesInExcludedCareCentre: boolean | null;
+  residesInExcludedInstitution: boolean | null;
   livesWithFamilyOrCaregiver: boolean | null;
   dependsOnFamilyOrCaregiver: boolean | null;
   familyOrCaregiverIncomeExceedsPgk: boolean | null;
@@ -77,9 +82,15 @@ export interface EligibilityFacts {
   estimatedEquipmentCost: number | null;
   hasHospitalReferral: boolean | null;
 
-  // External verification information
+  // External verification and assessment information
   socioeconomicAssessmentRequired: boolean | null;
   medicalAssessmentRequired: boolean | null;
+
+  // JKM-specific assessment information
+  baAdditionalCircumstancesRequireReview: boolean | null;
+  batRecommendationOrEquipmentRequiresReview: boolean | null;
+  batSpecialConsiderationRequested: boolean | null;
+  bptMedicalOrCaregiverReviewRequired: boolean | null;
 }
 
 // Individual eligibility condition
@@ -87,14 +98,37 @@ export interface EligibilityCondition {
   id: string;
   field: keyof EligibilityFacts;
   operator: EligibilityOperator;
-  value: string | number | boolean | readonly (string | number | boolean)[];
+
+  // Static comparison value
+  value?: EligibilityValue | readonly EligibilityValue[];
+
+  // Reference to a dynamic threshold, such as PGK
+  thresholdRef?: string;
+
   description: string;
 }
+
+// A condition that negates another eligibility expression
+export interface EligibilityNotExpression {
+  not: EligibilityExpression;
+}
+
+// A condition referencing another eligibility rule
+export interface EligibilityRuleReference {
+  ruleMatched: string;
+}
+
+// Supported eligibility expressions
+export type EligibilityExpression =
+    | EligibilityCondition
+    | EligibilityRuleGroup
+    | EligibilityNotExpression
+    | EligibilityRuleReference;
 
 // A group of eligibility conditions
 export interface EligibilityRuleGroup {
   operator: "AND" | "OR";
-  conditions: (EligibilityCondition | EligibilityRuleGroup)[];
+  conditions: EligibilityExpression[];
 }
 
 // Individual rule for an assistance program
@@ -103,7 +137,13 @@ export interface EligibilityRule {
   programCode: AidProgramCode;
   name: string;
   conditions: EligibilityRuleGroup;
+
+  // Normalized BantuanKu eligibility outcome
   outcome: EligibilityStatus;
+
+  // Original government API outcome
+  governmentOutcome?: string;
+
   description: string;
   outcomeDescription?: string;
   requiresManualVerification?: boolean;
