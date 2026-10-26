@@ -3,16 +3,16 @@ import { EligibilityFacts } from "../../types/eligibility";
 // Database records required to build eligibility facts
 export interface EligibilityFactsInput {
   profile: {
-    date_of_birth: string;
-    citizenship: string;
+    date_of_birth: string | null;
+    citizenship: string | null;
     marital_status: string | null;
     is_student: boolean | null;
     study_mode: string | null;
   };
 
   address: {
-    state_territory: string;
-    country_code: string;
+    state_territory: string | null;
+    country_code: string | null;
   } | null;
 
   financialProfile: {
@@ -58,51 +58,25 @@ export interface EligibilityFactsInput {
   }[];
 }
 
-// Calculate age from date of birth
-function calculateAge(
-    dateOfBirth: string | null,
-    referenceDate: Date
-): number | null {
-  if (!dateOfBirth) return null;
+// Parse and validate a date in YYYY-MM-DD format
+function parseDate(dateString: string | null): Date | null {
+  if (!dateString) return null;
 
-  const [year, month, day] = dateOfBirth.split("-").map(Number);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
 
-  if (!year || !month || !day) return null;
+  if (!match) return null;
 
-  const birthDate = new Date(year, month - 1, day);
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
 
-  if (
-      birthDate.getFullYear() !== year ||
-      birthDate.getMonth() !== month - 1 ||
-      birthDate.getDate() !== day
-  ) {
+  if (year < 1900 || month < 1 || month > 12 || day < 1 || day > 31) {
     return null;
   }
 
-  let age = referenceDate.getFullYear() - year;
-
-  const birthdayPassed =
-      referenceDate.getMonth() + 1 > month ||
-      (referenceDate.getMonth() + 1 === month &&
-          referenceDate.getDate() >= day);
-
-  if (!birthdayPassed) age--;
-
-  return age >= 0 ? age : null;
-}
-
-// Calculate completed months since a date
-function calculateCompletedMonths(
-    startDate: string | null,
-    referenceDate: Date
-): number | null {
-  if (!startDate) return null;
-
-  const [year, month, day] = startDate.split("-").map(Number);
-
-  if (!year || !month || !day) return null;
-
-  const parsedDate = new Date(year, month - 1, day);
+  const parsedDate = new Date(0);
+  parsedDate.setFullYear(year, month - 1, day);
+  parsedDate.setHours(0, 0, 0, 0);
 
   if (
       parsedDate.getFullYear() !== year ||
@@ -112,11 +86,64 @@ function calculateCompletedMonths(
     return null;
   }
 
-  let months =
-      (referenceDate.getFullYear() - year) * 12 +
-      (referenceDate.getMonth() + 1 - month);
+  return parsedDate;
+}
 
-  if (referenceDate.getDate() < day) {
+// Calculate age based on completed birthdays
+function calculateAge(
+    dateOfBirth: string | null,
+    referenceDate: Date
+): number | null {
+  const birthDate = parseDate(dateOfBirth);
+
+  if (!birthDate || birthDate > referenceDate) {
+    return null;
+  }
+
+  let age = referenceDate.getFullYear() - birthDate.getFullYear();
+
+  const birthdayPassed =
+      referenceDate.getMonth() > birthDate.getMonth() ||
+      (referenceDate.getMonth() === birthDate.getMonth() &&
+          referenceDate.getDate() >= birthDate.getDate());
+
+  if (!birthdayPassed) {
+    age--;
+  }
+
+  return age >= 0 ? age : null;
+}
+
+// Calculate age using birth year only
+function calculateAgeByBirthYear(
+    dateOfBirth: string | null,
+    referenceDate: Date
+): number | null {
+  const birthDate = parseDate(dateOfBirth);
+
+  if (!birthDate || birthDate > referenceDate) {
+    return null;
+  }
+
+  return referenceDate.getFullYear() - birthDate.getFullYear();
+}
+
+// Calculate completed months since a date
+function calculateCompletedMonths(
+    startDate: string | null,
+    referenceDate: Date
+): number | null {
+  const start = parseDate(startDate);
+
+  if (!start || start > referenceDate) {
+    return null;
+  }
+
+  let months =
+      (referenceDate.getFullYear() - start.getFullYear()) * 12 +
+      (referenceDate.getMonth() - start.getMonth());
+
+  if (referenceDate.getDate() < start.getDate()) {
     months--;
   }
 
@@ -125,7 +152,9 @@ function calculateCompletedMonths(
 
 // Convert nullable numeric values safely
 function toNullableNumber(value: number | null): number | null {
-  if (value === null || value === undefined) return null;
+  if (value === null || value === undefined) {
+    return null;
+  }
 
   const number = Number(value);
 
@@ -147,7 +176,7 @@ function receivesJkmMonthlyAssistance(
     String(referenceDate.getDate()).padStart(2, "0"),
   ].join("-");
 
-  const hasActiveJkmAssistance = assistance.some((record) => {
+  return assistance.some((record) => {
     const isJkm = record.agency?.trim().toLowerCase() === "jkm";
 
     const isMonthly =
@@ -169,8 +198,6 @@ function receivesJkmMonthlyAssistance(
         hasNotEnded
     );
   });
-
-  return hasActiveJkmAssistance;
 }
 
 // Build eligibility facts from applicant records
@@ -190,6 +217,7 @@ export function buildEligibilityFacts(
   } = input;
 
   // Household information
+  // Assumes all householdMembers belong to the applicant's household
   const householdSize = 1 + householdMembers.length;
 
   const numberOfDependents = householdMembers.every(
@@ -202,9 +230,13 @@ export function buildEligibilityFacts(
 
   const childRelationships = ["child", "son", "daughter"];
 
-  const hasChildren = householdMembers.some((member) =>
-      childRelationships.includes(member.relationship.toLowerCase())
+  const hasRecordedChildren = householdMembers.some((member) =>
+    childRelationships.includes(
+        member.relationship.trim().toLowerCase()
+    )
   );
+
+  const hasChildren = hasRecordedChildren ? true : null;
 
   // Financial information
   const monthlyPersonalIncome = toNullableNumber(
@@ -227,18 +259,13 @@ export function buildEligibilityFacts(
           : !profile.is_student
               ? false
               : profile.study_mode
-                  ? profile.study_mode.toLowerCase() === "full_time"
+                  ? profile.study_mode.trim().toLowerCase() === "full_time"
                   : null;
 
   // Living arrangements
+  // A caregiver record does not prove co-residence
   const livesWithFamilyOrCaregiver =
-      livingArrangement?.lives_with_family === true
-          ? true
-          : caregivers.length > 0
-              ? true
-              : livingArrangement?.lives_with_family === false
-                  ? false
-                  : null;
+      livingArrangement?.lives_with_family ?? null;
 
   const dependsOnFamilyOrCaregiver =
       livingArrangement?.depends_on_family === true ||
@@ -249,13 +276,23 @@ export function buildEligibilityFacts(
               ? false
               : null;
 
+  // Institution type must be verified before identifying a JKM institution
+  const residesInJkmInstitution =
+      livingArrangement?.is_in_institution === false
+          ? false
+          : null;
+
+  // An applicant who's not in an institution cannot be in an excluded institution
+  const residesInExcludedInstitution =
+      livingArrangement?.is_in_institution === false
+          ? false
+          : null;
+
   // Caregiver information
   const hasCaregiver = caregivers.length > 0 ? true : null;
 
   const caregiverCitizenship =
-      caregivers.length === 1
-          ? caregivers[0].citizenship
-          : null;
+      caregivers.length === 1 ? caregivers[0].citizenship : null;
 
   const caregiverProvidesIntensiveCare =
       caregivers.length === 1
@@ -265,6 +302,10 @@ export function buildEligibilityFacts(
   return {
     // Personal information
     age: calculateAge(profile.date_of_birth, referenceDate),
+    ageByBirthYear: calculateAgeByBirthYear(
+        profile.date_of_birth,
+        referenceDate
+    ),
     citizenship: profile.citizenship,
     residenceCountry: address?.country_code ?? null,
     state: address?.state_territory ?? null,
@@ -303,9 +344,9 @@ export function buildEligibilityFacts(
     ),
 
     // Living arrangement information
-    residesInJkmInstitution:
-        livingArrangement?.is_in_institution ?? null,
+    residesInJkmInstitution,
     residesInExcludedCareCentre: null,
+    residesInExcludedInstitution,
     livesWithFamilyOrCaregiver,
     dependsOnFamilyOrCaregiver,
     familyOrCaregiverIncomeExceedsPgk: null,
@@ -333,5 +374,11 @@ export function buildEligibilityFacts(
     // External verification information
     socioeconomicAssessmentRequired: null,
     medicalAssessmentRequired: null,
+
+    // JKM-specific assessment information
+    baAdditionalCircumstancesRequireReview: null,
+    batRecommendationOrEquipmentRequiresReview: null,
+    batSpecialConsiderationRequested: null,
+    bptMedicalOrCaregiverReviewRequired: null,
   };
 }
