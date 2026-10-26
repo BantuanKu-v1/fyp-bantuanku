@@ -2,28 +2,59 @@ import {
   AidProgramCode,
   EligibilityCondition,
   EligibilityConditionResult,
-  EligibilityFacts, EligibilityResult, EligibilityRule,
-  EligibilityRuleGroup, EligibilityRuleResult, EligibilityStatus
+  EligibilityExpression,
+  EligibilityFacts,
+  EligibilityResult,
+  EligibilityRule,
+  EligibilityRuleGroup,
+  EligibilityRuleResult,
+  EligibilityStatus,
 } from "../../types/eligibility";
-import { evaluateEligibilityCondition } from "./eligibilityConditions";
+import { EligibilityThresholds, evaluateEligibilityCondition } from "./eligibilityConditions";
 
 type EvaluationState = boolean | null;
 
-// Internal result for evaluating a rule group
-interface RuleGroupEvaluation {
+// Internal result for evaluating an eligibility expression
+interface ExpressionEvaluation {
   matched: EvaluationState;
   conditions: EligibilityConditionResult[];
 }
 
-// Identify whether an item is a nested rule group
+// Working memory stores the results of evaluated rules
+interface EvaluationContext {
+  facts: EligibilityFacts;
+  thresholds: EligibilityThresholds;
+  workingMemory: Map<string, ExpressionEvaluation>;
+}
+
+// Identify a nested rule group
 function isRuleGroup(
-    item: EligibilityCondition | EligibilityRuleGroup
-): item is EligibilityRuleGroup {
-  return "conditions" in item;
+    expression: EligibilityExpression
+): expression is EligibilityRuleGroup {
+  return "conditions" in expression;
+}
+
+// Identify a NOT expression
+function isNotExpression(
+    expression: EligibilityExpression
+): expression is Extract<EligibilityExpression, { not: unknown }> {
+  return "not" in expression;
+}
+
+// Identify a rule reference
+function isRuleReference(
+    expression: EligibilityExpression
+): expression is Extract<
+    EligibilityExpression,
+    { ruleMatched: string }
+> {
+  return "ruleMatched" in expression;
 }
 
 // Combine evaluation states using AND logic
-function evaluateAnd(states: EvaluationState[]): EvaluationState {
+function evaluateAnd(
+    states: EvaluationState[]
+): EvaluationState {
   if (states.length === 0) {
     return null;
   }
@@ -40,7 +71,9 @@ function evaluateAnd(states: EvaluationState[]): EvaluationState {
 }
 
 // Combine evaluation states using OR logic
-function evaluateOr(states: EvaluationState[]): EvaluationState {
+function evaluateOr(
+    states: EvaluationState[]
+): EvaluationState {
   if (states.length === 0) {
     return null;
   }
@@ -56,38 +89,18 @@ function evaluateOr(states: EvaluationState[]): EvaluationState {
   return false;
 }
 
-// Recursively evaluate a group of conditions
-function evaluateRuleGroup(
-    group: EligibilityRuleGroup,
-    facts: EligibilityFacts
-): RuleGroupEvaluation {
-  const states: EvaluationState[] = [];
-  const conditions: EligibilityConditionResult[] = [];
-
-  for (const item of group.conditions) {
-    if (isRuleGroup(item)) {
-      const nestedResult = evaluateRuleGroup(item, facts);
-
-      states.push(nestedResult.matched);
-      conditions.push(...nestedResult.conditions);
-    } else {
-      const conditionResult = evaluateEligibilityCondition(item, facts);
-
-      states.push(conditionResult.passed);
-      conditions.push(conditionResult);
-    }
+// Negate a three-valued evaluation state
+function evaluateNot(
+    state: EvaluationState
+): EvaluationState {
+  if (state === null) {
+    return null;
   }
 
-  return {
-    matched:
-      group.operator === "AND"
-        ? evaluateAnd(states)
-        : evaluateOr(states),
-    conditions,
-  };
+  return !state;
 }
 
-// Remove duplicate conditions results
+// Remove duplicate condition results
 function uniqueConditions(
     conditions: EligibilityConditionResult[]
 ): EligibilityConditionResult[] {
@@ -103,33 +116,142 @@ function uniqueConditions(
   });
 }
 
-// Evaluate an individual eligibility rule
-export function evaluateEligibilityRule(
+// Collect rule dependencies from nested expressions
+function collectRuleDependencies(
+    expression: EligibilityExpression,
+    dependencies: Set<string>
+): void {
+  if (isRuleReference(expression)) {
+    dependencies.add(expression.ruleMatched);
+    return;
+  }
+
+  if (isNotExpression(expression)) {
+    collectRuleDependencies(
+        expression.not,
+        dependencies
+    );
+    return;
+  }
+
+  if (isRuleGroup(expression)) {
+    for (const condition of expression.conditions) {
+      collectRuleDependencies(
+          condition,
+          dependencies
+      );
+    }
+  }
+}
+
+// Recursively evaluate nested expressions using working memory
+function evaluateExpression(
+    expression: EligibilityExpression,
+    context: EvaluationContext
+): ExpressionEvaluation {
+  // AND / OR group
+  if (isRuleGroup(expression)) {
+    const results = expression.conditions.map(
+        (item) => evaluateExpression(item, context)
+    );
+
+    const states = results.map(
+        (result) => result.matched
+    );
+
+    return {
+      matched:
+          expression.operator === "AND"
+              ? evaluateAnd(states)
+              : evaluateOr(states),
+
+      conditions: results.flatMap(
+          (result) => result.conditions
+      ),
+    };
+  }
+
+  // NOT expression
+  if (isNotExpression(expression)) {
+    const result = evaluateExpression(
+        expression.not,
+        context
+    );
+
+    return {
+      matched: evaluateNot(result.matched),
+      conditions: result.conditions,
+    };
+  }
+
+  // Rule reference: read a previously derived result
+  if (isRuleReference(expression)) {
+    const referencedResult =
+        context.workingMemory.get(
+            expression.ruleMatched
+        );
+
+    if (!referencedResult) {
+      return {
+        matched: null,
+        conditions: [],
+      };
+    }
+
+    return referencedResult;
+  }
+
+  // Individual eligibility condition
+  const conditionResult =
+      evaluateEligibilityCondition(
+          expression as EligibilityCondition,
+          context.facts,
+          context.thresholds
+      );
+
+  return {
+    matched: conditionResult.passed,
+    conditions: [conditionResult],
+  };
+}
+
+// Convert an evaluated expression into a public rule result
+function buildRuleResult(
     rule: EligibilityRule,
-    facts: EligibilityFacts
+    evaluation: ExpressionEvaluation
 ): EligibilityRuleResult {
-  const evaluation = evaluateRuleGroup(rule.conditions, facts);
+  const matchedConditions =
+      evaluation.conditions.filter(
+          (condition) => condition.passed === true
+      );
 
-  const matchedConditions = evaluation.conditions.filter(
-      (condition) => condition.passed === true
-  );
+  const unmetConditions =
+      evaluation.conditions.filter(
+          (condition) => condition.passed === false
+      );
 
-  const unmetConditions = evaluation.conditions.filter(
-      (condition) => condition.passed === false
-  );
-
-  const missingInformation = evaluation.conditions.filter(
-      (condition) => condition.passed === null
-  );
+  const missingInformation =
+      evaluation.conditions.filter(
+          (condition) => condition.passed === null
+      );
 
   return {
     ruleId: rule.id,
     programCode: rule.programCode,
     matched: evaluation.matched,
     outcome: rule.outcome,
-    matchedConditions: uniqueConditions(matchedConditions),
-    unmetConditions: uniqueConditions(unmetConditions),
-    missingInformation: uniqueConditions(missingInformation),
+
+    matchedConditions: uniqueConditions(
+        matchedConditions
+    ),
+
+    unmetConditions: uniqueConditions(
+        unmetConditions
+    ),
+
+    missingInformation: uniqueConditions(
+        missingInformation
+    ),
   };
 }
 
@@ -142,85 +264,255 @@ function determineEligibilityStatus(
       (result) => result.matched === true
   );
 
-  // A matched ineligibility rule takes priority
-  if (
-      matchedRules.some(
-          (result) => result.outcome === "potentially_ineligible"
-      )
-  ) {
-    return "potentially_ineligible";
-  }
-
-  // A matched rule requiring manual verification
-  if (
-      matchedRules.some((result) => {
-        const rule = rules.find((item) => item.id === result.ruleId);
+  const hasManualVerification = matchedRules.some(
+      (result) => {
+        const rule = rules.find(
+            (item) => item.id === result.ruleId
+        );
 
         return (
             result.outcome === "manual_verification" ||
             rule?.requiresManualVerification === true
         );
-      })
+      }
+  );
+
+  const hasPreliminaryMatch = matchedRules.some(
+      (result) =>
+          result.outcome === "potentially_eligible"
+  );
+
+  const hasPreliminaryIneligibility =
+      matchedRules.some(
+          (result) =>
+              result.outcome === "potentially_ineligible"
+      );
+
+  // Contradictory government outcomes require review
+  if (
+      hasPreliminaryMatch &&
+      hasPreliminaryIneligibility
   ) {
     return "manual_verification";
   }
 
-  // A matched eligibility rule
-  if (
-      matchedRules.some(
-          (result) => result.outcome === "potentially_eligible"
-      )
-  ) {
+  // A matched rule requiring further assessment
+  if (hasManualVerification) {
+    return "manual_verification";
+  }
+
+  // A matched preliminary eligibility rule
+  if (hasPreliminaryMatch) {
     return "potentially_eligible";
   }
 
-  // A matched insufficient-information rule
-  if (
-      matchedRules.some(
-          (result) => result.outcome === "insufficient_information"
-      )
-  ) {
-    return "insufficient_information";
+  // A matched preliminary ineligibility rule
+  if (hasPreliminaryIneligibility) {
+    return "potentially_ineligible";
   }
 
-  // Missing information prevents a conclusive assessment
-  if (ruleResults.some((result) => result.matched === null)) {
-    return "insufficient_information";
-  }
-
-  // No rules matched
+  // No conclusive matching rule
   return "insufficient_information";
+}
+
+// Forward chaining: evaluate rules in dependency order
+function runForwardChaining(
+    rules: EligibilityRule[],
+    facts: EligibilityFacts,
+    thresholds: EligibilityThresholds
+): EligibilityRuleResult[] {
+  const context: EvaluationContext = {
+    facts,
+    thresholds,
+    workingMemory: new Map(),
+  };
+
+  const ruleMap = new Map(
+      rules.map((rule) => [rule.id, rule])
+  );
+
+  // Prevent duplicate rule IDs
+  if (ruleMap.size !== rules.length) {
+    throw new Error(
+        "Duplicate eligibility rule IDs detected"
+    );
+  }
+
+  // Identify dependencies for every rule
+  const dependencies = new Map<
+      string,
+      Set<string>
+  >();
+
+  for (const rule of rules) {
+    const ruleDependencies = new Set<string>();
+
+    collectRuleDependencies(
+        rule.conditions,
+        ruleDependencies
+    );
+
+    // Reject references to unknown rules
+    for (const dependency of ruleDependencies) {
+      if (!ruleMap.has(dependency)) {
+        throw new Error(
+            `Unknown eligibility rule reference: ${dependency}`
+        );
+      }
+    }
+
+    dependencies.set(
+        rule.id,
+        ruleDependencies
+    );
+  }
+
+  // Track rules that have not yet been evaluated
+  const pending = new Set(
+      rules.map((rule) => rule.id)
+  );
+
+  const results = new Map<
+      string,
+      EligibilityRuleResult
+  >();
+
+  // Continue until all rules have been evaluated
+  while (pending.size > 0) {
+    let progressMade = false;
+
+    for (const rule of rules) {
+      if (!pending.has(rule.id)) {
+        continue;
+      }
+
+      const ruleDependencies =
+          dependencies.get(rule.id) ??
+          new Set<string>();
+
+      // Only evaluate a rule after its dependencies
+      const dependenciesResolved = [
+        ...ruleDependencies,
+      ].every((dependency) =>
+          context.workingMemory.has(dependency)
+      );
+
+      if (!dependenciesResolved) {
+        continue;
+      }
+
+      // Evaluate the rule once
+      const evaluation = evaluateExpression(
+          rule.conditions,
+          context
+      );
+
+      // Store the derived result in working memory
+      context.workingMemory.set(
+          rule.id,
+          evaluation
+      );
+
+      // Reuse the evaluation to build the public result
+      const result = buildRuleResult(
+          rule,
+          evaluation
+      );
+
+      results.set(
+          rule.id,
+          result
+      );
+
+      pending.delete(rule.id);
+      progressMade = true;
+    }
+
+    // No progress indicates circular dependencies
+    if (!progressMade) {
+      throw new Error(
+          "Circular eligibility rule dependency detected"
+      );
+    }
+  }
+
+  // Return results in the original rule order
+  return rules.map((rule) => {
+    const result = results.get(rule.id);
+
+    if (!result) {
+      throw new Error(
+          `Missing evaluation result for rule: ${rule.id}`
+      );
+    }
+
+    return result;
+  });
+}
+
+// Evaluate an individual eligibility rule
+export function evaluateEligibilityRule(
+    rule: EligibilityRule,
+    facts: EligibilityFacts,
+    thresholds: EligibilityThresholds = {}
+): EligibilityRuleResult {
+  const results = runForwardChaining(
+      [rule],
+      facts,
+      thresholds
+  );
+
+  return results[0];
 }
 
 // Generate the final eligibility assessment for a program
 export function evaluateProgramEligibility(
     programCode: AidProgramCode,
     rules: EligibilityRule[],
-    facts: EligibilityFacts
+    facts: EligibilityFacts,
+    thresholds: EligibilityThresholds = {}
 ): EligibilityResult {
   // Only evaluate rules belonging to the requested program
   const programRules = rules.filter(
       (rule) => rule.programCode === programCode
   );
 
-  const ruleResults = programRules.map((rule) =>
-    evaluateEligibilityRule(rule, facts)
+  // Execute the forward-chaining inference process
+  const ruleResults = runForwardChaining(
+      programRules,
+      facts,
+      thresholds
   );
 
   const matchedRuleIds = ruleResults
-      .filter((result) => result.matched === true)
-      .map((result) => result.ruleId);
+      .filter(
+          (result) => result.matched === true
+      )
+      .map(
+          (result) => result.ruleId
+      );
 
   const matchedConditions = uniqueConditions(
-      ruleResults.flatMap((result) => result.matchedConditions)
+      ruleResults.flatMap(
+          (result) => result.matchedConditions
+      )
   );
 
   const unmetConditions = uniqueConditions(
-      ruleResults.flatMap((result) => result.unmetConditions)
+      ruleResults.flatMap(
+          (result) => result.unmetConditions
+      )
   );
 
+  // Only unresolved rules contribute to missing information
   const missingInformation = uniqueConditions(
-      ruleResults.flatMap((result) => result.missingInformation)
+      ruleResults
+          .filter(
+              (result) => result.matched === null
+          )
+          .flatMap(
+              (result) => result.missingInformation
+          )
   );
 
   const manualVerification = programRules
@@ -231,14 +523,26 @@ export function evaluateProgramEligibility(
 
         return (
             result?.matched === true &&
-            (rule.requiresManualVerification === true || rule.outcome === "manual_verification")
+            (
+                rule.requiresManualVerification === true ||
+                rule.outcome === "manual_verification"
+            )
         );
       })
-      .map((rule) => rule.outcomeDescription ?? rule.description);
+      .map(
+          (rule) =>
+              rule.outcomeDescription ??
+              rule.description
+      );
 
   return {
     programCode,
-    status: determineEligibilityStatus(programRules, ruleResults),
+
+    status: determineEligibilityStatus(
+        programRules,
+        ruleResults
+    ),
+
     matchedRuleIds,
     ruleResults,
     matchedConditions,
