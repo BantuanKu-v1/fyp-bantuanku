@@ -1,10 +1,10 @@
-import {getJkmEligibilityCriteria, JkmProgramCode} from "../api";
-import {EligibilityFacts, EligibilityResult, EligibilityRule} from "../../types/eligibility";
-import {EligibilityThresholds} from "../../utils/eligibility/eligibilityConditions";
-import {getApplicantEligibilityData} from "./eligibilityDataService";
-import {buildEligibilityFacts} from "../../utils/eligibility/eligibilityFacts";
-import {adaptJkmEligibilityResponse} from "../../adapters/jkmEligibilityAdapter";
-import {evaluateProgramEligibility} from "../../utils/eligibility/eligibilityEngine";
+import { getJkmEligibilityCriteria, JkmProgramCode } from "../api";
+import { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
+import { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
+import { getApplicantEligibilityData } from "./eligibilityDataService";
+import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts";
+import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
+import { evaluateProgramEligibility } from "../../utils/eligibility/eligibilityEngine";
 
 // Complete eligibility assessment output
 export interface ApplicantEligibilityAssessment {
