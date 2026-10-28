@@ -2,6 +2,7 @@ module.exports = {
     preset: "jest-expo",
     testMatch: [
         "**/__tests__/**/*.(test|spec).(ts|tsx)",
+        "**/sandbox/tests/**/*.(test|spec).(ts|tsx)",
     ],
     testPathIgnorePatterns: [
         "/node_modules/",
