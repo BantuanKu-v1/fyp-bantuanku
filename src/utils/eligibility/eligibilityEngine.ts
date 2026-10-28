@@ -198,7 +198,10 @@ function evaluateExpression(
       };
     }
 
-    return referencedResult;
+    return {
+      matched: referencedResult.matched,
+      conditions: [],
+    };
   }
 
   // Individual eligibility condition
@@ -476,6 +479,10 @@ export function evaluateProgramEligibility(
   const programRules = rules.filter(
       (rule) => rule.programCode === programCode
   );
+
+  if (programRules.length === 0) {
+    throw new Error(`No eligibility rules available for program: ${programCode}`);
+  }
 
   // Execute the forward-chaining inference process
   const ruleResults = runForwardChaining(
