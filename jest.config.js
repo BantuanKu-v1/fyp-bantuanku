@@ -6,6 +6,7 @@ module.exports = {
     ],
     testPathIgnorePatterns: [
         "/node_modules/",
+        "\\.supabase\\.test\\.tsx?$",
     ],
     collectCoverageFrom: [
         "src/schemas/**/*.{ts,tsx}",
