@@ -9,6 +9,11 @@ import {
   EligibilityStatus,
   EligibilityValue,
 } from "../types/eligibility";
+import {
+  ELIGIBILITY_LIST_OPERATORS, JKM_MANUAL_VERIFICATION_OUTCOMES,
+  JKM_OUTCOMES,
+  SUPPORTED_ELIGIBILITY_OPERATORS,
+} from "../constants/eligibility";
 
 // JKM eligibility outcomes
 type JkmEligibilityOutcome =
@@ -21,7 +26,10 @@ type JkmEligibilityOutcome =
 interface JkmFieldCondition {
   field: string;
   operator: EligibilityOperator;
-  value: EligibilityValue | EligibilityValue[] | {
+  value:
+      | EligibilityValue
+      | EligibilityValue[]
+      | {
     thresholdRef: string;
   };
 }
@@ -88,14 +96,10 @@ const JKM_FIELD_MAP = {
   "applicant.residenceState": "state",
   "applicant.ageByBirthYear": "ageByBirthYear",
   "applicant.hasChildren": "hasChildren",
-  "applicant.dependsOnFamilyOrCaregiver":
-      "dependsOnFamilyOrCaregiver",
-  "applicant.familyOrCaregiverIncomeExceedsApplicablePGK":
-      "familyOrCaregiverIncomeExceedsPgk",
-  "applicant.residesInExcludedInstitution":
-      "residesInExcludedInstitution",
-  "applicant.receivesOtherJKMMonthlyAssistance":
-      "receivesJkmMonthlyAssistance",
+  "applicant.dependsOnFamilyOrCaregiver": "dependsOnFamilyOrCaregiver",
+  "applicant.familyOrCaregiverIncomeExceedsApplicablePGK": "familyOrCaregiverIncomeExceedsPgk",
+  "applicant.residesInExcludedInstitution": "residesInExcludedInstitution",
+  "applicant.receivesOtherJKMMonthlyAssistance": "receivesJkmMonthlyAssistance",
   "applicant.isJKMTargetGroup": "isJkmTargetGroup",
   "applicant.isCaregiverOfPatient": "applicantIsCaregiver",
   "applicant.isPatient": "applicantIsPatient",
@@ -109,53 +113,27 @@ const JKM_FIELD_MAP = {
   "patient.residenceCountry": "patientResidenceCountry",
   "patient.isBedridden": "patientIsBedridden",
   "patient.isOKU": "patientIsOku",
+
   "patient.hasChronicIllness": "patientHasChronicIllness",
-  "patient.requiresContinuousTreatment":
-      "patientRequiresContinuousTreatment",
-  "patient.continuousTreatmentMonths":
-      "patientContinuousTreatmentMonths",
+  "patient.requiresContinuousTreatment": "patientRequiresContinuousTreatment",
+
+  "patient.continuousTreatmentMonths": "patientContinuousTreatmentMonths",
   "patient.hasCaregiver": "hasCaregiver",
 
   // Caregiver
   "caregiver.citizenship": "caregiverCitizenship",
-  "caregiver.providesIntensiveCare":
-      "caregiverProvidesIntensiveCare",
+  "caregiver.providesIntensiveCare": "caregiverProvidesIntensiveCare",
 
   // Application
-  "application.hasApplicableMedicalOrJKMRecommendation":
-      "hasMedicalOrJkmRecommendation",
+  "application.hasApplicableMedicalOrJKMRecommendation": "hasMedicalOrJkmRecommendation",
   "application.equipmentCost": "estimatedEquipmentCost",
 
   // JKM assessment
-  "assessment.baAdditionalCircumstancesRequireReview":
-      "baAdditionalCircumstancesRequireReview",
-  "assessment.batRecommendationOrEquipmentRequiresReview":
-      "batRecommendationOrEquipmentRequiresReview",
-  "assessment.batSpecialConsiderationRequested":
-      "batSpecialConsiderationRequested",
-  "assessment.bptMedicalOrCaregiverReviewRequired":
-      "bptMedicalOrCaregiverReviewRequired",
+  "assessment.baAdditionalCircumstancesRequireReview": "baAdditionalCircumstancesRequireReview",
+  "assessment.batRecommendationOrEquipmentRequiresReview": "batRecommendationOrEquipmentRequiresReview",
+  "assessment.batSpecialConsiderationRequested": "batSpecialConsiderationRequested",
+  "assessment.bptMedicalOrCaregiverReviewRequired": "bptMedicalOrCaregiverReviewRequired",
 } as const satisfies Record<string, keyof EligibilityFacts>;
-
-// Supported operators
-const SUPPORTED_OPERATORS: readonly EligibilityOperator[] = [
-  "eq",
-  "neq",
-  "gt",
-  "gte",
-  "lt",
-  "lte",
-  "in",
-  "not_in",
-];
-
-// Supported government outcomes
-const SUPPORTED_OUTCOMES: readonly JkmEligibilityOutcome[] = [
-  "preliminary_match",
-  "no_preliminary_match",
-  "further_assessment_required",
-  "further_approval_required",
-];
 
 // Convert a government outcome to BantuanKu's internal status
 function normalizeOutcome(
@@ -200,7 +178,7 @@ function isEligibilityValue(
 function isEligibilityOperator(
     value: unknown
 ): value is EligibilityOperator {
-  return SUPPORTED_OPERATORS.includes(
+  return SUPPORTED_ELIGIBILITY_OPERATORS.includes(
       value as EligibilityOperator
   );
 }
@@ -209,7 +187,7 @@ function isEligibilityOperator(
 function isJkmOutcome(
     value: unknown
 ): value is JkmEligibilityOutcome {
-  return SUPPORTED_OUTCOMES.includes(
+  return JKM_OUTCOMES.includes(
       value as JkmEligibilityOutcome
   );
 }
@@ -277,7 +255,7 @@ function adaptFieldCondition(
   // List comparison
   if (Array.isArray(value)) {
     if (
-        !["in", "not_in"].includes(operator) ||
+        !ELIGIBILITY_LIST_OPERATORS.includes(operator) ||
         value.length === 0 ||
         !value.every(isEligibilityValue)
     ) {
@@ -536,8 +514,9 @@ function adaptRule(
         raw.assessmentNotes ?? raw.name,
 
     requiresManualVerification:
-        raw.result === "further_assessment_required" ||
-        raw.result === "further_approval_required",
+        (JKM_MANUAL_VERIFICATION_OUTCOMES as readonly string[]).includes(
+            raw.result
+        ),
   };
 }
 
