@@ -1,6 +1,11 @@
 import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "../profile/profileService";
 import { EligibilityFactsInput } from "../../utils/eligibility/eligibilityFacts";
+import {
+  INVALID_COUNTRY_PLACEHOLDERS,
+  MALAYSIA_COUNTRY_VALUES,
+  VALID_ISO_ALPHA2_COUNTRY_CODES,
+} from "../../constants/eligibility";
 
 // Normalize citizenship values to match JKM eligibility criteria
 function normalizeCitizenship(
@@ -30,12 +35,34 @@ function normalizeCountry(
     return null;
   }
 
-  switch (value.trim().toUpperCase()) {
+  const normalized = value.trim().toUpperCase();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (MALAYSIA_COUNTRY_VALUES.includes(normalized)) {
+    return "Malaysia";
+  }
+
+  if (
+      INVALID_COUNTRY_PLACEHOLDERS.includes(
+          normalized as (typeof INVALID_COUNTRY_PLACEHOLDERS)[number]
+      )
+  ) {
+    return null;
+  }
+
+  switch (normalized) {
     case "MY":
     case "MALAYSIA":
       return "Malaysia";
 
     default:
+      if (VALID_ISO_ALPHA2_COUNTRY_CODES.has(normalized)) {
+        return normalized;
+      }
+
       return null;
   }
 }

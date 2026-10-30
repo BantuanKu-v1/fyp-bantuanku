@@ -1,14 +1,16 @@
 import type {
   JkmEligibilityApiResponse,
 } from "../adapters/jkmEligibilityAdapter";
+import {
+  JKM_PROGRAM_CODES,
+  REQUEST_TIMEOUT_MS,
+} from "../constants/eligibility";
 
 const JKM_API_BASE_URL = process.env.EXPO_PUBLIC_JKM_API_BASE_URL
     ?.trim()
     .replace(/\/+$/, "");
 
-const REQUEST_TIMEOUT_MS = 10000;
-
-export type JkmProgramCode = "BA" | "BAT" | "BPT" | "BWE";
+export type JkmProgramCode = (typeof JKM_PROGRAM_CODES)[number];
 
 // Re-export the response type for existing imports
 export type JkmEligibilityResponse = JkmEligibilityApiResponse;

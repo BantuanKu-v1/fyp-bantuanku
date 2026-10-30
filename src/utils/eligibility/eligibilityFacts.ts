@@ -1,4 +1,5 @@
 import { EligibilityFacts } from "../../types/eligibility";
+import { RELATIONSHIP_CHILD_LABELS } from "../../constants/eligibility";
 
 // Database records required to build eligibility facts
 export interface EligibilityFactsInput {
@@ -62,7 +63,7 @@ export interface EligibilityFactsInput {
 function parseDate(dateString: string | null): Date | null {
   if (!dateString) return null;
 
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString.trim());
 
   if (!match) return null;
 
@@ -74,14 +75,12 @@ function parseDate(dateString: string | null): Date | null {
     return null;
   }
 
-  const parsedDate = new Date(0);
-  parsedDate.setFullYear(year, month - 1, day);
-  parsedDate.setHours(0, 0, 0, 0);
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
 
   if (
-      parsedDate.getFullYear() !== year ||
-      parsedDate.getMonth() !== month - 1 ||
-      parsedDate.getDate() !== day
+      parsedDate.getUTCFullYear() !== year ||
+      parsedDate.getUTCMonth() !== month - 1 ||
+      parsedDate.getUTCDate() !== day
   ) {
     return null;
   }
@@ -95,17 +94,19 @@ function calculateAge(
     referenceDate: Date
 ): number | null {
   const birthDate = parseDate(dateOfBirth);
+  const reference = new Date(referenceDate);
+  reference.setHours(0, 0, 0, 0);
 
-  if (!birthDate || birthDate > referenceDate) {
+  if (!birthDate || birthDate > reference) {
     return null;
   }
 
-  let age = referenceDate.getFullYear() - birthDate.getFullYear();
+  let age = reference.getFullYear() - birthDate.getUTCFullYear();
 
   const birthdayPassed =
-      referenceDate.getMonth() > birthDate.getMonth() ||
-      (referenceDate.getMonth() === birthDate.getMonth() &&
-          referenceDate.getDate() >= birthDate.getDate());
+      reference.getMonth() > birthDate.getUTCMonth() ||
+      (reference.getMonth() === birthDate.getUTCMonth() &&
+          reference.getDate() >= birthDate.getUTCDate());
 
   if (!birthdayPassed) {
     age--;
@@ -120,12 +121,14 @@ function calculateAgeByBirthYear(
     referenceDate: Date
 ): number | null {
   const birthDate = parseDate(dateOfBirth);
+  const reference = new Date(referenceDate);
+  reference.setHours(0, 0, 0, 0);
 
-  if (!birthDate || birthDate > referenceDate) {
+  if (!birthDate || birthDate > reference) {
     return null;
   }
 
-  return referenceDate.getFullYear() - birthDate.getFullYear();
+  return reference.getFullYear() - birthDate.getUTCFullYear();
 }
 
 // Calculate completed months since a date
@@ -134,16 +137,18 @@ function calculateCompletedMonths(
     referenceDate: Date
 ): number | null {
   const start = parseDate(startDate);
+  const reference = new Date(referenceDate);
+  reference.setHours(0, 0, 0, 0);
 
-  if (!start || start > referenceDate) {
+  if (!start || start > reference) {
     return null;
   }
 
   let months =
-      (referenceDate.getFullYear() - start.getFullYear()) * 12 +
-      (referenceDate.getMonth() - start.getMonth());
+      (reference.getFullYear() - start.getUTCFullYear()) * 12 +
+      (reference.getMonth() - start.getUTCMonth());
 
-  if (referenceDate.getDate() < start.getDate()) {
+  if (reference.getDate() < start.getUTCDate()) {
     months--;
   }
 
@@ -228,10 +233,8 @@ export function buildEligibilityFacts(
       ).length
       : null;
 
-  const childRelationships = ["child", "son", "daughter"];
-
   const hasRecordedChildren = householdMembers.some((member) =>
-    childRelationships.includes(
+    RELATIONSHIP_CHILD_LABELS.includes(
         member.relationship.trim().toLowerCase()
     )
   );
@@ -299,6 +302,8 @@ export function buildEligibilityFacts(
           ? caregivers[0].provides_intensive_care
           : null;
 
+  const residesInExcludedCareCentre = null;
+
   return {
     // Personal information
     age: calculateAge(profile.date_of_birth, referenceDate),
@@ -345,7 +350,7 @@ export function buildEligibilityFacts(
 
     // Living arrangement information
     residesInJkmInstitution,
-    residesInExcludedCareCentre: null,
+    residesInExcludedCareCentre,
     residesInExcludedInstitution,
     livesWithFamilyOrCaregiver,
     dependsOnFamilyOrCaregiver,
