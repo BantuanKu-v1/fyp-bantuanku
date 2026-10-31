@@ -3,8 +3,8 @@ const fs = require("node:fs");
 const dotenv = require("dotenv");
 
 const envPath = path.resolve(
-    process.cwd(),
-    "sandbox/.supabase-test.env"
+    __dirname,
+    ".supabase-test.env"
 );
 
 if (!fs.existsSync(envPath)) {
