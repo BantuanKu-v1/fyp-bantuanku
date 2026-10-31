@@ -1,7 +1,6 @@
 import { EligibilityFacts } from "../../types/eligibility";
 import { RELATIONSHIP_CHILD_LABELS } from "../../constants/eligibility";
 
-// Database records required to build eligibility facts
 export interface EligibilityFactsInput {
   profile: {
     date_of_birth: string | null;
@@ -181,7 +180,7 @@ function receivesJkmMonthlyAssistance(
     String(referenceDate.getDate()).padStart(2, "0"),
   ].join("-");
 
-  return assistance.some((record) => {
+  const hasQualifyingAssistance = assistance.some((record) => {
     const isJkm = record.agency?.trim().toLowerCase() === "jkm";
 
     const isMonthly =
@@ -190,10 +189,14 @@ function receivesJkmMonthlyAssistance(
     const isActive = record.is_active === true;
 
     const hasStarted =
-        !record.start_date || record.start_date <= referenceDateString;
+        !record.start_date ||
+        (parseDate(record.start_date) !== null &&
+            record.start_date <= referenceDateString);
 
     const hasNotEnded =
-        !record.end_date || record.end_date >= referenceDateString;
+        !record.end_date ||
+        (parseDate(record.end_date) !== null &&
+            record.end_date >= referenceDateString);
 
     return (
         isJkm &&
@@ -203,6 +206,26 @@ function receivesJkmMonthlyAssistance(
         hasNotEnded
     );
   });
+
+  return hasQualifyingAssistance ? true : null;
+}
+
+function normalizeState(value: string | null): string | null {
+  if (!value?.trim()) return null;
+
+  const normalized = value.trim().toLowerCase().replace(/_/g, " ")
+      .replace(/^(?:w\.p\.|wilayah persekutuan)\s+/, "");
+
+  switch (normalized) {
+    case "kuala lumpur":
+      return "Kuala Lumpur";
+    case "putrajaya":
+      return "Putrajaya";
+    case "labuan":
+      return "Labuan";
+    default:
+      return value.trim();
+  }
 }
 
 // Build eligibility facts from applicant records
@@ -234,9 +257,9 @@ export function buildEligibilityFacts(
       : null;
 
   const hasRecordedChildren = householdMembers.some((member) =>
-    RELATIONSHIP_CHILD_LABELS.includes(
-        member.relationship.trim().toLowerCase()
-    )
+      RELATIONSHIP_CHILD_LABELS.includes(
+          member.relationship.trim().toLowerCase()
+      )
   );
 
   const hasChildren = hasRecordedChildren ? true : null;
@@ -313,7 +336,7 @@ export function buildEligibilityFacts(
     ),
     citizenship: profile.citizenship,
     residenceCountry: address?.country_code ?? null,
-    state: address?.state_territory ?? null,
+    state: normalizeState(address?.state_territory ?? null),
     maritalStatus: profile.marital_status,
 
     // Financial information
