@@ -1,13 +1,9 @@
-const {moduleNameMapper} = require("@react-native/jest-preset");
 module.exports = {
     rootDir: __dirname,
-
     testEnvironment: "node",
-
     testMatch: [
-        "**/sandbox/tests/**/*.supabase.test.ts",
+        "<rootDir>/sandbox/tests/**/*.supabase.test.ts",
     ],
-
     transform: {
         "^.+\\.[jt]sx?$": [
             "babel-jest",
@@ -29,19 +25,14 @@ module.exports = {
             },
         ],
     },
-
     setupFiles: [
         "<rootDir>/sandbox/setupSupabaseTestEnv.cjs",
     ],
-
     testPathIgnorePatterns: [
         "/node_modules/",
     ],
-
     testTimeout: 30000,
-
     clearMocks: true,
-
     reporters: [
         "default",
         [
@@ -53,9 +44,4 @@ module.exports = {
             },
         ],
     ],
-
-    moduleNameMapper: {
-        "^\\.\\./\\.\\./lib/supabase$":
-            "<rootDir>/sandbox/helpers/supabaseTestClient.ts",
-    },
 };
