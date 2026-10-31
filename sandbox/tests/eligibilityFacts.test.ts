@@ -497,7 +497,7 @@ describe("Eligibility Facts - Welfare Assistance", () => {
         REFERENCE_DATE
     );
 
-    expect(facts.receivesJkmMonthlyAssistance).toBe(false);
+    expect(facts.receivesJkmMonthlyAssistance).toBeNull();
   });
 
   test("preserves unknown assistance status", () => {
@@ -508,4 +508,99 @@ describe("Eligibility Facts - Welfare Assistance", () => {
 
     expect(facts.receivesJkmMonthlyAssistance).toBeNull();
   });
+});
+
+
+describe("Eligibility Facts - BA", () => {
+  test.each<[string, string | null]>([
+    ...["Kuala Lumpur", "Putrajaya", "Labuan"].flatMap(
+        (state): [string, string][] => [
+          [state, state],
+          [` W.P. ${state} `, state],
+          [`Wilayah Persekutuan ${state}`, state],
+          [state.toLowerCase().replace(/ /g, "_"), state],
+        ]
+    ),
+    ...["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",
+      "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak",
+      "Selangor", "Terengganu"].map((state): [string, string] => [state, state]),
+    [" Selangor ", "Selangor"],
+    ["", null],
+    ["   ", null],
+  ])("normalizes residence %s to %s", (state, expected) => {
+    const input = createApplicant({
+      address: { state_territory: state, country_code: "Malaysia" },
+    });
+    expect(buildEligibilityFacts(input, REFERENCE_DATE).state).toBe(expected);
+    expect(input.address?.state_territory).toBe(state);
+  });
+
+  test.each([
+    { is_active: false },
+    { is_active: null },
+    { end_date: "2026-10-27" },
+    { start_date: "2026-10-29" },
+    { start_date: "2026-02-30" },
+    { end_date: "unknown" },
+    { agency: "LHDNM" },
+    { agency: null },
+    { assistance_type: "one_off" },
+    { assistance_type: null },
+  ])("does not infer absence from non-qualifying assistance %j", (overrides) => {
+    const facts = buildEligibilityFacts(createApplicant({
+      welfareAssistance: [{
+        program_name: "Test Assistance",
+        agency: "JKM",
+        assistance_type: "monthly",
+        is_active: true,
+        start_date: "2026-01-01",
+        end_date: null,
+        ...overrides,
+      }],
+    }), REFERENCE_DATE);
+    expect(facts.receivesJkmMonthlyAssistance).toBeNull();
+  });
+
+  test("counts confirmed active assistance among unrelated and inactive records", () => {
+    const active = {
+      program_name: "Test Assistance",
+      agency: " jkm ",
+      assistance_type: " Monthly ",
+      is_active: true,
+      start_date: "2026-10-28",
+      end_date: "2026-10-28",
+    };
+    const facts = buildEligibilityFacts(createApplicant({
+      welfareAssistance: [
+        { ...active, agency: "LHDNM" },
+        { ...active, is_active: false },
+        active,
+      ],
+    }), REFERENCE_DATE);
+    expect(facts.receivesJkmMonthlyAssistance).toBe(true);
+  });
+
+  test("preserves missing BA circumstances as unknown", () => {
+    expect(buildEligibilityFacts(createApplicant(), REFERENCE_DATE)
+        .baAdditionalCircumstancesRequireReview).toBeNull();
+  });
+
+  test.each([true, false, null])(
+      "does not infer BA review from health or dependant status %s",
+      (status) => {
+        const applicant = createApplicant();
+        applicant.financialProfile = {
+          monthly_personal_income: 0,
+          monthly_household_income: 0,
+        };
+        applicant.healthProfile = {
+          ...applicant.healthProfile!,
+          is_oku: status,
+          has_chronic_illness: status,
+        };
+        applicant.householdMembers[0].is_dependent = status;
+        expect(buildEligibilityFacts(applicant, REFERENCE_DATE)
+            .baAdditionalCircumstancesRequireReview).toBeNull();
+      }
+  );
 });
