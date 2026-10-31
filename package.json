@@ -58,7 +58,7 @@
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --runInBand --coverage",
     "typecheck": "tsc --noEmit",
-    "test:supabase": "jest --config jest.supabase.config.js --runInBand"
+    "test:supabase": "jest --config jest.supabase.config.cjs --runInBand"
   },
   "private": true
 }
