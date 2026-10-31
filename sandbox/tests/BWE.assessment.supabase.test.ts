@@ -3,6 +3,18 @@ import { assessApplicantEligibility, ApplicantEligibilityAssessment } from "../.
 import { getApplicantEligibilityData } from "../../src/services/eligibility/eligibilityDataService";
 import { buildEligibilityFacts } from "../../src/utils/eligibility/eligibilityFacts";
 import { evaluateProgramEligibility } from "../../src/utils/eligibility/eligibilityEngine";
+import { jest } from "@jest/globals";
+
+jest.mock("../../src/lib/supabase", () => {
+  const { supabaseTestClient } = require(
+      "../helpers/supabaseTestClient"
+  );
+
+  return {
+    __esModule: true,
+    supabase: supabaseTestClient,
+  };
+});
 
 describe("BantuanKu - Real BWE Eligibility Assessment", () => {
   let assessment: ApplicantEligibilityAssessment;
