@@ -1,10 +1,5 @@
-import type {
-  JkmEligibilityApiResponse,
-} from "../adapters/jkmEligibilityAdapter";
-import {
-  JKM_PROGRAM_CODES,
-  REQUEST_TIMEOUT_MS,
-} from "../constants/eligibility";
+import type { JkmEligibilityApiResponse } from "../adapters/jkmEligibilityAdapter";
+import { JKM_PROGRAM_CODES, REQUEST_TIMEOUT_MS } from "../constants/eligibility";
 
 const JKM_API_BASE_URL = process.env.EXPO_PUBLIC_JKM_API_BASE_URL
     ?.trim()
@@ -12,8 +7,13 @@ const JKM_API_BASE_URL = process.env.EXPO_PUBLIC_JKM_API_BASE_URL
 
 export type JkmProgramCode = (typeof JKM_PROGRAM_CODES)[number];
 
-// Re-export the response type for existing imports
 export type JkmEligibilityResponse = JkmEligibilityApiResponse;
+
+// Response containing eligibility criteria for all supported programs
+export interface JkmAllEligibilityResponse {
+  success: true;
+  data: JkmEligibilityApiResponse["data"][];
+}
 
 // Validate the configured JKM Mock API base URL
 function getJkmApiBaseUrl(): string {
@@ -119,7 +119,59 @@ function isJkmEligibilityResponse(
   });
 }
 
-// Fetch public eligibility criteria from the JKM Mock API
+// Validate the response containing all JKM eligibility criteria
+function isJkmAllEligibilityResponse(
+    value: unknown
+): value is JkmAllEligibilityResponse {
+  if (!isRecord(value) || value.success !== true) {
+    return false;
+  }
+
+  if (!Array.isArray(value.data)) {
+    return false;
+  }
+
+  const seenCodes = new Set<string>();
+
+  return value.data.every((program) => {
+    // Reuse existing individual response validation
+    if (
+        !isJkmEligibilityResponse({
+          success: true,
+          data: program,
+        })
+    ) {
+      return false;
+    }
+
+    const programCode = program.programCode;
+
+    // Ensure program code matches its criteria
+    if (programCode !== program.criteria.programCode) {
+      return false;
+    }
+
+    // Ensure the program is supported by BantuanKu
+    if (
+        !JKM_PROGRAM_CODES.includes(
+            programCode as JkmProgramCode
+        )
+    ) {
+      return false;
+    }
+
+    // Prevent duplicate program codes
+    if (seenCodes.has(programCode)) {
+      return false;
+    }
+
+    seenCodes.add(programCode);
+
+    return true;
+  });
+}
+
+// Fetch eligibility criteria for a specific JKM program
 export async function getJkmEligibilityCriteria(
     programCode: JkmProgramCode
 ): Promise<JkmEligibilityResponse> {
@@ -196,6 +248,83 @@ export async function getJkmEligibilityCriteria(
   ) {
     throw new Error(
         "JKM API returned criteria for an unexpected program"
+    );
+  }
+
+  return data;
+}
+
+// Fetch eligibility criteria for all supported JKM programs
+export async function getAllJkmEligibilityCriteria():
+    Promise<JkmAllEligibilityResponse> {
+  const baseUrl = getJkmApiBaseUrl();
+
+  const controller = new AbortController();
+
+  let timedOut = false;
+
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  let response: Response;
+
+  // Handle network errors and request timeout
+  try {
+    response = await fetch(
+        `${baseUrl}/api/v1/programs/eligibility`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          signal: controller.signal,
+        }
+    );
+  } catch (error) {
+    if (timedOut) {
+      throw new Error(
+          "JKM API request timed out. Please try again."
+      );
+    }
+
+    if (
+        error instanceof Error &&
+        error.name === "AbortError"
+    ) {
+      throw new Error("JKM API request was cancelled.");
+    }
+
+    throw new Error(
+        "Unable to connect to JKM API. Please check your internet connection."
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  // Validate HTTP response
+  if (!response.ok) {
+    throw new Error(
+        `Failed to retrieve JKM eligibility criteria (HTTP ${response.status})`
+    );
+  }
+
+  // Parse JSON response
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+        "JKM API returned an invalid JSON response"
+    );
+  }
+
+  // Validate eligibility response structure
+  if (!isJkmAllEligibilityResponse(data)) {
+    throw new Error(
+        "JKM API returned an invalid eligibility response"
     );
   }
 
