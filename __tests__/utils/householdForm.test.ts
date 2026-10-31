@@ -3,7 +3,7 @@ import {
   parseHouseholdDate,
   HOUSEHOLD_FORM_DEFAULT_VALUES,
   mapHouseholdMemberToForm,
-} from "../../src/utils/householdForm";
+} from "../../src/utils/household/householdForm";
 import type { HouseholdMember } from "../../src/services/profile/householdService";
 import {
   HOUSEHOLD_RELATIONSHIP_KEYS,

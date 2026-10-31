@@ -138,7 +138,9 @@ export default function LoginScreen({
                             autoComplete="current-password"
                             textContentType="password"
                             returnKeyType="done"
-                            onSubmitEditing={handleSubmit(onSubmit)}
+                            onSubmitEditing={() => {
+                                void handleSubmit(onSubmit)();
+                            }}
                             required
                         />
                     )}
@@ -158,7 +160,9 @@ export default function LoginScreen({
                 <Button
                     fullWidth
                     loading={isSubmitting}
-                    onPress={handleSubmit(onSubmit)}
+                    onPress={() => {
+                      void handleSubmit(onSubmit)();
+                    }}
                 >
                   {t("auth.login.signIn")}
                 </Button>

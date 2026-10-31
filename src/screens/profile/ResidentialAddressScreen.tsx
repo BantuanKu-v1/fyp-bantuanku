@@ -569,7 +569,9 @@ export default function ResidentialAddressScreen({
                         size="sm"
                         loading={saving}
                         disabled={!isDirty || postcodeLookingUp}
-                        onPress={handleSubmit(handleSave)}
+                        onPress={() => {
+                          void handleSubmit(handleSave)();
+                        }}
                     >
                       {t("common.save")}
                     </Button>

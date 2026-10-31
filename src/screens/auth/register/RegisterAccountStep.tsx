@@ -126,7 +126,9 @@ export default function RegisterAccountStep({
                   autoComplete="new-password"
                   textContentType="newPassword"
                   returnKeyType="done"
-                  onSubmitEditing={handleSubmit(onContinue)}
+                  onSubmitEditing={() => {
+                    void handleSubmit(onContinue)();
+                  }}
                   required
                 />
             )}
@@ -134,7 +136,9 @@ export default function RegisterAccountStep({
 
           <Button
             fullWidth
-            onPress={handleSubmit(onContinue)}
+            onPress={() => {
+              void handleSubmit(onContinue)();
+            }}
           >
             {t("common.continue")}
           </Button>

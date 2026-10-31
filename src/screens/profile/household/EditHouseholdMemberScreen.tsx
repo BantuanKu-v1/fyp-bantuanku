@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { AddHouseholdMemberFormData } from "../../../schemas/household";
 import { getHouseholdMember, updateHouseholdMember } from "../../../services/profile/householdService";
-import { mapHouseholdMemberToForm } from "../../../utils/householdForm";
+import { mapHouseholdMemberToForm } from "../../../utils/household/householdForm";
 import useHouseholdMemberForm from "../../../hooks/useHouseholdMemberForm";
 import useUnsavedChanges from "../../../hooks/useUnsavedChanges";
 
@@ -178,7 +178,9 @@ export default function EditHouseholdMemberScreen({
 
           <Button
               fullWidth
-              onPress={handleSubmit(onSubmit)}
+              onPress={() => {
+                void handleSubmit(onSubmit)();
+              }}
               loading={submitting}
           >
             {t("common.save")}

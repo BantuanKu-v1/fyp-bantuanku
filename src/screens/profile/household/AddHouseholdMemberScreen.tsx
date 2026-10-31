@@ -104,7 +104,9 @@ export default function AddHouseholdMemberScreen({
 
           <Button
               fullWidth
-              onPress={handleSubmit(onSubmit)}
+              onPress={() => {
+                void handleSubmit(onSubmit)();
+              }}
               loading={submitting}
           >
             {t("common.save")}
