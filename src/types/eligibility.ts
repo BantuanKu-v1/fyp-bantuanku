@@ -41,6 +41,7 @@ export interface EligibilityFacts {
   hasChildren: boolean | null;
   hasEligibleChildren: boolean | null;
   isFullTimeStudent: boolean | null;
+  isFullTimeIptaIptsStudent: boolean | null; // STR-specific student eligibility
 
   // Welfare assistance information
   receivesJkmMonthlyAssistance: boolean | null;
