@@ -32,6 +32,7 @@ function createEligibleBaFacts(
     hasChildren: null,
     hasEligibleChildren: null,
     isFullTimeStudent: null,
+    isFullTimeIptaIptsStudent: null,
 
     receivesJkmMonthlyAssistance: false,
     isJkmTargetGroup: null,

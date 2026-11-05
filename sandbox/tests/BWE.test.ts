@@ -34,6 +34,7 @@ function createTestFacts(
     hasChildren: null,
     hasEligibleChildren: null,
     isFullTimeStudent: null,
+    isFullTimeIptaIptsStudent: null,
 
     receivesJkmMonthlyAssistance: null,
     isJkmTargetGroup: null,

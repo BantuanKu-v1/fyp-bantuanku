@@ -29,6 +29,7 @@ function createEligibleBweFacts(
     hasChildren: true,
     hasEligibleChildren: null,
     isFullTimeStudent: null,
+    isFullTimeIptaIptsStudent: null,
     receivesJkmMonthlyAssistance: null,
     isJkmTargetGroup: null,
     isOku: null,
