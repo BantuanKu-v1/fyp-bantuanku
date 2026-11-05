@@ -13,7 +13,7 @@ export interface StrEligibilityApiResponse {
     version: number;
     updatedAt?: string;
     criteria: {
-      schemeVersion: number;
+      schemaVersion: number;
       programCode: 'STR';
       scope?: string;
       rules: unknown[];
@@ -71,7 +71,7 @@ function isStrEligibilityResponse(value: unknown): value is StrEligibilityApiRes
           typeof data.version === "number" &&
           (data.updatedAt === undefined || typeof data.updatedAt === "string") &&
           criteria.programCode === "STR" &&
-          criteria.schemeVersion === 1 &&
+          criteria.schemaVersion === 1 &&
           Array.isArray(criteria.rules)
   );
 }
@@ -84,10 +84,10 @@ export async function getStrEligibilityCriteria(year: number = 2026): Promise<St
   const baseUrl = getStrApiBaseUrl();
   const controller = new AbortController();
 
-  let timedOUt = false;
+  let timedOut = false;
 
   const timeout = setTimeout(() => {
-    timedOUt = true;
+    timedOut = true;
     controller.abort();
   }, REQUEST_TIMEOUT_MS);
 
@@ -95,7 +95,7 @@ export async function getStrEligibilityCriteria(year: number = 2026): Promise<St
 
   try {
     response = await fetch(
-        `{baseUrl}/api/v1/programs/STR/eligibility?year=${year}`,
+        `${baseUrl}/api/v1/programs/STR/eligibility?year=${year}`,
         {
           method: "GET",
           headers: {
@@ -105,7 +105,7 @@ export async function getStrEligibilityCriteria(year: number = 2026): Promise<St
         }
     );
   } catch (error) {
-    if (timeout) {
+    if (timedOut) {
       throw new Error("STR API request timed out. Please try again");
     }
 
