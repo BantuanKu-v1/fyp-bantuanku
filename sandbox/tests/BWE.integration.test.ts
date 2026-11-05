@@ -11,7 +11,7 @@ jest.mock(
     })
 );
 
-jest.mock("../../src/services/api", () => ({
+jest.mock("../../src/services/api/jkmApi", () => ({
   getJkmEligibilityCriteria: jest.fn(),
 }));
 
