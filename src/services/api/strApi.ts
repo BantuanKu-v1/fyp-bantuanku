@@ -15,7 +15,10 @@ export interface StrEligibilityApiResponse {
     criteria: {
       schemaVersion: number;
       programCode: 'STR';
+      schemeYear: number;
+      source?: string;
       scope?: string;
+      assessmentNotes?: string;
       rules: unknown[];
     };
   };
@@ -66,13 +69,14 @@ function isStrEligibilityResponse(value: unknown): value is StrEligibilityApiRes
 
   return (
       data.programCode === "STR" &&
-          typeof data.programName === "string" &&
-          Number.isInteger(data.schemeYear) &&
-          typeof data.version === "number" &&
-          (data.updatedAt === undefined || typeof data.updatedAt === "string") &&
-          criteria.programCode === "STR" &&
-          criteria.schemaVersion === 1 &&
-          Array.isArray(criteria.rules)
+      typeof data.programName === "string" &&
+      Number.isInteger(data.schemeYear) &&
+      typeof data.version === "number" &&
+      (data.updatedAt === undefined || typeof data.updatedAt === "string") &&
+      criteria.programCode === "STR" &&
+      criteria.schemaVersion === 1 &&
+      criteria.schemeYear === data.schemeYear &&
+      Array.isArray(criteria.rules)
   );
 }
 
