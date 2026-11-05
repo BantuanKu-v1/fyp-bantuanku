@@ -351,6 +351,7 @@ export function buildEligibilityFacts(
     hasChildren,
     hasEligibleChildren: null,
     isFullTimeStudent,
+    isFullTimeIptaIptsStudent: null,
 
     // Welfare assistance information
     receivesJkmMonthlyAssistance: receivesJkmMonthlyAssistance(
