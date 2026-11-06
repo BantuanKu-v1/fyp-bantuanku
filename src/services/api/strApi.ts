@@ -133,7 +133,7 @@ export async function getStrEligibilityCriteria(year: number = 2026): Promise<St
   try {
     data = await response.json();
   } catch {
-    throw new Error("STR API retuned invalid JSON");
+    throw new Error("STR API returned invalid JSON");
   }
 
   if (!isStrEligibilityResponse(data)) {
