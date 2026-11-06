@@ -244,14 +244,6 @@ export function adaptJkmEligibilityCriteria(
       adaptRule(rule, programCode)
   );
 
-  const ruleIds = rules.map((rule) => rule.id);
-
-  if (new Set(ruleIds).size !== ruleIds.length) {
-    throw new Error(
-        "Duplicate JKM eligibility rule codes detected"
-    );
-  }
-
   validateEligibilityRuleDependencies(rules, "JKM");
 
   return rules;
