@@ -8,6 +8,7 @@ export interface EligibilityFactsInput {
     marital_status: string | null;
     is_student: boolean | null;
     study_mode: string | null;
+    institution_type: string | null;
   };
 
   address: {
@@ -24,6 +25,13 @@ export interface EligibilityFactsInput {
     relationship: string;
     date_of_birth: string | null;
     is_dependent: boolean | null;
+    identification_no: string | null;
+    citizenship: string | null;
+    employment_status: string | null;
+    monthly_income: number | null;
+    is_student: boolean | null;
+    study_mode: string | null;
+    institution_type: string | null;
   }[];
 
   healthProfile: {
@@ -288,6 +296,23 @@ export function buildEligibilityFacts(
                   ? profile.study_mode.trim().toLowerCase() === "full_time"
                   : null;
 
+  // STR: Determine whether is a full-time IPTA/IPTS student
+  // Full time study alone does not establish institution type
+  const institution_type = profile.institution_type
+      ?.trim()
+      .toLowerCase() ?? null;
+
+  const isFullTimeIptaIptsStudent =
+      isFullTimeStudent === false
+          ? false
+          : isFullTimeStudent === null
+              ? null
+              : institution_type === "ipta" || institution_type === "ipts"
+                  ? true
+                  : institution_type === null || institution_type === ""
+                      ? null
+                      : false;
+
   // Living arrangements
   // A caregiver record does not prove co-residence
   const livesWithFamilyOrCaregiver =
@@ -351,7 +376,7 @@ export function buildEligibilityFacts(
     hasChildren,
     hasEligibleChildren: null,
     isFullTimeStudent,
-    isFullTimeIptaIptsStudent: null,
+    isFullTimeIptaIptsStudent,
 
     // Welfare assistance information
     receivesJkmMonthlyAssistance: receivesJkmMonthlyAssistance(
