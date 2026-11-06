@@ -1,4 +1,4 @@
-import {
+import type {
   EligibilityCondition,
   EligibilityExpression,
   EligibilityFacts,
@@ -273,7 +273,7 @@ export function validateEligibilityRuleDependencies(
     const rule = ruleMap.get(ruleId);
 
     if (!rule) {
-      throw new Error(`Unknow ${source} rule reference: ${ruleId}`);
+      throw new Error(`Unknown ${source} rule reference: ${ruleId}`);
     }
 
     visiting.add(ruleId);
