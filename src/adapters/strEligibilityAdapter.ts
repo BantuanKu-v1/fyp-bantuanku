@@ -58,7 +58,7 @@ export function adaptStrEligibilityResponse(response: StrEligibilityApiResponse)
     throw new Error("Invalid STR eligibility rules on scheme year");
   }
 
-  const seenCodes = new Set<string>();
+  // const seenCodes = new Set<string>();
 
   const rules: EligibilityRule[] = criteria.rules.map(
       (rawRule) => {
@@ -86,11 +86,11 @@ export function adaptStrEligibilityResponse(response: StrEligibilityApiResponse)
           throw new Error("Invalid STR rule metadata");
         }
 
-        if (seenCodes.has(ruleCode)) {
-          throw new Error(`Duplicate STR rule: ${ruleCode}`);
-        }
-
-        seenCodes.add(ruleCode);
+        // if (seenCodes.has(ruleCode)) {
+        //   throw new Error(`Duplicate STR rule: ${ruleCode}`);
+        // }
+        //
+        // seenCodes.add(ruleCode);
 
         const outcome = STR_OUTCOME_MAP[result as StrOutcome];
 
