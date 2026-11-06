@@ -1,14 +1,17 @@
-import { getJkmEligibilityCriteria, JkmProgramCode } from "../api";
+import { getJkmEligibilityCriteria, getStrEligibilityCriteria } from "../api";
 import { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
 import { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
 import { getApplicantEligibilityData } from "./eligibilityDataService";
 import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts";
 import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
 import { evaluateProgramEligibility } from "../../utils/eligibility/eligibilityEngine";
+import { adaptStrEligibilityResponse } from "../../adapters/strEligibilityAdapter";
+
+import type { JkmProgramCode } from "../api";
 
 // Complete eligibility assessment output
 export interface ApplicantEligibilityAssessment {
-  programCode: JkmProgramCode;
+  programCode: JkmProgramCode | "STR";
 
   // Government eligibility criteria version
   criteriaVersion: number;
@@ -33,29 +36,33 @@ export interface EligibilityAssessmentOptions {
 
 // Assess an authenticated applicant's preliminary eligibility
 export async function assessApplicantEligibility(
-    programCode: JkmProgramCode,
+    programCode: JkmProgramCode | "STR",
     options: EligibilityAssessmentOptions = {}
 ): Promise<ApplicantEligibilityAssessment> {
-  // 1 - retrieve applicant data and government criteria
-  const [applicantData, response] = await Promise.all([
-      getApplicantEligibilityData(),
-      getJkmEligibilityCriteria(programCode),
-  ]);
-
-  // 2 - build eligibility facts from applicant information
+  const applicantData = await getApplicantEligibilityData();
   const facts = buildEligibilityFacts(applicantData);
 
-  // 3 - convert JKM eligibility rules into BantuanKu's format
-  const rules = adaptJkmEligibilityResponse(response, programCode);
+  let rules: EligibilityRule[];
+  let criteriaVersion: number;
 
-  // 4 - ensure eligibility rules are available
-  if (rules.length === 0) {
-    throw new Error(
-        `No eligibility rules are available for ${programCode}`
-    );
+  if (programCode === "STR") {
+    const response = await getStrEligibilityCriteria();
+
+    rules = adaptStrEligibilityResponse(response);
+    criteriaVersion = response.data.version;
+  } else {
+    const response = await getJkmEligibilityCriteria(programCode);
+
+    rules = adaptJkmEligibilityResponse(response, programCode);
+    criteriaVersion = response.data.version;
   }
 
-  // 5 - evaluate the applicant against the eligibility rules
+  // Ensure eligibility rules are available
+  if (rules.length === 0) {
+    throw new Error(`No eligibility rules are available for ${programCode}`);
+  }
+
+  // Evaluate the applicant against the eligibility rules
   const result = evaluateProgramEligibility(
       programCode,
       rules,
@@ -63,10 +70,9 @@ export async function assessApplicantEligibility(
       options.thresholds ?? {}
   );
 
-  // 6 - return the complete assessment
   return {
     programCode,
-    criteriaVersion: response.data.version,
+    criteriaVersion,
     facts,
     rules,
     result,
