@@ -102,7 +102,8 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
       citizenship,
       marital_status,
       is_student,
-      study_mode
+      study_mode,
+      institution_type
     `)
       .eq("id", profileId)
       .single();
@@ -153,7 +154,14 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
         .select(`
         relationship,
         date_of_birth,
-        is_dependent
+        is_dependent,
+        identification_no,
+        citizenship,
+        employment_status,
+        monthly_income,
+        is_student,
+        study_mode,
+        institution_type
       `)
         .eq("profile_id", profileId),
 
@@ -241,15 +249,11 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
     // Personal information
     profile: {
       date_of_birth: profile.date_of_birth,
-
-      citizenship:
-          normalizeCitizenship(profile.citizenship),
-
+      citizenship: normalizeCitizenship(profile.citizenship),
       marital_status: profile.marital_status,
-
       is_student: profile.is_student,
-
       study_mode: profile.study_mode,
+      institution_type: profile.institution_type,
     },
 
     // Residential address
@@ -284,10 +288,15 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
     householdMembers: (householdResult.data ?? []).map(
         (member) => ({
           relationship: member.relationship,
-
           date_of_birth: member.date_of_birth,
-
           is_dependent: member.is_dependent,
+          identification_no: member.identification_no,
+          citizenship: normalizeCitizenship(member.citizenship),
+          employment_status: member.employment_status,
+          monthly_income: toNullableNumber(member.monthly_income),
+          is_student: member.is_student,
+          study_mode: member.study_mode,
+          institution_type: member.institution_type,
         })
     ),
 
