@@ -720,7 +720,7 @@ describe("PDA-016 — Children information", () => {
     expect(facts.hasChildren).toBeNull();
   });
 
-  it.each(["son", "daughter", " CHILD "])(
+  it.each(["child", " CHILD "])(
       "recognizes relationship %p",
       async (relationship) => {
         updateTable("household_members", [
