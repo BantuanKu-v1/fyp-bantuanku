@@ -236,6 +236,101 @@ function normalizeState(value: string | null): string | null {
   }
 }
 
+function isFullTimeIptaIpts(
+    isStudent: boolean | null,
+    studyMode: string | null,
+    institutionType: string | null
+): boolean | null {
+  if (isStudent === false) return false;
+  if (isStudent === null) return null;
+
+  const mode = studyMode?.trim().toLowerCase() ?? null;
+  const institution = institutionType?.trim().toLowerCase() ?? null;
+
+  if (mode === "part_time") return false;
+  if (mode !== "full_time") return null;
+
+  if (institution === "ipta" || institution === "ipts") {
+    return true;
+  }
+
+  if (institution === "school") {
+    return false;
+  }
+
+  return null;
+}
+
+function calculateStrEligibleChildren(
+    members: EligibilityFactsInput["householdMembers"],
+    referenceDate: Date
+): number | null {
+  let eligibleCount = 0;
+  let hasUnknownChild = false;
+
+  for (const member of members) {
+    if (
+        !RELATIONSHIP_CHILD_LABELS.includes(
+            member.relationship.trim().toLowerCase()
+        )
+    ) {
+      continue;
+    }
+
+    const age = calculateAge(member.date_of_birth, referenceDate);
+
+    const isMalaysian =
+        member.citizenship === null
+            ? null
+            : member.citizenship === "Malaysian";
+
+    const hasNoEmployment =
+        member.employment_status === null
+            ? null
+            : member.employment_status === "unemployed" ||
+              member.employment_status === "not_working";
+
+    const hasNoIncome =
+        member.monthly_income === null
+            ? null
+            : member.monthly_income === 0;
+
+    const hasIdentification = member.identification_no?.trim() ? true : null;
+
+    const meetsAgeAndStudyRequirement =
+        age === null
+            ? null
+            : age <= 18
+                ? true
+                : isFullTimeIptaIpts(
+                    member.is_student,
+                    member.study_mode,
+                    member.institution_type
+                );
+
+    const conditions: (boolean | null)[] = [
+        isMalaysian,
+        hasNoEmployment,
+        hasNoIncome,
+        hasIdentification,
+        meetsAgeAndStudyRequirement
+    ];
+
+    if (conditions.includes(false)) {
+      continue;
+    }
+
+    if (conditions.includes(null)) {
+      hasUnknownChild = true;
+      continue;
+    }
+
+    eligibleCount++;
+  }
+
+  return hasUnknownChild ? null : eligibleCount;
+}
+
 // Build eligibility facts from applicant records
 export function buildEligibilityFacts(
     input: EligibilityFactsInput,
@@ -272,6 +367,13 @@ export function buildEligibilityFacts(
 
   const hasChildren = hasRecordedChildren ? true : null;
 
+  const numberOfEligibleChildren = calculateStrEligibleChildren(householdMembers, referenceDate);
+
+  const hasEligibleChildren =
+      numberOfEligibleChildren === null
+          ? null
+          : numberOfEligibleChildren > 0;
+
   // Financial information
   const monthlyPersonalIncome = toNullableNumber(
       financialProfile?.monthly_personal_income ?? null
@@ -287,31 +389,25 @@ export function buildEligibilityFacts(
           : null;
 
   // Student information
+  const studyMode = profile.study_mode?.trim().toLowerCase() ?? null;
+
   const isFullTimeStudent =
-      profile.is_student === null
-          ? null
-          : !profile.is_student
-              ? false
-              : profile.study_mode
-                  ? profile.study_mode.trim().toLowerCase() === "full_time"
-                  : null;
-
-  // STR: Determine whether is a full-time IPTA/IPTS student
-  // Full time study alone does not establish institution type
-  const institution_type = profile.institution_type
-      ?.trim()
-      .toLowerCase() ?? null;
-
-  const isFullTimeIptaIptsStudent =
-      isFullTimeStudent === false
+      profile.is_student === false
           ? false
-          : isFullTimeStudent === null
+          : profile.is_student === null
               ? null
-              : institution_type === "ipta" || institution_type === "ipts"
+              : studyMode === "full_time"
                   ? true
-                  : institution_type === null || institution_type === ""
-                      ? null
-                      : false;
+                  : studyMode === "part_time"
+                      ? false
+                      : null;
+
+  // STR - Full-time IPTA/IPTS student classification
+  const isFullTimeIptaIptsStudent = isFullTimeIptaIpts(
+      profile.is_student,
+      profile.study_mode,
+      profile.institution_type
+  );
 
   // Living arrangements
   // A caregiver record does not prove co-residence
@@ -372,9 +468,9 @@ export function buildEligibilityFacts(
 
     // Household information
     numberOfDependents,
-    numberOfEligibleChildren: null,
+    numberOfEligibleChildren,
     hasChildren,
-    hasEligibleChildren: null,
+    hasEligibleChildren,
     isFullTimeStudent,
     isFullTimeIptaIptsStudent,
 
