@@ -34,6 +34,8 @@ export interface EligibilityFactsInput {
     institution_type: string | null;
   }[];
 
+  householdMembersComplete?: boolean | null;
+
   healthProfile: {
     is_oku: boolean | null;
     oku_registered: boolean | null;
@@ -102,9 +104,14 @@ function calculateAge(
 ): number | null {
   const birthDate = parseDate(dateOfBirth);
   const reference = new Date(referenceDate);
-  reference.setHours(0, 0, 0, 0);
 
-  if (!birthDate || birthDate > reference) {
+  const referenceDay = Date.UTC(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate()
+  );
+
+  if (!birthDate || birthDate.getTime() > referenceDay) {
     return null;
   }
 
@@ -129,9 +136,14 @@ function calculateAgeByBirthYear(
 ): number | null {
   const birthDate = parseDate(dateOfBirth);
   const reference = new Date(referenceDate);
-  reference.setHours(0, 0, 0, 0);
 
-  if (!birthDate || birthDate > reference) {
+  const referenceDay = Date.UTC(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate()
+  );
+
+  if (!birthDate || birthDate.getTime() > referenceDay) {
     return null;
   }
 
@@ -145,9 +157,14 @@ function calculateCompletedMonths(
 ): number | null {
   const start = parseDate(startDate);
   const reference = new Date(referenceDate);
-  reference.setHours(0, 0, 0, 0);
 
-  if (!start || start > reference) {
+  const referenceDay = Date.UTC(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate()
+  );
+
+  if (!start || start.getTime() > referenceDay) {
     return null;
   }
 
@@ -263,8 +280,12 @@ function isFullTimeIptaIpts(
 
 function calculateStrEligibleChildren(
     members: EligibilityFactsInput["householdMembers"],
-    referenceDate: Date
-): number | null {
+    referenceDate: Date,
+    householdMembersComplete?: boolean | null
+): {
+  numberOfEligibleChildren: number | null;
+  hasEligibleChildren: boolean | null;
+} {
   let eligibleCount = 0;
   let hasUnknownChild = false;
 
@@ -288,7 +309,7 @@ function calculateStrEligibleChildren(
         member.employment_status === null
             ? null
             : member.employment_status === "unemployed" ||
-              member.employment_status === "not_working";
+            member.employment_status === "not_working";
 
     const hasNoIncome =
         member.monthly_income === null
@@ -309,11 +330,11 @@ function calculateStrEligibleChildren(
                 );
 
     const conditions: (boolean | null)[] = [
-        isMalaysian,
-        hasNoEmployment,
-        hasNoIncome,
-        hasIdentification,
-        meetsAgeAndStudyRequirement
+      isMalaysian,
+      hasNoEmployment,
+      hasNoIncome,
+      hasIdentification,
+      meetsAgeAndStudyRequirement
     ];
 
     if (conditions.includes(false)) {
@@ -328,7 +349,22 @@ function calculateStrEligibleChildren(
     eligibleCount++;
   }
 
-  return hasUnknownChild ? null : eligibleCount;
+  const numberOfEligibleChildren =
+      householdMembersComplete === true && !hasUnknownChild
+          ? eligibleCount
+          : null;
+
+  const hasEligibleChildren =
+      eligibleCount > 0
+          ? true
+          : hasUnknownChild || householdMembersComplete !== true
+              ? null
+              : false;
+
+  return {
+    numberOfEligibleChildren,
+    hasEligibleChildren
+  };
 }
 
 // Build eligibility facts from applicant records
@@ -341,6 +377,7 @@ export function buildEligibilityFacts(
     address,
     financialProfile,
     householdMembers,
+    householdMembersComplete = null,
     healthProfile,
     livingArrangement,
     caregivers,
@@ -349,15 +386,20 @@ export function buildEligibilityFacts(
 
   // Household information
   // Assumes all householdMembers belong to the applicant's household
-  const householdSize = 1 + householdMembers.length;
+  const householdSize =
+      householdMembersComplete === true
+          ? 1 + householdMembers.length
+          : null;
 
-  const numberOfDependents = householdMembers.every(
-      (member) => member.is_dependent !== null
-  )
-      ? householdMembers.filter(
-          (member) => member.is_dependent === true
-      ).length
-      : null;
+  const numberOfDependents =
+      householdMembersComplete === true &&
+      householdMembers.every(
+          (member) => member.is_dependent !== null
+      )
+          ? householdMembers.filter(
+              (member) => member.is_dependent === true
+          ).length
+          : null;
 
   const hasRecordedChildren = householdMembers.some((member) =>
       RELATIONSHIP_CHILD_LABELS.includes(
@@ -365,14 +407,21 @@ export function buildEligibilityFacts(
       )
   );
 
-  const hasChildren = hasRecordedChildren ? true : null;
+  const hasChildren =
+      hasRecordedChildren
+          ? true
+          : householdMembersComplete === true
+              ? false
+              : null;
 
-  const numberOfEligibleChildren = calculateStrEligibleChildren(householdMembers, referenceDate);
-
-  const hasEligibleChildren =
-      numberOfEligibleChildren === null
-          ? null
-          : numberOfEligibleChildren > 0;
+  const {
+    numberOfEligibleChildren,
+    hasEligibleChildren
+  } = calculateStrEligibleChildren(
+      householdMembers,
+      referenceDate,
+      householdMembersComplete
+  );
 
   // Financial information
   const monthlyPersonalIncome = toNullableNumber(
@@ -384,7 +433,9 @@ export function buildEligibilityFacts(
   );
 
   const perCapitaHouseholdIncome =
-      monthlyHouseholdIncome !== null && householdSize > 0
+      monthlyHouseholdIncome !== null &&
+      householdSize !== null &&
+      householdSize > 0
           ? monthlyHouseholdIncome / householdSize
           : null;
 
