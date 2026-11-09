@@ -2,16 +2,37 @@ import { buildEligibilityFacts, type EligibilityFactsInput } from "../../src/uti
 
 const REFERENCE_DATE = new Date(2026, 9, 28);
 
+type HouseholdMember = EligibilityFactsInput["householdMembers"][number];
+
+function createHouseholdMember(
+    overrides: Partial<HouseholdMember> = {}
+): HouseholdMember {
+  return {
+    relationship: "child",
+    date_of_birth: "1990-01-01",
+    is_dependent: false,
+    identification_no: null,
+    citizenship: "Malaysian",
+    employment_status: null,
+    monthly_income: null,
+    is_student: false,
+    study_mode: null,
+    institution_type: null,
+    ...overrides,
+  };
+}
+
 function createApplicant(
     overrides: Partial<EligibilityFactsInput> = {}
 ): EligibilityFactsInput {
-  return {
+  const base: EligibilityFactsInput = {
     profile: {
       date_of_birth: "1961-05-15",
       citizenship: "Malaysian",
       marital_status: "single",
       is_student: false,
       study_mode: null,
+      institution_type: null,
     },
 
     address: {
@@ -25,11 +46,7 @@ function createApplicant(
     },
 
     householdMembers: [
-      {
-        relationship: "child",
-        date_of_birth: "1990-01-01",
-        is_dependent: false,
-      },
+      createHouseholdMember(),
     ],
 
     healthProfile: {
@@ -50,10 +67,16 @@ function createApplicant(
     },
 
     caregivers: [],
-
     welfareAssistance: [],
+  };
 
+  return {
+    ...base,
     ...overrides,
+    profile: {
+      ...base.profile,
+      ...overrides.profile,
+    },
   };
 }
 
@@ -70,18 +93,13 @@ describe("Eligibility Facts - Age", () => {
   });
 
   test("distinguishes completed age from birth-year age", () => {
-    const applicant = createApplicant({
-      profile: {
-        date_of_birth: "1966-12-15",
-        citizenship: "Malaysian",
-        marital_status: "single",
-        is_student: false,
-        study_mode: null,
-      },
-    });
-
     const facts = buildEligibilityFacts(
-        applicant,
+        createApplicant({
+          profile: {
+            ...createApplicant().profile,
+            date_of_birth: "1966-12-15",
+          },
+        }),
         REFERENCE_DATE
     );
 
@@ -90,18 +108,13 @@ describe("Eligibility Facts - Age", () => {
   });
 
   test("returns null for invalid date of birth", () => {
-    const applicant = createApplicant({
-      profile: {
-        date_of_birth: "1961-02-30",
-        citizenship: "Malaysian",
-        marital_status: "single",
-        is_student: false,
-        study_mode: null,
-      },
-    });
-
     const facts = buildEligibilityFacts(
-        applicant,
+        createApplicant({
+          profile: {
+            ...createApplicant().profile,
+            date_of_birth: "1961-02-30",
+          },
+        }),
         REFERENCE_DATE
     );
 
@@ -110,18 +123,13 @@ describe("Eligibility Facts - Age", () => {
   });
 
   test("returns null for future date of birth", () => {
-    const applicant = createApplicant({
-      profile: {
-        date_of_birth: "2030-01-01",
-        citizenship: "Malaysian",
-        marital_status: "single",
-        is_student: false,
-        study_mode: null,
-      },
-    });
-
     const facts = buildEligibilityFacts(
-        applicant,
+        createApplicant({
+          profile: {
+            ...createApplicant().profile,
+            date_of_birth: "2030-01-01",
+          },
+        }),
         REFERENCE_DATE
     );
 
@@ -153,9 +161,7 @@ describe("Eligibility Facts - Personal Information", () => {
 
   test("preserves unknown residence information", () => {
     const facts = buildEligibilityFacts(
-        createApplicant({
-          address: null,
-        }),
+        createApplicant({ address: null }),
         REFERENCE_DATE
     );
 
@@ -179,16 +185,15 @@ describe("Eligibility Facts - Household", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           householdMembers: [
-            {
-              relationship: "child",
+            createHouseholdMember({
               date_of_birth: "2010-01-01",
               is_dependent: true,
-            },
-            {
+            }),
+            createHouseholdMember({
               relationship: "parent",
               date_of_birth: "1940-01-01",
               is_dependent: false,
-            },
+            }),
           ],
         }),
         REFERENCE_DATE
@@ -202,11 +207,9 @@ describe("Eligibility Facts - Household", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           householdMembers: [
-            {
-              relationship: "child",
-              date_of_birth: "2010-01-01",
+            createHouseholdMember({
               is_dependent: null,
-            },
+            }),
           ],
         }),
         REFERENCE_DATE
@@ -253,21 +256,18 @@ describe("Eligibility Facts - Financial Information", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           householdMembers: [
-            {
-              relationship: "child",
+            createHouseholdMember({
               date_of_birth: "2010-01-01",
               is_dependent: true,
-            },
-            {
-              relationship: "child",
+            }),
+            createHouseholdMember({
               date_of_birth: "2012-01-01",
               is_dependent: true,
-            },
-            {
+            }),
+            createHouseholdMember({
               relationship: "parent",
               date_of_birth: "1940-01-01",
-              is_dependent: false,
-            },
+            }),
           ],
         }),
         REFERENCE_DATE
@@ -297,9 +297,7 @@ describe("Eligibility Facts - Student Information", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           profile: {
-            date_of_birth: "1961-05-15",
-            citizenship: "Malaysian",
-            marital_status: "single",
+            ...createApplicant().profile,
             is_student: true,
             study_mode: "full_time",
           },
@@ -317,23 +315,252 @@ describe("Eligibility Facts - Student Information", () => {
     );
 
     expect(facts.isFullTimeStudent).toBe(false);
+    expect(facts.isFullTimeIptaIptsStudent).toBe(false);
   });
 
   test("preserves unknown student status", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           profile: {
-            date_of_birth: "1961-05-15",
-            citizenship: "Malaysian",
-            marital_status: "single",
+            ...createApplicant().profile,
             is_student: null,
-            study_mode: null,
           },
         }),
         REFERENCE_DATE
     );
 
     expect(facts.isFullTimeStudent).toBeNull();
+    expect(facts.isFullTimeIptaIptsStudent).toBeNull();
+  });
+
+  test.each(["ipta", "ipts"])(
+      "identifies full-time %s student for STR",
+      (institutionType) => {
+        const facts = buildEligibilityFacts(
+            createApplicant({
+              profile: {
+                ...createApplicant().profile,
+                is_student: true,
+                study_mode: "full_time",
+                institution_type: institutionType,
+              },
+            }),
+            REFERENCE_DATE
+        );
+
+        expect(facts.isFullTimeIptaIptsStudent).toBe(true);
+      }
+  );
+
+  test("identifies part-time IPTA student as not full-time", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          profile: {
+            ...createApplicant().profile,
+            is_student: true,
+            study_mode: "part_time",
+            institution_type: "ipta",
+          },
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.isFullTimeStudent).toBe(false);
+    expect(facts.isFullTimeIptaIptsStudent).toBe(false);
+  });
+
+  test("preserves unknown institution type", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          profile: {
+            ...createApplicant().profile,
+            is_student: true,
+            study_mode: "full_time",
+            institution_type: null,
+          },
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.isFullTimeIptaIptsStudent).toBeNull();
+  });
+
+  test("does not classify other institution as confirmed IPTA/IPTS", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          profile: {
+            ...createApplicant().profile,
+            is_student: true,
+            study_mode: "full_time",
+            institution_type: "other",
+          },
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.isFullTimeIptaIptsStudent).toBeNull();
+  });
+});
+
+// STR eligible-child facts
+describe("Eligibility Facts - STR Eligible Children", () => {
+  function createEligibleChild(
+      overrides: Partial<HouseholdMember> = {}
+  ): HouseholdMember {
+    return createHouseholdMember({
+      date_of_birth: "2010-01-01",
+      identification_no: "100101100001",
+      citizenship: "Malaysian",
+      employment_status: "unemployed",
+      monthly_income: 0,
+      is_student: false,
+      ...overrides,
+    });
+  }
+
+  test("counts an eligible child aged 18 or below", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [createEligibleChild()],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBe(1);
+    expect(facts.hasEligibleChildren).toBe(true);
+  });
+
+  test("counts an adult child studying full-time at IPTA", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              date_of_birth: "2005-01-01",
+              is_student: true,
+              study_mode: "full_time",
+              institution_type: "ipta",
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBe(1);
+    expect(facts.hasEligibleChildren).toBe(true);
+  });
+
+  test("does not count an employed child", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              employment_status: "employed",
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBe(0);
+    expect(facts.hasEligibleChildren).toBe(false);
+  });
+
+  test("does not count a child with income", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              monthly_income: 500,
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBe(0);
+    expect(facts.hasEligibleChildren).toBe(false);
+  });
+
+  test("does not count an adult child who is not studying", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              date_of_birth: "2000-01-01",
+              is_student: false,
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBe(0);
+  });
+
+  test("preserves unknown eligibility when child income is missing", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              monthly_income: null,
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBeNull();
+    expect(facts.hasEligibleChildren).toBeNull();
+  });
+
+  test("preserves unknown eligibility when identification is missing", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              identification_no: null,
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBeNull();
+  });
+
+  test("does not count non-child household relationships", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild({
+              relationship: "grandchild",
+            }),
+            createEligibleChild({
+              relationship: "sibling",
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBe(0);
+  });
+
+  test("preserves uncertainty when eligible and unknown children coexist", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          householdMembers: [
+            createEligibleChild(),
+            createEligibleChild({
+              monthly_income: null,
+            }),
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.numberOfEligibleChildren).toBeNull();
+    expect(facts.hasEligibleChildren).toBeNull();
   });
 });
 
@@ -510,7 +737,7 @@ describe("Eligibility Facts - Welfare Assistance", () => {
   });
 });
 
-
+// BA tests
 describe("Eligibility Facts - BA", () => {
   test.each<[string, string | null]>([
     ...["Kuala Lumpur", "Putrajaya", "Labuan"].flatMap(
@@ -521,17 +748,26 @@ describe("Eligibility Facts - BA", () => {
           [state.toLowerCase().replace(/ /g, "_"), state],
         ]
     ),
-    ...["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",
-      "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak",
-      "Selangor", "Terengganu"].map((state): [string, string] => [state, state]),
+    ...[
+      "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",
+      "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah",
+      "Sarawak", "Selangor", "Terengganu",
+    ].map((state): [string, string] => [state, state]),
     [" Selangor ", "Selangor"],
     ["", null],
     ["   ", null],
   ])("normalizes residence %s to %s", (state, expected) => {
     const input = createApplicant({
-      address: { state_territory: state, country_code: "Malaysia" },
+      address: {
+        state_territory: state,
+        country_code: "Malaysia",
+      },
     });
-    expect(buildEligibilityFacts(input, REFERENCE_DATE).state).toBe(expected);
+
+    expect(
+        buildEligibilityFacts(input, REFERENCE_DATE).state
+    ).toBe(expected);
+
     expect(input.address?.state_territory).toBe(state);
   });
 
@@ -546,20 +782,29 @@ describe("Eligibility Facts - BA", () => {
     { agency: null },
     { assistance_type: "one_off" },
     { assistance_type: null },
-  ])("does not infer absence from non-qualifying assistance %j", (overrides) => {
-    const facts = buildEligibilityFacts(createApplicant({
-      welfareAssistance: [{
-        program_name: "Test Assistance",
-        agency: "JKM",
-        assistance_type: "monthly",
-        is_active: true,
-        start_date: "2026-01-01",
-        end_date: null,
-        ...overrides,
-      }],
-    }), REFERENCE_DATE);
-    expect(facts.receivesJkmMonthlyAssistance).toBeNull();
-  });
+  ])(
+      "does not infer absence from non-qualifying assistance %j",
+      (overrides) => {
+        const facts = buildEligibilityFacts(
+            createApplicant({
+              welfareAssistance: [
+                {
+                  program_name: "Test Assistance",
+                  agency: "JKM",
+                  assistance_type: "monthly",
+                  is_active: true,
+                  start_date: "2026-01-01",
+                  end_date: null,
+                  ...overrides,
+                },
+              ],
+            }),
+            REFERENCE_DATE
+        );
+
+        expect(facts.receivesJkmMonthlyAssistance).toBeNull();
+      }
+  );
 
   test("counts confirmed active assistance among unrelated and inactive records", () => {
     const active = {
@@ -570,37 +815,50 @@ describe("Eligibility Facts - BA", () => {
       start_date: "2026-10-28",
       end_date: "2026-10-28",
     };
-    const facts = buildEligibilityFacts(createApplicant({
-      welfareAssistance: [
-        { ...active, agency: "LHDNM" },
-        { ...active, is_active: false },
-        active,
-      ],
-    }), REFERENCE_DATE);
+
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          welfareAssistance: [
+            { ...active, agency: "LHDNM" },
+            { ...active, is_active: false },
+            active,
+          ],
+        }),
+        REFERENCE_DATE
+    );
+
     expect(facts.receivesJkmMonthlyAssistance).toBe(true);
   });
 
   test("preserves missing BA circumstances as unknown", () => {
-    expect(buildEligibilityFacts(createApplicant(), REFERENCE_DATE)
-        .baAdditionalCircumstancesRequireReview).toBeNull();
+    expect(
+        buildEligibilityFacts(createApplicant(), REFERENCE_DATE)
+            .baAdditionalCircumstancesRequireReview
+    ).toBeNull();
   });
 
   test.each([true, false, null])(
       "does not infer BA review from health or dependant status %s",
       (status) => {
         const applicant = createApplicant();
+
         applicant.financialProfile = {
           monthly_personal_income: 0,
           monthly_household_income: 0,
         };
+
         applicant.healthProfile = {
           ...applicant.healthProfile!,
           is_oku: status,
           has_chronic_illness: status,
         };
+
         applicant.householdMembers[0].is_dependent = status;
-        expect(buildEligibilityFacts(applicant, REFERENCE_DATE)
-            .baAdditionalCircumstancesRequireReview).toBeNull();
+
+        expect(
+            buildEligibilityFacts(applicant, REFERENCE_DATE)
+                .baAdditionalCircumstancesRequireReview
+        ).toBeNull();
       }
   );
 });
