@@ -45,9 +45,7 @@ export const JKM_MANUAL_VERIFICATION_OUTCOMES: readonly JkmEligibilityOutcome[] 
 export const REQUEST_TIMEOUT_MS = 10000;
 
 export const RELATIONSHIP_CHILD_LABELS: readonly string[] = [
-  "child",
-  "son",
-  "daughter",
+    "child"
 ] as const;
 
 export const INVALID_COUNTRY_PLACEHOLDERS: readonly string[] = [
