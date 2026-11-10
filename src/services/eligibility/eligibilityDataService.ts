@@ -88,10 +88,10 @@ function toNullableNumber(
 
 // Retrieve all information required to build eligibility facts
 export async function getApplicantEligibilityData(): Promise<EligibilityFactsInput> {
-  // Step 1: Resolve the authenticated applicant's profile
+  // 1 - Resolve the authenticated applicant's profile
   const profileId = await getCurrentProfileId();
 
-  // Step 2: Retrieve the applicant's personal information
+  // 2 - Retrieve the applicant's personal information
   const {
     data: profile,
     error: profileError,
@@ -103,7 +103,8 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
       marital_status,
       is_student,
       study_mode,
-      institution_type
+      institution_type,
+      household_members_complete
     `)
       .eq("id", profileId)
       .single();
@@ -116,7 +117,7 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
     throw new Error("Applicant profile not found.");
   }
 
-  // Step 3: Retrieve eligibility-related records
+  // 3 - Retrieve eligibility-related records
   const [
     addressResult,
     financialResult,
@@ -215,7 +216,7 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
         .eq("profile_id", profileId),
   ]);
 
-  // Step 4: Validate database query results
+  // 4 - Validate database query results
   if (addressResult.error) {
     throw addressResult.error;
   }
@@ -244,7 +245,7 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
     throw welfareResult.error;
   }
 
-  // Step 5: Build the input structure expected by eligibilityFacts.ts
+  // 5 - Build the input structure expected by eligibilityFacts.ts
   return {
     // Personal information
     profile: {
@@ -284,6 +285,8 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
         }
         : null,
 
+    // Household completeness confirmation
+    householdMembersComplete: profile.household_members_complete,
     // Household members
     householdMembers: (householdResult.data ?? []).map(
         (member) => ({
