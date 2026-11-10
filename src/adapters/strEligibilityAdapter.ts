@@ -37,6 +37,14 @@ const STR_OUTCOME_MAP = {
 type StrOutcome = keyof typeof STR_OUTCOME_MAP;
 
 export function adaptStrEligibilityResponse(response: StrEligibilityApiResponse): EligibilityRule[] {
+  if (
+      !response ||
+      typeof response !== "object" || !response.success || !response.data ||
+      !response.data.criteria
+  ) {
+    throw new Error("Invalid STR eligibility API response: missing success, data, or criteria");
+  }
+
   const { data } = response;
   const criteria = data.criteria;
 
@@ -50,15 +58,12 @@ export function adaptStrEligibilityResponse(response: StrEligibilityApiResponse)
   }
 
   if (
-      criteria.rules.length === 0 ||
+      data.schemeYear !== 2026 ||
       (criteria.schemeYear !== undefined &&
-          criteria.schemeYear !== data.schemeYear
-      )
+        criteria.schemeYear !== 2026)
   ) {
-    throw new Error("Invalid STR eligibility rules on scheme year");
+    throw new Error("Unsupported STR scheme year");
   }
-
-  // const seenCodes = new Set<string>();
 
   const rules: EligibilityRule[] = criteria.rules.map(
       (rawRule) => {
@@ -85,12 +90,6 @@ export function adaptStrEligibilityResponse(response: StrEligibilityApiResponse)
         ) {
           throw new Error("Invalid STR rule metadata");
         }
-
-        // if (seenCodes.has(ruleCode)) {
-        //   throw new Error(`Duplicate STR rule: ${ruleCode}`);
-        // }
-        //
-        // seenCodes.add(ruleCode);
 
         const outcome = STR_OUTCOME_MAP[result as StrOutcome];
 
