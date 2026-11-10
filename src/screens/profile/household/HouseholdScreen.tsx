@@ -1,8 +1,13 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/tabNavigator";
-import { getHouseholdMembers, HouseholdMemberSummary } from "../../../services/profile/householdService";
+import {
+  getHouseholdMembers,
+  HouseholdMemberSummary,
+  getHouseholdConfirmationStatus,
+  confirmHouseholdMembers
+} from "../../../services/profile/householdService";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import { AlertTriangle, ChevronRight, UserRound } from "lucide-react-native";
+import { AlertTriangle, ChevronRight, UserRound, CheckCircle2 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
@@ -164,30 +169,38 @@ export default function HouseholdScreen({
   const { t } = useTranslation();
 
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMemberSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [householdConfirmed, setHouseholdConfirmed] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmationSelected, setConfirmationSelected] = useState(false);
 
-  const loadHouseholdMembers =
-      useCallback(async () => {
-        try {
-          setLoading(true);
-          setError(false);
+  const loadHouseholdMembers = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(false);
 
-          const data = await getHouseholdMembers();
+      const [members, confirmed] = await Promise.all([
+        getHouseholdMembers(),
+        getHouseholdConfirmationStatus()
+      ]);
 
-          setHouseholdMembers(data);
-        } catch (loadError) {
-          if (__DEV__) {
-            console.error(
-                "[PROFILE] Failed to load household members:", loadError
-            );
-          }
+      setHouseholdMembers(members);
+      setHouseholdConfirmed(confirmed);
+      setConfirmationSelected(false);
+    } catch (loadError) {
+      if (__DEV__) {
+        console.error(
+            "[PROFILE] Failed to load household information:",
+            loadError
+        );
+      }
 
-          setError(true);
-        } finally {
-          setLoading(false);
-        }
-      }, []);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useFocusEffect(
       useCallback(() => {
@@ -217,6 +230,28 @@ export default function HouseholdScreen({
   };
 
   const memberCount = householdMembers.length;
+
+  const handleConfirmHousehold = async () => {
+    if (confirming || householdConfirmed === true || !confirmationSelected) {
+      return;
+    }
+
+    try {
+      setConfirming(true);
+
+      await confirmHouseholdMembers();
+
+      setHouseholdConfirmed(true);
+    } catch (confirmError) {
+      if (__DEV__) {
+        console.error(
+            "[PROFILE] Failed to confirm household information:", confirmError
+        );
+      }
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -322,6 +357,69 @@ export default function HouseholdScreen({
               </Card>
             </Section>
         )}
+
+        {/* Household Confirmation */}
+        <Section
+            title={t("profile.household.confirmation.title")}
+            className="mt-8"
+        >
+          <Card>
+            {householdConfirmed === true ? (
+                <View className="flex-row items-center gap-2">
+                  <CheckCircle2 size={20} color="#16A34A" />
+
+                  <Text className="flex-1 text-sm font-medium text-green-600">
+                    {t("profile.household.confirmation.confirmed")}
+                  </Text>
+                </View>
+            ) : (
+                <>
+                  <Text className="text-sm leading-5 text-muted-foreground">
+                    {t("profile.household.confirmation.description")}
+                  </Text>
+
+                  <Pressable
+                      onPress={() =>
+                          setConfirmationSelected((previous) => !previous)
+                      }
+                      disabled={confirming}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{
+                        checked: confirmationSelected,
+                        disabled: confirming
+                      }}
+                      className="mt-5 flex-row items-center gap-3"
+                  >
+                    <View
+                        className={`h-5 w-5 items-center justify-center rounded-full border-2 ${
+                            confirmationSelected
+                                ? "border-primary"
+                                : "border-muted-foreground"
+                        }`}
+                    >
+                      {confirmationSelected && (
+                          <View className="h-2.5 w-2.5 rounded-full bg-primary" />
+                      )}
+                    </View>
+
+                    <Text className="flex-1 text-sm text-foreground">
+                      {t("profile.household.confirmation.agreement")}
+                    </Text>
+                  </Pressable>
+
+                  <Button
+                      className="mt-5"
+                      fullWidth
+                      loading={confirming}
+                      disabled={!confirmationSelected || confirming}
+                      onPress={() => void handleConfirmHousehold()}
+                  >
+                    {t("profile.household.confirmation.button")}
+                  </Button>
+                </>
+            )}
+          </Card>
+        </Section>
       </Screen>
   );
 }
