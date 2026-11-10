@@ -234,10 +234,11 @@ export function adaptJkmEligibilityCriteria(
     );
   }
 
-  if (!Array.isArray(criteria.rules)) {
-    throw new Error(
-        "JKM eligibility criteria must contain a rules array"
-    );
+  if (
+      !Array.isArray(criteria.rules) ||
+      criteria.rules.length === 0
+  ) {
+    throw new Error("JKM eligibility criteria must contain rules");
   }
 
   const rules = criteria.rules.map((rule) =>
