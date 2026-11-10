@@ -454,19 +454,32 @@ function runForwardChaining(
 }
 
 // Evaluate an individual eligibility rule
-export function evaluateEligibilityRule(
-    rule: EligibilityRule,
-    facts: EligibilityFacts,
-    thresholds: EligibilityThresholds = {}
-): EligibilityRuleResult {
-  const results = runForwardChaining(
-      [rule],
-      facts,
-      thresholds
-  );
-
-  return results[0];
-}
+// export function evaluateEligibilityRule(
+//     rule: EligibilityRule,
+//     facts: EligibilityFacts,
+//     thresholds: EligibilityThresholds = {}
+// ): EligibilityRuleResult {
+//   const dependencies = new Set<string>();
+//
+//   collectRuleDependencies(
+//       rule.conditions,
+//       dependencies
+//   );
+//
+//   if (dependencies.size > 0) {
+//     throw new Error(
+//         "Single-rule evaluation cannot resolve dependent rule references. Evaluate the full rule set instead."
+//     );
+//   }
+//
+//   const results = runForwardChaining(
+//       [rule],
+//       facts,
+//       thresholds
+//   );
+//
+//   return results[0];
+// }
 
 // Generate the final eligibility assessment for a program
 export function evaluateProgramEligibility(
@@ -511,11 +524,46 @@ export function evaluateProgramEligibility(
       )
   );
 
-  // Only unresolved rules contribute to missing information
+  const hasMatchedRule = ruleResults.some(
+      (result) => result.matched === true
+  );
+
+  const finalStatus = determineEligibilityStatus(
+      programRules,
+      ruleResults
+  );
+
+  const hasMatchedPreliminaryRule = ruleResults.some(
+      (result) =>
+          result.matched === true &&
+          result.outcome === "potentially_eligible"
+  );
+
   const missingInformation = uniqueConditions(
       ruleResults
           .filter(
-              (result) => result.matched === null
+              (result) => {
+                if (result.matched !== null) {
+                  return false;
+                }
+
+                if (
+                    finalStatus === "potentially_eligible" &&
+                    hasMatchedPreliminaryRule
+                ) {
+                  return false;
+                }
+
+                const rule = programRules.find(
+                    (item) => item.id === result.ruleId
+                );
+
+                const isManualReview =
+                    rule?.requiresManualVerification === true ||
+                    rule?.outcome === "manual_verification";
+
+                return !hasMatchedRule || isManualReview;
+              }
           )
           .flatMap(
               (result) => result.missingInformation
