@@ -126,6 +126,7 @@ export function evaluateEligibilityCondition(
       field: condition.field,
       passed: null,
       description: condition.description,
+      reason: "missing_information",
     };
   }
 
@@ -138,6 +139,7 @@ export function evaluateEligibilityCondition(
       field: condition.field,
       passed: null,
       description: condition.description,
+      reason: "missing_threshold",
     };
   }
 
@@ -151,6 +153,7 @@ export function evaluateEligibilityCondition(
       field: condition.field,
       passed: null,
       description: condition.description,
+      reason: "cannot_evaluate",
     };
   }
 
