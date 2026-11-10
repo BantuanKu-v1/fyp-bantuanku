@@ -430,6 +430,14 @@ const en = {
           errorTitle: "Unable to Update Household Member",
           errorDescription: "We couldn't update this household member. Please try again.",
         },
+
+        confirmation: {
+          title: "Household Confirmation",
+          description: "Please review your household members and confirm that everyone has been listed, including if you live alone. You can still add or edit household members after confirmation, but you will need to confirm again.",
+          confirmed: "Household information confirmed.",
+          agreement: "I confirm that my household member information is complete and accurate.",
+          button: "Confirm Household Information",
+        },
       },
 
       incomeEmployment: {
