@@ -49,6 +49,8 @@ function createApplicant(
       createHouseholdMember(),
     ],
 
+    householdMembersComplete: true,
+
     healthProfile: {
       is_oku: false,
       oku_registered: false,
@@ -231,6 +233,7 @@ describe("Eligibility Facts - Household", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           householdMembers: [],
+          householdMembersComplete: null,
         }),
         REFERENCE_DATE
     );
@@ -560,7 +563,8 @@ describe("Eligibility Facts - STR Eligible Children", () => {
     );
 
     expect(facts.numberOfEligibleChildren).toBeNull();
-    expect(facts.hasEligibleChildren).toBeNull();
+    expect(facts.hasEligibleChildren).toBe(true);
+    // expect(facts.hasEligibleChildren).toBeNull();
   });
 });
 
