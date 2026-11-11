@@ -59,6 +59,8 @@ function createApplicant(
       },
     ],
 
+    householdMembersComplete: true,
+
     healthProfile: {
       is_oku: false,
       oku_registered: false,
@@ -181,7 +183,7 @@ describe("BantuanKu - BWE Assessment Integration", () => {
     await expect(
         assessApplicantEligibility("BWE")
     ).rejects.toThrow(
-        "No eligibility rules are available for BWE"
+        "JKM eligibility criteria must contain rules"
     );
   });
 
