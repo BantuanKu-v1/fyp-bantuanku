@@ -74,8 +74,7 @@ function adaptFieldCondition(
         Object.keys(value).length !== 1 ||
         typeof value.thresholdRef !== "string" ||
         !value.thresholdRef.trim() ||
-        operator === "in" ||
-        operator === "not_in"
+        !["lt", "lte", "gt", "gte"].includes(operator)
     ) {
       throw new Error(`Invalid threshold reference: ${conditionId}`);
     }
@@ -195,7 +194,7 @@ export function adaptEligibilityExpression(
 
     return {
       ruleMatched: input.ruleMatched,
-    }
+    };
   }
 
   // Individual field condition
