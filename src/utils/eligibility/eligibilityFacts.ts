@@ -1,6 +1,34 @@
 import { EligibilityFacts } from "../../types/eligibility";
 import { RELATIONSHIP_CHILD_LABELS } from "../../constants/eligibility";
 
+export interface BatEligibilityInput {
+  isJkmTargetGroup?: boolean | null;
+  hasMedicalOrJkmRecommendation?: boolean | null;
+  requestedAssistiveEquipment?: boolean | null;
+  estimatedEquipmentCost?: number | null;
+  recommendationOrEquipmentRequiresReview?: boolean | null;
+  specialConsiderationRequested?: boolean | null;
+}
+
+export interface BptPatientInput {
+  citizenship?: string | null;
+  residenceCountry?: string | null;
+  isOku?: boolean | null;
+  hasChronicIllness?: boolean | null;
+  isBedridden?: boolean | null;
+  requiresContinuousTreatment?: boolean | null;
+  treatmentStartDate?: string | null;
+  hasCaregiver?: boolean | null;
+}
+
+export interface BptEligibilityInput {
+  applicantRole?: "patient" | "caregiver" | null;
+  patient?: BptPatientInput | null;
+  caregiverCitizenship?: string | null;
+  caregiverProvidesIntensiveCare?: boolean | null;
+  medicalOrCaregiverReviewRequired?: boolean | null;
+}
+
 export interface EligibilityFactsInput {
   profile: {
     date_of_birth: string | null;
@@ -66,6 +94,9 @@ export interface EligibilityFactsInput {
     start_date: string | null;
     end_date: string | null;
   }[];
+
+  bat?: BatEligibilityInput | null;
+  bpt?: BptEligibilityInput | null;
 }
 
 // Parse and validate a date in YYYY-MM-DD format
@@ -382,6 +413,8 @@ export function buildEligibilityFacts(
     livingArrangement,
     caregivers,
     welfareAssistance,
+    bat = null,
+    bpt = null,
   } = input;
 
   // Household information
@@ -487,15 +520,71 @@ export function buildEligibilityFacts(
           : null;
 
   // Caregiver information
-  const hasCaregiver = caregivers.length > 0 ? true : null;
+  // An empty list doesn't establish that no caregiver exists
+  const recordedHasCaregiver = caregivers.length > 0 ? true : null;
 
-  const caregiverCitizenship =
-      caregivers.length === 1 ? caregivers[0].citizenship : null;
+  const recordedCaregiverCitizenship = caregivers.length === 1 ? caregivers[0].citizenship : null;
 
-  const caregiverProvidesIntensiveCare =
+  const recordedCaregiverProvidesIntensiveCare =
       caregivers.length === 1
           ? caregivers[0].provides_intensive_care
           : null;
+
+  // BPT applicant role
+  const applicantIsPatient =
+      bpt?.applicantRole === "patient"
+          ? true
+          : bpt?.applicantRole === "caregiver"
+              ? false
+              : null;
+
+  const applicantIsCaregiver =
+      bpt?.applicantRole === "caregiver"
+          ? true
+          : bpt?.applicantRole === "patient"
+              ? false
+              : null;
+
+  // The applicant's health profile can represent the patient only when the applicant is explicitly identified as the patient
+  const patientIsApplicant = applicantIsPatient === true;
+  const patient = bpt?.patient;
+
+  const patientCitizenship = patientIsApplicant
+      ? profile.citizenship
+      : patient?.citizenship ?? null;
+
+  const patientResidenceCountry = patientIsApplicant
+      ? address?.country_code ?? null
+      : patient?.residenceCountry ?? null;
+
+  const patientIsOku = patientIsApplicant
+      ? healthProfile?.is_oku ?? null
+      : patient?.isOku ?? null;
+
+  const patientHasChronicIllness = patientIsApplicant
+      ? healthProfile?.has_chronic_illness ?? null
+      : patient?.hasChronicIllness ?? null;
+
+  const patientIsBedridden = patientIsApplicant
+      ? healthProfile?.is_bedridden ?? null
+      : patient?.isBedridden ?? null;
+
+  const patientRequiresContinuousTreatment = patientIsApplicant
+      ? healthProfile?.requires_continuous_treatment ?? null
+      : patient?.requiresContinuousTreatment ?? null;
+
+  const patientContinuousTreatmentMonths =
+      calculateCompletedMonths(
+          patientIsApplicant
+              ? healthProfile?.treatment_start_date ?? null
+              : patient?.treatmentStartDate ?? null,
+          referenceDate
+      );
+
+  // Explicit patient-specific information takes precedence
+  const hasCaregiver = patient?.hasCaregiver ?? recordedHasCaregiver;
+  const caregiverCitizenship = bpt?.caregiverCitizenship ?? recordedCaregiverCitizenship;
+  const caregiverProvidesIntensiveCare = bpt?.caregiverProvidesIntensiveCare ?? recordedCaregiverProvidesIntensiveCare;
 
   const residesInExcludedCareCentre = null;
 
@@ -530,15 +619,14 @@ export function buildEligibilityFacts(
         welfareAssistance,
         referenceDate
     ),
-    isJkmTargetGroup: null,
+    isJkmTargetGroup: bat?.isJkmTargetGroup ?? null,
 
     // Health and disability information
     isOku: healthProfile?.is_oku ?? null,
     okuRegistered: healthProfile?.oku_registered ?? null,
     hasChronicIllness: healthProfile?.has_chronic_illness ?? null,
     isBedridden: healthProfile?.is_bedridden ?? null,
-    requiresContinuousTreatment:
-        healthProfile?.requires_continuous_treatment ?? null,
+    requiresContinuousTreatment: healthProfile?.requires_continuous_treatment ?? null,
     continuousTreatmentMonths: calculateCompletedMonths(
         healthProfile?.treatment_start_date ?? null,
         referenceDate
@@ -553,23 +641,23 @@ export function buildEligibilityFacts(
     familyOrCaregiverIncomeExceedsPgk: null,
 
     // Caregiver and patient information
-    applicantIsPatient: null,
-    applicantIsCaregiver: null,
-    patientCitizenship: null,
-    patientResidenceCountry: null,
-    patientIsOku: null,
-    patientHasChronicIllness: null,
-    patientIsBedridden: null,
-    patientRequiresContinuousTreatment: null,
-    patientContinuousTreatmentMonths: null,
+    applicantIsPatient,
+    applicantIsCaregiver,
+    patientCitizenship,
+    patientResidenceCountry,
+    patientIsOku,
+    patientHasChronicIllness,
+    patientIsBedridden,
+    patientRequiresContinuousTreatment,
+    patientContinuousTreatmentMonths,
     hasCaregiver,
     caregiverCitizenship,
     caregiverProvidesIntensiveCare,
 
     // Medical and assistive equipment information
-    hasMedicalOrJkmRecommendation: null,
-    requestedAssistiveEquipment: null,
-    estimatedEquipmentCost: null,
+    hasMedicalOrJkmRecommendation: bat?.hasMedicalOrJkmRecommendation ?? null,
+    requestedAssistiveEquipment: bat?.requestedAssistiveEquipment ?? null,
+    estimatedEquipmentCost: toNullableNumber(bat?.estimatedEquipmentCost ?? null),
     hasHospitalReferral: null,
 
     // External verification information
@@ -578,8 +666,8 @@ export function buildEligibilityFacts(
 
     // JKM-specific assessment information
     baAdditionalCircumstancesRequireReview: null,
-    batRecommendationOrEquipmentRequiresReview: null,
-    batSpecialConsiderationRequested: null,
-    bptMedicalOrCaregiverReviewRequired: null,
+    batRecommendationOrEquipmentRequiresReview: bat?.recommendationOrEquipmentRequiresReview ?? null,
+    batSpecialConsiderationRequested: bat?.specialConsiderationRequested ?? null,
+    bptMedicalOrCaregiverReviewRequired: bpt?.medicalOrCaregiverReviewRequired ?? null,
   };
 }
