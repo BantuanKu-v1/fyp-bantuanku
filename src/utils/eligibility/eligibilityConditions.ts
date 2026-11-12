@@ -168,5 +168,6 @@ export function evaluateEligibilityCondition(
     field: condition.field,
     passed,
     description: condition.description,
+    ...(passed === null ? { reason: "cannot_evaluate" as const} : {}),
   };
 }
