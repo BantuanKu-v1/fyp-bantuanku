@@ -2,7 +2,7 @@ import { getJkmEligibilityCriteria, getStrEligibilityCriteria } from "../api";
 import type { JkmProgramCode } from "../api";
 import type { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
 import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
-import { getApplicantEligibilityData } from "./eligibilityDataService";
+import { getApplicantEligibilityData, ProgramEligibilityAnswers } from "./eligibilityDataService";
 import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts";
 import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
 import { adaptStrEligibilityResponse } from "../../adapters/strEligibilityAdapter";
@@ -33,6 +33,7 @@ export interface ApplicantEligibilityAssessment {
 // Options for evaluating dynamic eligibility thresholds
 export interface EligibilityAssessmentOptions {
   thresholds?: EligibilityThresholds;
+  answers?: ProgramEligibilityAnswers;
 }
 
 // Result for each program, including individual failures
@@ -99,7 +100,7 @@ export async function assessApplicantEligibility(
     programCode: SupportedProgramCode,
     options: EligibilityAssessmentOptions = {}
 ): Promise<ApplicantEligibilityAssessment> {
-  const applicantData = await getApplicantEligibilityData();
+  const applicantData = await getApplicantEligibilityData(options.answers ?? {});
   const facts = buildEligibilityFacts(applicantData);
 
   return evaluateApplicantProgram(
@@ -113,7 +114,7 @@ export async function assessApplicantEligibility(
 export async function assessAllApplicantEligibility(
     options: EligibilityAssessmentOptions = {}
 ): Promise<ProgramEligibilityCheck[]> {
-  const applicantData = await getApplicantEligibilityData();
+  const applicantData = await getApplicantEligibilityData(options.answers ?? {});
   const facts = buildEligibilityFacts(applicantData);
 
   const settledResults = await Promise.allSettled(
