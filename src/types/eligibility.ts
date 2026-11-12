@@ -41,6 +41,7 @@ export interface EligibilityFacts {
   hasChildren: boolean | null;
   hasEligibleChildren: boolean | null;
   isFullTimeStudent: boolean | null;
+  isFullTimeIptaIptsStudent: boolean | null; // STR-specific student eligibility
 
   // Welfare assistance information
   receivesJkmMonthlyAssistance: boolean | null;
@@ -149,12 +150,18 @@ export interface EligibilityRule {
   requiresManualVerification?: boolean;
 }
 
+export type EligibilityConditionEvaluationReason =
+  | "missing_information"
+  | "missing_threshold"
+  | "cannot_evaluate";
+
 // Result of evaluating an individual condition
 export interface EligibilityConditionResult {
   conditionId: string;
   field: keyof EligibilityFacts;
   passed: boolean | null;
   description: string;
+  reason?: EligibilityConditionEvaluationReason;
 }
 
 // Result of evaluating an individual rule

@@ -289,3 +289,44 @@ export const updateHouseholdMember =
         throw new Error("Household member not found or update not permitted.");
       }
     };
+
+// Retrieve applicant's household confirmation status
+export const getHouseholdConfirmationStatus =
+    async (): Promise<boolean | null> => {
+      const profileId = await getCurrentProfileId();
+
+      const { data, error } = await supabase
+          .from("profiles")
+          .select("household_members_complete")
+          .eq("id", profileId)
+          .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data.household_members_complete;
+    };
+
+// Confirm that all household members have been listed
+export const confirmHouseholdMembers =
+    async (): Promise<void> => {
+      const profileId = await getCurrentProfileId();
+
+      const { data, error } = await supabase
+          .from("profiles")
+          .update({
+            household_members_complete: true
+          })
+          .eq("id", profileId)
+          .select("id")
+          .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error("Unable to confirm household information.");
+      }
+    };

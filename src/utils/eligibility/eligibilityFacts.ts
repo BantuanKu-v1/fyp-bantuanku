@@ -1,6 +1,34 @@
 import { EligibilityFacts } from "../../types/eligibility";
 import { RELATIONSHIP_CHILD_LABELS } from "../../constants/eligibility";
 
+export interface BatEligibilityInput {
+  isJkmTargetGroup?: boolean | null;
+  hasMedicalOrJkmRecommendation?: boolean | null;
+  requestedAssistiveEquipment?: boolean | null;
+  estimatedEquipmentCost?: number | null;
+  recommendationOrEquipmentRequiresReview?: boolean | null;
+  specialConsiderationRequested?: boolean | null;
+}
+
+export interface BptPatientInput {
+  citizenship?: string | null;
+  residenceCountry?: string | null;
+  isOku?: boolean | null;
+  hasChronicIllness?: boolean | null;
+  isBedridden?: boolean | null;
+  requiresContinuousTreatment?: boolean | null;
+  treatmentStartDate?: string | null;
+  hasCaregiver?: boolean | null;
+}
+
+export interface BptEligibilityInput {
+  applicantRole?: "patient" | "caregiver" | null;
+  patient?: BptPatientInput | null;
+  caregiverCitizenship?: string | null;
+  caregiverProvidesIntensiveCare?: boolean | null;
+  medicalOrCaregiverReviewRequired?: boolean | null;
+}
+
 export interface EligibilityFactsInput {
   profile: {
     date_of_birth: string | null;
@@ -8,6 +36,7 @@ export interface EligibilityFactsInput {
     marital_status: string | null;
     is_student: boolean | null;
     study_mode: string | null;
+    institution_type: string | null;
   };
 
   address: {
@@ -24,7 +53,16 @@ export interface EligibilityFactsInput {
     relationship: string;
     date_of_birth: string | null;
     is_dependent: boolean | null;
+    identification_no: string | null;
+    citizenship: string | null;
+    employment_status: string | null;
+    monthly_income: number | null;
+    is_student: boolean | null;
+    study_mode: string | null;
+    institution_type: string | null;
   }[];
+
+  householdMembersComplete?: boolean | null;
 
   healthProfile: {
     is_oku: boolean | null;
@@ -56,6 +94,9 @@ export interface EligibilityFactsInput {
     start_date: string | null;
     end_date: string | null;
   }[];
+
+  bat?: BatEligibilityInput | null;
+  bpt?: BptEligibilityInput | null;
 }
 
 // Parse and validate a date in YYYY-MM-DD format
@@ -94,9 +135,14 @@ function calculateAge(
 ): number | null {
   const birthDate = parseDate(dateOfBirth);
   const reference = new Date(referenceDate);
-  reference.setHours(0, 0, 0, 0);
 
-  if (!birthDate || birthDate > reference) {
+  const referenceDay = Date.UTC(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate()
+  );
+
+  if (!birthDate || birthDate.getTime() > referenceDay) {
     return null;
   }
 
@@ -121,9 +167,14 @@ function calculateAgeByBirthYear(
 ): number | null {
   const birthDate = parseDate(dateOfBirth);
   const reference = new Date(referenceDate);
-  reference.setHours(0, 0, 0, 0);
 
-  if (!birthDate || birthDate > reference) {
+  const referenceDay = Date.UTC(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate()
+  );
+
+  if (!birthDate || birthDate.getTime() > referenceDay) {
     return null;
   }
 
@@ -137,9 +188,14 @@ function calculateCompletedMonths(
 ): number | null {
   const start = parseDate(startDate);
   const reference = new Date(referenceDate);
-  reference.setHours(0, 0, 0, 0);
 
-  if (!start || start > reference) {
+  const referenceDay = Date.UTC(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate()
+  );
+
+  if (!start || start.getTime() > referenceDay) {
     return null;
   }
 
@@ -228,6 +284,120 @@ function normalizeState(value: string | null): string | null {
   }
 }
 
+function isFullTimeIptaIpts(
+    isStudent: boolean | null,
+    studyMode: string | null,
+    institutionType: string | null
+): boolean | null {
+  if (isStudent === false) return false;
+  if (isStudent === null) return null;
+
+  const mode = studyMode?.trim().toLowerCase() ?? null;
+  const institution = institutionType?.trim().toLowerCase() ?? null;
+
+  if (mode === "part_time") return false;
+  if (mode !== "full_time") return null;
+
+  if (institution === "ipta" || institution === "ipts") {
+    return true;
+  }
+
+  if (institution === "school") {
+    return false;
+  }
+
+  return null;
+}
+
+function calculateStrEligibleChildren(
+    members: EligibilityFactsInput["householdMembers"],
+    referenceDate: Date,
+    householdMembersComplete?: boolean | null
+): {
+  numberOfEligibleChildren: number | null;
+  hasEligibleChildren: boolean | null;
+} {
+  let eligibleCount = 0;
+  let hasUnknownChild = false;
+
+  for (const member of members) {
+    if (
+        !RELATIONSHIP_CHILD_LABELS.includes(
+            member.relationship.trim().toLowerCase()
+        )
+    ) {
+      continue;
+    }
+
+    const age = calculateAge(member.date_of_birth, referenceDate);
+
+    const isMalaysian =
+        member.citizenship === null
+            ? null
+            : member.citizenship === "Malaysian";
+
+    const hasNoEmployment =
+        member.employment_status === null
+            ? null
+            : member.employment_status === "unemployed" ||
+            member.employment_status === "not_working";
+
+    const hasNoIncome =
+        member.monthly_income === null
+            ? null
+            : member.monthly_income === 0;
+
+    const hasIdentification = member.identification_no?.trim() ? true : null;
+
+    const meetsAgeAndStudyRequirement =
+        age === null
+            ? null
+            : age <= 18
+                ? true
+                : isFullTimeIptaIpts(
+                    member.is_student,
+                    member.study_mode,
+                    member.institution_type
+                );
+
+    const conditions: (boolean | null)[] = [
+      isMalaysian,
+      hasNoEmployment,
+      hasNoIncome,
+      hasIdentification,
+      meetsAgeAndStudyRequirement
+    ];
+
+    if (conditions.includes(false)) {
+      continue;
+    }
+
+    if (conditions.includes(null)) {
+      hasUnknownChild = true;
+      continue;
+    }
+
+    eligibleCount++;
+  }
+
+  const numberOfEligibleChildren =
+      householdMembersComplete === true && !hasUnknownChild
+          ? eligibleCount
+          : null;
+
+  const hasEligibleChildren =
+      eligibleCount > 0
+          ? true
+          : hasUnknownChild || householdMembersComplete !== true
+              ? null
+              : false;
+
+  return {
+    numberOfEligibleChildren,
+    hasEligibleChildren
+  };
+}
+
 // Build eligibility facts from applicant records
 export function buildEligibilityFacts(
     input: EligibilityFactsInput,
@@ -238,23 +408,31 @@ export function buildEligibilityFacts(
     address,
     financialProfile,
     householdMembers,
+    householdMembersComplete = null,
     healthProfile,
     livingArrangement,
     caregivers,
     welfareAssistance,
+    bat = null,
+    bpt = null,
   } = input;
 
   // Household information
   // Assumes all householdMembers belong to the applicant's household
-  const householdSize = 1 + householdMembers.length;
+  const householdSize =
+      householdMembersComplete === true
+          ? 1 + householdMembers.length
+          : null;
 
-  const numberOfDependents = householdMembers.every(
-      (member) => member.is_dependent !== null
-  )
-      ? householdMembers.filter(
-          (member) => member.is_dependent === true
-      ).length
-      : null;
+  const numberOfDependents =
+      householdMembersComplete === true &&
+      householdMembers.every(
+          (member) => member.is_dependent !== null
+      )
+          ? householdMembers.filter(
+              (member) => member.is_dependent === true
+          ).length
+          : null;
 
   const hasRecordedChildren = householdMembers.some((member) =>
       RELATIONSHIP_CHILD_LABELS.includes(
@@ -262,7 +440,21 @@ export function buildEligibilityFacts(
       )
   );
 
-  const hasChildren = hasRecordedChildren ? true : null;
+  const hasChildren =
+      hasRecordedChildren
+          ? true
+          : householdMembersComplete === true
+              ? false
+              : null;
+
+  const {
+    numberOfEligibleChildren,
+    hasEligibleChildren
+  } = calculateStrEligibleChildren(
+      householdMembers,
+      referenceDate,
+      householdMembersComplete
+  );
 
   // Financial information
   const monthlyPersonalIncome = toNullableNumber(
@@ -274,19 +466,32 @@ export function buildEligibilityFacts(
   );
 
   const perCapitaHouseholdIncome =
-      monthlyHouseholdIncome !== null && householdSize > 0
+      monthlyHouseholdIncome !== null &&
+      householdSize !== null &&
+      householdSize > 0
           ? monthlyHouseholdIncome / householdSize
           : null;
 
   // Student information
+  const studyMode = profile.study_mode?.trim().toLowerCase() ?? null;
+
   const isFullTimeStudent =
-      profile.is_student === null
-          ? null
-          : !profile.is_student
-              ? false
-              : profile.study_mode
-                  ? profile.study_mode.trim().toLowerCase() === "full_time"
-                  : null;
+      profile.is_student === false
+          ? false
+          : profile.is_student === null
+              ? null
+              : studyMode === "full_time"
+                  ? true
+                  : studyMode === "part_time"
+                      ? false
+                      : null;
+
+  // STR - Full-time IPTA/IPTS student classification
+  const isFullTimeIptaIptsStudent = isFullTimeIptaIpts(
+      profile.is_student,
+      profile.study_mode,
+      profile.institution_type
+  );
 
   // Living arrangements
   // A caregiver record does not prove co-residence
@@ -315,15 +520,71 @@ export function buildEligibilityFacts(
           : null;
 
   // Caregiver information
-  const hasCaregiver = caregivers.length > 0 ? true : null;
+  // An empty list doesn't establish that no caregiver exists
+  const recordedHasCaregiver = caregivers.length > 0 ? true : null;
 
-  const caregiverCitizenship =
-      caregivers.length === 1 ? caregivers[0].citizenship : null;
+  const recordedCaregiverCitizenship = caregivers.length === 1 ? caregivers[0].citizenship : null;
 
-  const caregiverProvidesIntensiveCare =
+  const recordedCaregiverProvidesIntensiveCare =
       caregivers.length === 1
           ? caregivers[0].provides_intensive_care
           : null;
+
+  // BPT applicant role
+  const applicantIsPatient =
+      bpt?.applicantRole === "patient"
+          ? true
+          : bpt?.applicantRole === "caregiver"
+              ? false
+              : null;
+
+  const applicantIsCaregiver =
+      bpt?.applicantRole === "caregiver"
+          ? true
+          : bpt?.applicantRole === "patient"
+              ? false
+              : null;
+
+  // The applicant's health profile can represent the patient only when the applicant is explicitly identified as the patient
+  const patientIsApplicant = applicantIsPatient === true;
+  const patient = bpt?.patient;
+
+  const patientCitizenship = patientIsApplicant
+      ? profile.citizenship
+      : patient?.citizenship ?? null;
+
+  const patientResidenceCountry = patientIsApplicant
+      ? address?.country_code ?? null
+      : patient?.residenceCountry ?? null;
+
+  const patientIsOku = patientIsApplicant
+      ? healthProfile?.is_oku ?? null
+      : patient?.isOku ?? null;
+
+  const patientHasChronicIllness = patientIsApplicant
+      ? healthProfile?.has_chronic_illness ?? null
+      : patient?.hasChronicIllness ?? null;
+
+  const patientIsBedridden = patientIsApplicant
+      ? healthProfile?.is_bedridden ?? null
+      : patient?.isBedridden ?? null;
+
+  const patientRequiresContinuousTreatment = patientIsApplicant
+      ? healthProfile?.requires_continuous_treatment ?? null
+      : patient?.requiresContinuousTreatment ?? null;
+
+  const patientContinuousTreatmentMonths =
+      calculateCompletedMonths(
+          patientIsApplicant
+              ? healthProfile?.treatment_start_date ?? null
+              : patient?.treatmentStartDate ?? null,
+          referenceDate
+      );
+
+  // Explicit patient-specific information takes precedence
+  const hasCaregiver = patient?.hasCaregiver ?? recordedHasCaregiver;
+  const caregiverCitizenship = bpt?.caregiverCitizenship ?? recordedCaregiverCitizenship;
+  const caregiverProvidesIntensiveCare = bpt?.caregiverProvidesIntensiveCare ?? recordedCaregiverProvidesIntensiveCare;
 
   const residesInExcludedCareCentre = null;
 
@@ -347,25 +608,25 @@ export function buildEligibilityFacts(
 
     // Household information
     numberOfDependents,
-    numberOfEligibleChildren: null,
+    numberOfEligibleChildren,
     hasChildren,
-    hasEligibleChildren: null,
+    hasEligibleChildren,
     isFullTimeStudent,
+    isFullTimeIptaIptsStudent,
 
     // Welfare assistance information
     receivesJkmMonthlyAssistance: receivesJkmMonthlyAssistance(
         welfareAssistance,
         referenceDate
     ),
-    isJkmTargetGroup: null,
+    isJkmTargetGroup: bat?.isJkmTargetGroup ?? null,
 
     // Health and disability information
     isOku: healthProfile?.is_oku ?? null,
     okuRegistered: healthProfile?.oku_registered ?? null,
     hasChronicIllness: healthProfile?.has_chronic_illness ?? null,
     isBedridden: healthProfile?.is_bedridden ?? null,
-    requiresContinuousTreatment:
-        healthProfile?.requires_continuous_treatment ?? null,
+    requiresContinuousTreatment: healthProfile?.requires_continuous_treatment ?? null,
     continuousTreatmentMonths: calculateCompletedMonths(
         healthProfile?.treatment_start_date ?? null,
         referenceDate
@@ -380,23 +641,23 @@ export function buildEligibilityFacts(
     familyOrCaregiverIncomeExceedsPgk: null,
 
     // Caregiver and patient information
-    applicantIsPatient: null,
-    applicantIsCaregiver: null,
-    patientCitizenship: null,
-    patientResidenceCountry: null,
-    patientIsOku: null,
-    patientHasChronicIllness: null,
-    patientIsBedridden: null,
-    patientRequiresContinuousTreatment: null,
-    patientContinuousTreatmentMonths: null,
+    applicantIsPatient,
+    applicantIsCaregiver,
+    patientCitizenship,
+    patientResidenceCountry,
+    patientIsOku,
+    patientHasChronicIllness,
+    patientIsBedridden,
+    patientRequiresContinuousTreatment,
+    patientContinuousTreatmentMonths,
     hasCaregiver,
     caregiverCitizenship,
     caregiverProvidesIntensiveCare,
 
     // Medical and assistive equipment information
-    hasMedicalOrJkmRecommendation: null,
-    requestedAssistiveEquipment: null,
-    estimatedEquipmentCost: null,
+    hasMedicalOrJkmRecommendation: bat?.hasMedicalOrJkmRecommendation ?? null,
+    requestedAssistiveEquipment: bat?.requestedAssistiveEquipment ?? null,
+    estimatedEquipmentCost: toNullableNumber(bat?.estimatedEquipmentCost ?? null),
     hasHospitalReferral: null,
 
     // External verification information
@@ -405,8 +666,8 @@ export function buildEligibilityFacts(
 
     // JKM-specific assessment information
     baAdditionalCircumstancesRequireReview: null,
-    batRecommendationOrEquipmentRequiresReview: null,
-    batSpecialConsiderationRequested: null,
-    bptMedicalOrCaregiverReviewRequired: null,
+    batRecommendationOrEquipmentRequiresReview: bat?.recommendationOrEquipmentRequiresReview ?? null,
+    batSpecialConsiderationRequested: bat?.specialConsiderationRequested ?? null,
+    bptMedicalOrCaregiverReviewRequired: bpt?.medicalOrCaregiverReviewRequired ?? null,
   };
 }

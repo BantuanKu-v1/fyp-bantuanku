@@ -52,6 +52,8 @@ function createDefaultDatabase(): MockDatabase {
       marital_status: "single",
       is_student: false,
       study_mode: null,
+      institution_type: null,
+      household_members_complete: true,
     },
 
     addresses: {
@@ -713,6 +715,10 @@ describe("PDA-016 — Children information", () => {
   });
 
   it("does not infer no children from missing records", async () => {
+    updateProfile({
+      household_members_complete: null,
+    });
+
     updateTable("household_members", []);
 
     const facts = await loadFacts();
@@ -720,7 +726,7 @@ describe("PDA-016 — Children information", () => {
     expect(facts.hasChildren).toBeNull();
   });
 
-  it.each(["son", "daughter", " CHILD "])(
+  it.each(["child", " CHILD "])(
       "recognizes relationship %p",
       async (relationship) => {
         updateTable("household_members", [
@@ -829,6 +835,10 @@ describe("PDA-018 — Institution exclusion", () => {
 
 describe("PDA-019 — Alternative BWE pathway limitations", () => {
   it("does not fabricate absence of children", async () => {
+    updateProfile({
+      household_members_complete: null,
+    });
+
     updateTable("household_members", []);
 
     const facts = await loadFacts();
@@ -856,6 +866,18 @@ describe("PDA-019 — Alternative BWE pathway limitations", () => {
     ).toBeNull();
   });
 });
+
+  it("does not infer PGK eligibility from household income", async () => {
+    updateFinancialProfile({
+      monthly_household_income: 0,
+    });
+
+    const facts = await loadFacts();
+
+    expect(
+        facts.familyOrCaregiverIncomeExceedsPgk
+    ).toBeNull();
+  });
 
 describe("PDA-020 — End-to-end BWE assessment", () => {
   it("evaluates a qualifying Malaysian applicant", async () => {

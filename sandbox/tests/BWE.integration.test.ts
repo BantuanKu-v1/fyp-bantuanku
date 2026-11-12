@@ -11,7 +11,7 @@ jest.mock(
     })
 );
 
-jest.mock("../../src/services/api", () => ({
+jest.mock("../../src/services/api/jkmApi", () => ({
   getJkmEligibilityCriteria: jest.fn(),
 }));
 
@@ -24,13 +24,14 @@ const mockGetJkmEligibilityCriteria =
 function createApplicant(
     overrides: Partial<EligibilityFactsInput> = {}
 ): EligibilityFactsInput {
-  return {
+  const base: EligibilityFactsInput = {
     profile: {
       date_of_birth: "1961-05-15",
       citizenship: "Malaysian",
       marital_status: "single",
       is_student: false,
       study_mode: null,
+      institution_type: null,
     },
 
     address: {
@@ -48,8 +49,17 @@ function createApplicant(
         relationship: "child",
         date_of_birth: "1990-01-01",
         is_dependent: false,
+        identification_no: null,
+        citizenship: "Malaysian",
+        employment_status: null,
+        monthly_income: null,
+        is_student: false,
+        study_mode: null,
+        institution_type: null,
       },
     ],
+
+    householdMembersComplete: true,
 
     healthProfile: {
       is_oku: false,
@@ -70,8 +80,15 @@ function createApplicant(
 
     caregivers: [],
     welfareAssistance: [],
+  };
 
+  return {
+    ...base,
     ...overrides,
+    profile: {
+      ...base.profile,
+      ...overrides.profile,
+    },
   };
 }
 
@@ -99,9 +116,9 @@ describe("BantuanKu - BWE Assessment Integration", () => {
         "BWE-001"
     );
 
-    expect(assessment.facts.ageByBirthYear).toBeGreaterThanOrEqual(
-        60
-    );
+    expect(
+        assessment.facts.ageByBirthYear
+    ).toBeGreaterThanOrEqual(60);
 
     expect(assessment.facts.monthlyHouseholdIncome).toBe(
         1000
@@ -116,11 +133,8 @@ describe("BantuanKu - BWE Assessment Integration", () => {
     mockGetApplicantEligibilityData.mockResolvedValue(
         createApplicant({
           profile: {
+            ...createApplicant().profile,
             date_of_birth: "1981-05-15",
-            citizenship: "Malaysian",
-            marital_status: "single",
-            is_student: false,
-            study_mode: null,
           },
         })
     );
@@ -162,12 +176,14 @@ describe("BantuanKu - BWE Assessment Integration", () => {
 
     response.data.criteria.rules = [];
 
-    mockGetJkmEligibilityCriteria.mockResolvedValue(response);
+    mockGetJkmEligibilityCriteria.mockResolvedValue(
+        response
+    );
 
     await expect(
         assessApplicantEligibility("BWE")
     ).rejects.toThrow(
-        "No eligibility rules are available for BWE"
+        "JKM eligibility criteria must contain rules"
     );
   });
 
@@ -217,9 +233,9 @@ describe("BantuanKu - BWE Assessment Integration", () => {
       "BWE-003",
     ]);
 
-    expect(assessment.rules[0].governmentOutcome).toBe(
-        "preliminary_match"
-    );
+    expect(
+        assessment.rules[0].governmentOutcome
+    ).toBe("preliminary_match");
   });
 
   test("BWE-INT-009 - Dynamic Thresholds", async () => {

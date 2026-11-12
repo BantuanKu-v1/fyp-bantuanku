@@ -36,6 +36,7 @@ function createEligibleFacts(
     hasChildren: true,
     hasEligibleChildren: null,
     isFullTimeStudent: null,
+    isFullTimeIptaIptsStudent: null,
 
     // Welfare assistance information
     receivesJkmMonthlyAssistance: null,

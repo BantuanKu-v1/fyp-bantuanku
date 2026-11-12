@@ -437,6 +437,14 @@ const zh = {
           errorTitle: "无法更新家庭成员",
           errorDescription: "无法更新该家庭成员的资料，请重试。",
         },
+
+        confirmation: {
+          title: "家庭成员确认",
+          description: "请检查您的家庭成员名单，并确认已列出所有家庭成员。如果您独自居住，也可以进行确认。确认后，您仍然可以添加或编辑家庭成员，但需要重新确认。",
+          confirmed: "家庭成员信息已确认。",
+          agreement: "我确认我的家庭成员资料完整且准确。",
+          button: "确认家庭成员信息",
+        },
       },
 
       incomeEmployment: {

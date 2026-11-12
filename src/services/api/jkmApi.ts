@@ -1,5 +1,5 @@
-import type { JkmEligibilityApiResponse } from "../adapters/jkmEligibilityAdapter";
-import { JKM_PROGRAM_CODES, REQUEST_TIMEOUT_MS } from "../constants/eligibility";
+import type { JkmEligibilityApiResponse } from "../../adapters/jkmEligibilityAdapter";
+import { JKM_PROGRAM_CODES, REQUEST_TIMEOUT_MS } from "../../constants/eligibility";
 
 const JKM_API_BASE_URL = process.env.EXPO_PUBLIC_JKM_API_BASE_URL
     ?.trim()

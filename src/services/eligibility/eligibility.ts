@@ -1,61 +1,83 @@
-import { getJkmEligibilityCriteria, JkmProgramCode } from "../api";
-import { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
-import { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
-import { getApplicantEligibilityData } from "./eligibilityDataService";
+import { getJkmEligibilityCriteria, getStrEligibilityCriteria } from "../api";
+import type { JkmProgramCode } from "../api";
+import type { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
+import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
+import { getApplicantEligibilityData, ProgramEligibilityAnswers } from "./eligibilityDataService";
 import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts";
 import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
+import { adaptStrEligibilityResponse } from "../../adapters/strEligibilityAdapter";
 import { evaluateProgramEligibility } from "../../utils/eligibility/eligibilityEngine";
+
+export type SupportedProgramCode = JkmProgramCode | "STR";
+
+export const ELIGIBILITY_PROGRAM_CODES: readonly SupportedProgramCode[] = [
+  "BWE",
+  "BA",
+  "BAT",
+  "BPT",
+  "STR",
+];
+
+const STR_SCHEME_YEAR = 2026;
 
 // Complete eligibility assessment output
 export interface ApplicantEligibilityAssessment {
-  programCode: JkmProgramCode;
-
-  // Government eligibility criteria version
+  programCode: SupportedProgramCode;
   criteriaVersion: number;
-
-  // Applicant facts used during evaluation
   facts: EligibilityFacts;
-
-  // Government rules converted into BantuanKu's format
   rules: EligibilityRule[];
-
-  // Final preliminary eligibility assessment
   result: EligibilityResult;
-
-  // Timestamp indicating when the assessment was performed
   assessedAt: string;
 }
 
 // Options for evaluating dynamic eligibility thresholds
 export interface EligibilityAssessmentOptions {
   thresholds?: EligibilityThresholds;
+  answers?: ProgramEligibilityAnswers;
 }
 
-// Assess an authenticated applicant's preliminary eligibility
-export async function assessApplicantEligibility(
-    programCode: JkmProgramCode,
+// Result for each program, including individual failures
+export interface ProgramEligibilityCheck {
+  programCode: SupportedProgramCode;
+  assessment: ApplicantEligibilityAssessment | null;
+  error: string | null;
+}
+
+// Evaluate a program using already prepared applicant facts
+async function evaluateApplicantProgram(
+    programCode: SupportedProgramCode,
+    facts: EligibilityFacts,
     options: EligibilityAssessmentOptions = {}
 ): Promise<ApplicantEligibilityAssessment> {
-  // 1 - retrieve applicant data and government criteria
-  const [applicantData, response] = await Promise.all([
-      getApplicantEligibilityData(),
-      getJkmEligibilityCriteria(programCode),
-  ]);
+  let rules: EligibilityRule[];
+  let criteriaVersion: number;
 
-  // 2 - build eligibility facts from applicant information
-  const facts = buildEligibilityFacts(applicantData);
+  if (programCode === "STR") {
+    const response = await getStrEligibilityCriteria(
+        STR_SCHEME_YEAR
+    );
 
-  // 3 - convert JKM eligibility rules into BantuanKu's format
-  const rules = adaptJkmEligibilityResponse(response, programCode);
+    rules = adaptStrEligibilityResponse(response);
+    criteriaVersion = response.data.version;
+  } else {
+    const response = await getJkmEligibilityCriteria(
+        programCode
+    );
 
-  // 4 - ensure eligibility rules are available
-  if (rules.length === 0) {
+    rules = adaptJkmEligibilityResponse(
+        response,
+        programCode
+    );
+
+    criteriaVersion = response.data.version;
+  }
+
+  if (!Array.isArray(rules) || rules.length === 0) {
     throw new Error(
         `No eligibility rules are available for ${programCode}`
     );
   }
 
-  // 5 - evaluate the applicant against the eligibility rules
   const result = evaluateProgramEligibility(
       programCode,
       rules,
@@ -63,13 +85,71 @@ export async function assessApplicantEligibility(
       options.thresholds ?? {}
   );
 
-  // 6 - return the complete assessment
   return {
     programCode,
-    criteriaVersion: response.data.version,
+    criteriaVersion,
     facts,
     rules,
     result,
     assessedAt: new Date().toISOString(),
   };
+}
+
+// Assess one program
+export async function assessApplicantEligibility(
+    programCode: SupportedProgramCode,
+    options: EligibilityAssessmentOptions = {}
+): Promise<ApplicantEligibilityAssessment> {
+  const applicantData = await getApplicantEligibilityData(options.answers ?? {});
+  const facts = buildEligibilityFacts(applicantData);
+
+  return evaluateApplicantProgram(
+      programCode,
+      facts,
+      options
+  );
+}
+
+// Assess all five programs using one applicant data snapshot
+export async function assessAllApplicantEligibility(
+    options: EligibilityAssessmentOptions = {}
+): Promise<ProgramEligibilityCheck[]> {
+  const applicantData = await getApplicantEligibilityData(options.answers ?? {});
+  const facts = buildEligibilityFacts(applicantData);
+
+  const settledResults = await Promise.allSettled(
+      ELIGIBILITY_PROGRAM_CODES.map((programCode) =>
+          evaluateApplicantProgram(
+              programCode,
+              facts,
+              options
+          )
+      )
+  );
+
+  return settledResults.map((settled, index) => {
+    const programCode = ELIGIBILITY_PROGRAM_CODES[index];
+
+    if (settled.status === "fulfilled") {
+      return {
+        programCode,
+        assessment: settled.value,
+        error: null,
+      };
+    }
+
+    console.error(
+        `[Eligibility] ${programCode} assessment failed:`,
+        settled.reason
+    );
+
+    return {
+      programCode,
+      assessment: null,
+      error:
+          settled.reason instanceof Error
+              ? settled.reason.message
+              : "Unable to assess this program.",
+    };
+  });
 }

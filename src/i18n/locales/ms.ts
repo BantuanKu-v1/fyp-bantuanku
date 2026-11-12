@@ -432,6 +432,14 @@ const ms = {
           errorTitle: "Gagal Mengemas Kini Ahli Isi Rumah",
           errorDescription: "Kami tidak dapat mengemas kini maklumat ahli isi rumah ini. Sila cuba lagi.",
         },
+
+        confirmation: {
+          title: "Pengesahan Isi Rumah",
+          description: "Sila semak senarai ahli isi rumah anda dan sahkan bahawa semua ahli telah disenaraikan, termasuk jika anda tinggal bersendirian. Anda masih boleh menambah atau mengedit ahli isi rumah selepas pengesahan, tetapi anda perlu mengesahkan semula.",
+          confirmed: "Maklumat isi rumah telah disahkan.",
+          agreement: "Saya mengesahkan bahawa maklumat ahli isi rumah saya adalah lengkap and tepat.",
+          button: "Sahkan Maklumat Isi Rumah",
+        },
       },
 
       incomeEmployment: {
