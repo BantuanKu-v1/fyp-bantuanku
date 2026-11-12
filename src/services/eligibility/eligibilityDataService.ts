@@ -1,11 +1,16 @@
 import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "../profile/profileService";
-import { EligibilityFactsInput } from "../../utils/eligibility/eligibilityFacts";
+import { BatEligibilityInput, BptEligibilityInput, EligibilityFactsInput } from "../../utils/eligibility/eligibilityFacts";
 import {
   INVALID_COUNTRY_PLACEHOLDERS,
   MALAYSIA_COUNTRY_VALUES,
   VALID_ISO_ALPHA2_COUNTRY_CODES,
 } from "../../constants/eligibility";
+
+export interface ProgramEligibilityAnswers {
+  bat?: BatEligibilityInput | null;
+  bpt?: BptEligibilityInput | null;
+}
 
 // Normalize citizenship values to match JKM eligibility criteria
 function normalizeCitizenship(
@@ -86,8 +91,56 @@ function toNullableNumber(
       : null;
 }
 
+function normalizeProgramEligibilityAnswers(
+    answers: ProgramEligibilityAnswers
+): ProgramEligibilityAnswers {
+  const bat = answers.bat;
+  const bpt = answers.bpt;
+
+  return {
+    bat: bat
+        ? {
+          isJkmTargetGroup: bat.isJkmTargetGroup ?? null,
+          hasMedicalOrJkmRecommendation: bat.hasMedicalOrJkmRecommendation ?? null,
+          requestedAssistiveEquipment: bat.requestedAssistiveEquipment ?? null,
+          estimatedEquipmentCost: toNullableNumber(bat.estimatedEquipmentCost ?? null),
+          recommendationOrEquipmentRequiresReview: bat.recommendationOrEquipmentRequiresReview ?? null,
+          specialConsiderationRequested: bat.specialConsiderationRequested ?? null,
+        }
+        : null,
+
+    bpt: bpt
+        ? {
+          applicantRole:
+              bpt.applicantRole === "patient" || bpt.applicantRole === "caregiver"
+                  ? bpt.applicantRole
+                  : null,
+
+          patient: bpt.patient
+              ? {
+                citizenship: normalizeCitizenship(bpt.patient.citizenship ?? null),
+                residenceCountry: normalizeCountry(bpt.patient.residenceCountry ?? null),
+                isOku: bpt.patient.isOku ?? null,
+                hasChronicIllness: bpt.patient.hasChronicIllness ?? null,
+                isBedridden: bpt.patient.isBedridden ?? null,
+                requiresContinuousTreatment: bpt.patient.requiresContinuousTreatment ?? null,
+                treatmentStartDate: bpt.patient.treatmentStartDate ?? null,
+                hasCaregiver: bpt.patient.hasCaregiver ?? null,
+              }
+              : null,
+
+          caregiverCitizenship: normalizeCitizenship(bpt.caregiverCitizenship ?? null),
+          caregiverProvidesIntensiveCare: bpt.caregiverProvidesIntensiveCare ?? null,
+          medicalOrCaregiverReviewRequired: bpt.medicalOrCaregiverReviewRequired ?? null,
+        }
+        : null,
+  };
+}
+
 // Retrieve all information required to build eligibility facts
-export async function getApplicantEligibilityData(): Promise<EligibilityFactsInput> {
+export async function getApplicantEligibilityData(
+    answers: ProgramEligibilityAnswers = {}
+): Promise<EligibilityFactsInput> {
   // 1 - Resolve the authenticated applicant's profile
   const profileId = await getCurrentProfileId();
 
@@ -245,6 +298,9 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
     throw welfareResult.error;
   }
 
+  // Normalize program-specific eligibility answers
+  const programAnswers = normalizeProgramEligibilityAnswers(answers);
+
   // 5 - Build the input structure expected by eligibilityFacts.ts
   return {
     // Personal information
@@ -375,5 +431,9 @@ export async function getApplicantEligibilityData(): Promise<EligibilityFactsInp
           end_date: assistance.end_date,
         })
     ),
+
+    // Program-specific eligibility answers
+    bat: programAnswers.bat ?? null,
+    bpt: programAnswers.bpt ?? null,
   };
 }
