@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "../profile/profileService";
+import { getSavedEligibilityAnswers } from "./eligibilityQuestionnaireService";
 import { BatEligibilityInput, BptEligibilityInput, EligibilityFactsInput } from "../../utils/eligibility/eligibilityFacts";
 import {
   INVALID_COUNTRY_PLACEHOLDERS,
@@ -10,6 +11,26 @@ import {
 export interface ProgramEligibilityAnswers {
   bat?: BatEligibilityInput | null;
   bpt?: BptEligibilityInput | null;
+}
+
+// Retrieve saved questionnaire answers when none are explicitly provided
+async function resolveEligibilityAnswers(
+    answers: ProgramEligibilityAnswers = {}
+): Promise<ProgramEligibilityAnswers> {
+  const [savedBat, savedBpt] = await Promise.all([
+    answers.bat === undefined
+        ? getSavedEligibilityAnswers("BAT")
+        : Promise.resolve(answers.bat),
+
+    answers.bpt === undefined
+        ? getSavedEligibilityAnswers("BPT")
+        : Promise.resolve(answers.bpt),
+  ]);
+
+  return {
+    bat: savedBat ?? null,
+    bpt: savedBpt ?? null,
+  };
 }
 
 // Normalize citizenship values to match JKM eligibility criteria
@@ -298,8 +319,9 @@ export async function getApplicantEligibilityData(
     throw welfareResult.error;
   }
 
-  // Normalize program-specific eligibility answers
-  const programAnswers = normalizeProgramEligibilityAnswers(answers);
+  // Retrieve and normalize program-specific eligibility answers
+  const resolvedAnswers = await resolveEligibilityAnswers(answers);
+  const programAnswers = normalizeProgramEligibilityAnswers(resolvedAnswers);
 
   // 5 - Build the input structure expected by eligibilityFacts.ts
   return {
@@ -343,6 +365,7 @@ export async function getApplicantEligibilityData(
 
     // Household completeness confirmation
     householdMembersComplete: profile.household_members_complete,
+
     // Household members
     householdMembers: (householdResult.data ?? []).map(
         (member) => ({
