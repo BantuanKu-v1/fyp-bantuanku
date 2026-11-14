@@ -417,8 +417,8 @@ const en = {
             partTime: "Part-time",
 
             school: "School",
-            college: "College",
-            university: "University",
+            ipta: "IPTA",
+            ipts: "IPTS",
             other: "Other",
           },
 

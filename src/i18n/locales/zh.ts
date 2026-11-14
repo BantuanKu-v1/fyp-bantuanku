@@ -424,8 +424,8 @@ const zh = {
             partTime: "非全日制",
 
             school: "学校",
-            college: "学院",
-            university: "大学",
+            ipta: "政府大学",
+            ipts: "私立大学",
             other: "其他",
           },
 

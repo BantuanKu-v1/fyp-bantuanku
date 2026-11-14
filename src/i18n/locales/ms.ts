@@ -419,8 +419,8 @@ const ms = {
             partTime: "Separuh Masa",
 
             school: "Sekolah",
-            college: "Kolej",
-            university: "Universiti",
+            ipta: "Institusi Pengajian Tinggi Awam",
+            ipts: "Pengajian Tinggi Swasta",
             other: "Lain-lain",
           },
 
