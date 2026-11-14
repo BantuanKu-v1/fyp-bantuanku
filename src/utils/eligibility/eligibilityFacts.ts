@@ -550,33 +550,33 @@ export function buildEligibilityFacts(
   const patient = bpt?.patient;
 
   const patientCitizenship = patientIsApplicant
-      ? profile.citizenship
+      ? profile.citizenship ?? patient?.citizenship ?? null
       : patient?.citizenship ?? null;
 
   const patientResidenceCountry = patientIsApplicant
-      ? address?.country_code ?? null
+      ? address?.country_code ?? patient?.residenceCountry ?? null
       : patient?.residenceCountry ?? null;
 
   const patientIsOku = patientIsApplicant
-      ? healthProfile?.is_oku ?? null
+      ? healthProfile?.is_oku ?? patient?.isOku ?? null
       : patient?.isOku ?? null;
 
   const patientHasChronicIllness = patientIsApplicant
-      ? healthProfile?.has_chronic_illness ?? null
+      ? healthProfile?.has_chronic_illness ?? patient?.hasChronicIllness ?? null
       : patient?.hasChronicIllness ?? null;
 
   const patientIsBedridden = patientIsApplicant
-      ? healthProfile?.is_bedridden ?? null
+      ? healthProfile?.is_bedridden ?? patient?.isBedridden ?? null
       : patient?.isBedridden ?? null;
 
   const patientRequiresContinuousTreatment = patientIsApplicant
-      ? healthProfile?.requires_continuous_treatment ?? null
+      ? healthProfile?.requires_continuous_treatment ?? patient?.requiresContinuousTreatment ?? null
       : patient?.requiresContinuousTreatment ?? null;
 
   const patientContinuousTreatmentMonths =
       calculateCompletedMonths(
           patientIsApplicant
-              ? healthProfile?.treatment_start_date ?? null
+              ? healthProfile?.treatment_start_date ?? patient?.treatmentStartDate ?? null
               : patient?.treatmentStartDate ?? null,
           referenceDate
       );
