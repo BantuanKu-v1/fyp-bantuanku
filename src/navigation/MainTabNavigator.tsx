@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { MainTabParamList } from "../types/tabNavigator";
 import { FileText, Home, Search, UserRound } from "lucide-react-native";
+import { Platform } from "react-native";
 
 import ProgramsScreen from "../screens/programs/ProgramsScreen";
 import ApplicationsScreen from "../screens/applications/ApplicationsScreen";
@@ -21,6 +22,10 @@ export default function MainTabNavigator() {
 
           tabBarStyle: {
             borderTopColor: "#E2E5EA",
+          },
+
+          tabBarItemStyle: {
+            transform: [{ translateY: Platform.OS === "ios" ? 8 : 0 }],
           },
 
           tabBarLabelStyle: {
