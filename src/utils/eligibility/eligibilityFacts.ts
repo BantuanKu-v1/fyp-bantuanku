@@ -694,7 +694,10 @@ export function buildEligibilityFacts(
 
     // Health and disability information
     isOku: healthProfile?.is_oku ?? null,
-    okuRegistered: healthProfile?.oku_registered ?? null,
+    okuRegistered:
+        healthProfile?.is_oku === false
+            ? false
+            : healthProfile?.oku_registered ?? null,
     hasChronicIllness: healthProfile?.has_chronic_illness ?? null,
     isBedridden: healthProfile?.is_bedridden ?? null,
     requiresContinuousTreatment: healthProfile?.requires_continuous_treatment ?? null,
