@@ -1,12 +1,13 @@
 import { getJkmEligibilityCriteria, getStrEligibilityCriteria } from "../api";
 import type { JkmProgramCode } from "../api";
 import type { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
-import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
+import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityThresholds";
 import { getApplicantEligibilityData, ProgramEligibilityAnswers } from "./eligibilityDataService";
 import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts";
 import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
 import { adaptStrEligibilityResponse } from "../../adapters/strEligibilityAdapter";
 import { evaluateProgramEligibility } from "../../utils/eligibility/eligibilityEngine";
+import { DEFAULT_ELIGIBILITY_THRESHOLDS } from "../../constants/eligibilityPgk";
 
 export type SupportedProgramCode = JkmProgramCode | "STR";
 
@@ -82,8 +83,17 @@ async function evaluateApplicantProgram(
       programCode,
       rules,
       facts,
-      options.thresholds ?? {}
+      {
+        ...DEFAULT_ELIGIBILITY_THRESHOLDS,
+        ...options.thresholds,
+      }
   );
+
+  if (programCode === "BAT" || programCode === "BPT") {
+    console.log(`[Eligibility] ${programCode} facts:`, facts);
+    console.log(`[Eligibility] ${programCode} rules:`, rules);
+    console.log(`[Eligibility] ${programCode} result:`, result);
+  }
 
   return {
     programCode,
@@ -100,7 +110,10 @@ export async function assessApplicantEligibility(
     programCode: SupportedProgramCode,
     options: EligibilityAssessmentOptions = {}
 ): Promise<ApplicantEligibilityAssessment> {
-  const applicantData = await getApplicantEligibilityData(options.answers ?? {});
+  const applicantData = await getApplicantEligibilityData(
+      options.answers ?? {}
+  );
+
   const facts = buildEligibilityFacts(applicantData);
 
   return evaluateApplicantProgram(
@@ -114,7 +127,10 @@ export async function assessApplicantEligibility(
 export async function assessAllApplicantEligibility(
     options: EligibilityAssessmentOptions = {}
 ): Promise<ProgramEligibilityCheck[]> {
-  const applicantData = await getApplicantEligibilityData(options.answers ?? {});
+  const applicantData = await getApplicantEligibilityData(
+      options.answers ?? {}
+  );
+
   const facts = buildEligibilityFacts(applicantData);
 
   const settledResults = await Promise.allSettled(

@@ -10,7 +10,8 @@ import {
   EligibilityRuleResult,
   EligibilityStatus,
 } from "../../types/eligibility";
-import { EligibilityThresholds, evaluateEligibilityCondition } from "./eligibilityConditions";
+import { evaluateEligibilityCondition } from "./eligibilityConditions";
+import type { EligibilityThresholds } from "./eligibilityThresholds";
 
 type EvaluationState = boolean | null;
 
@@ -218,6 +219,37 @@ function evaluateExpression(
   };
 }
 
+// Collect missing information only from unresolved expression branches
+function collectRelevantMissingInformation(
+    evaluation: ExpressionEvaluation
+): EligibilityConditionResult[] {
+  if (evaluation.matched !== null) {
+    return [];
+  }
+
+  return evaluation.conditions.filter(
+      (condition) =>
+          condition.passed === null &&
+          condition.reason === "missing_information"
+  );
+}
+
+// Identify information that requires external assessment
+function isExternalAssessmentField(
+    field: keyof EligibilityFacts
+): boolean {
+  const externalAssessmentFields: (keyof EligibilityFacts)[] = [
+      "socioeconomicAssessmentRequired",
+      "medicalAssessmentRequired",
+      "baAdditionalCircumstancesRequireReview",
+      "batRecommendationOrEquipmentRequiresReview",
+      "batSpecialConsiderationRequested",
+      "bptMedicalOrCaregiverReviewRequired",
+  ];
+
+  return externalAssessmentFields.includes(field);
+}
+
 // Convert an evaluated expression into a public rule result
 function buildRuleResult(
     rule: EligibilityRule,
@@ -233,9 +265,9 @@ function buildRuleResult(
           (condition) => condition.passed === false
       );
 
-  const missingInformation =
-      evaluation.conditions.filter(
-          (condition) => condition.passed === null
+  const missingInformation = collectRelevantMissingInformation(evaluation)
+      .filter(
+          (condition) => !isExternalAssessmentField(condition.field)
       );
 
   return {
@@ -404,7 +436,7 @@ function runForwardChaining(
         continue;
       }
 
-      // Evaluate the rule once
+      // Evaluate the rule at once
       const evaluation = evaluateExpression(
           rule.conditions,
           context

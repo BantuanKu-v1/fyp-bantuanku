@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "../profile/profileService";
+import { getSavedEligibilityAnswers } from "./eligibilityQuestionnaireService";
 import { BatEligibilityInput, BptEligibilityInput, EligibilityFactsInput } from "../../utils/eligibility/eligibilityFacts";
 import {
   INVALID_COUNTRY_PLACEHOLDERS,
@@ -8,8 +9,51 @@ import {
 } from "../../constants/eligibility";
 
 export interface ProgramEligibilityAnswers {
+  receivesJkmMonthlyAssistance?: boolean | null;
   bat?: BatEligibilityInput | null;
   bpt?: BptEligibilityInput | null;
+}
+
+// Retrieve saved questionnaire answers when none are explicitly provided
+async function resolveEligibilityAnswers(
+    answers: ProgramEligibilityAnswers = {}
+): Promise<ProgramEligibilityAnswers> {
+  const [savedBat, savedBpt] = await Promise.allSettled([
+    answers.bat === undefined
+        ? getSavedEligibilityAnswers("BAT")
+        : Promise.resolve(answers.bat),
+
+    answers.bpt === undefined
+        ? getSavedEligibilityAnswers("BPT")
+        : Promise.resolve(answers.bpt),
+  ]);
+
+  if (savedBat.status === "rejected") {
+    console.error(
+        "[Eligibility] Unable to retrieve BAT questionnaire answers:",
+        savedBat.reason
+    );
+  }
+
+  if (savedBpt.status === "rejected") {
+    console.error(
+        "[Eligibility] Unable to retrieve BPT questionnaire answers:",
+        savedBpt.reason
+    );
+  }
+
+  return {
+    receivesJkmMonthlyAssistance:
+        answers.receivesJkmMonthlyAssistance ?? null,
+
+    bat: savedBat.status === "fulfilled"
+        ? savedBat.value ?? null
+        : null,
+
+    bpt: savedBpt.status === "fulfilled"
+        ? savedBpt.value ?? null
+        : null,
+  };
 }
 
 // Normalize citizenship values to match JKM eligibility criteria
@@ -86,7 +130,7 @@ function toNullableNumber(
 
   const number = Number(value);
 
-  return Number.isFinite(number)
+  return Number.isFinite(number) && number >= 0
       ? number
       : null;
 }
@@ -98,6 +142,9 @@ function normalizeProgramEligibilityAnswers(
   const bpt = answers.bpt;
 
   return {
+    receivesJkmMonthlyAssistance:
+        answers.receivesJkmMonthlyAssistance ?? null,
+
     bat: bat
         ? {
           isJkmTargetGroup: bat.isJkmTargetGroup ?? null,
@@ -298,8 +345,9 @@ export async function getApplicantEligibilityData(
     throw welfareResult.error;
   }
 
-  // Normalize program-specific eligibility answers
-  const programAnswers = normalizeProgramEligibilityAnswers(answers);
+  // Retrieve and normalize program-specific eligibility answers
+  const resolvedAnswers = await resolveEligibilityAnswers(answers);
+  const programAnswers = normalizeProgramEligibilityAnswers(resolvedAnswers);
 
   // 5 - Build the input structure expected by eligibilityFacts.ts
   return {
@@ -343,6 +391,7 @@ export async function getApplicantEligibilityData(
 
     // Household completeness confirmation
     householdMembersComplete: profile.household_members_complete,
+
     // Household members
     householdMembers: (householdResult.data ?? []).map(
         (member) => ({
@@ -431,6 +480,9 @@ export async function getApplicantEligibilityData(
           end_date: assistance.end_date,
         })
     ),
+
+    // Explicit JKM monthly assistance declaration
+    receivesJkmMonthlyAssistance: programAnswers.receivesJkmMonthlyAssistance ?? null,
 
     // Program-specific eligibility answers
     bat: programAnswers.bat ?? null,
