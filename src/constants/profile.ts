@@ -20,9 +20,9 @@ export const STUDY_MODES = [
 ] as const;
 
 export const INSTITUTION_TYPES = [
+  "ipta",
+  "ipts",
   "school",
-  "college",
-  "university",
   "other"
 ] as const;
 
@@ -41,8 +41,8 @@ export const STUDY_MODE_KEYS: Record<string, string> = {
 };
 
 export const INSTITUTION_TYPE_KEYS: Record<string, string> = {
+  ipta: "ipta",
+  ipts: "ipts",
   school: "school",
-  college: "college",
-  university: "university",
   other: "other"
 };
