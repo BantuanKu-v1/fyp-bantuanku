@@ -5,11 +5,8 @@ import {
   EligibilityOperator,
   EligibilityValue,
 } from "../../types/eligibility";
-
-// Dynamic threshold values supplied by a trusted source
-export type EligibilityThresholds = Readonly<
-    Record<string, number | null | undefined>
->;
+import { resolveExpectedValue } from "./eligibilityThresholds";
+import type { EligibilityThresholds } from "./eligibilityThresholds";
 
 // Check whether an eligibility value is missing or invalid
 function isMissingValue(
@@ -79,36 +76,6 @@ function compareValue(
     default:
       return null;
   }
-}
-
-// Resolve either a static value or a dynamic threshold
-function resolveExpectedValue(
-    condition: EligibilityCondition,
-    thresholds: EligibilityThresholds
-): EligibilityCondition["value"] {
-  // A condition must not define both a static value and threshold reference
-  if (
-      condition.value !== undefined &&
-      condition.thresholdRef !== undefined
-  ) {
-    return undefined;
-  }
-
-  // Resolve dynamic thresholds such as PGK
-  if (condition.thresholdRef !== undefined) {
-    const threshold = thresholds[condition.thresholdRef];
-
-    if (
-        typeof threshold !== "number" ||
-        !Number.isFinite(threshold)
-    ) {
-      return undefined;
-    }
-
-    return threshold;
-  }
-
-  return condition.value;
 }
 
 // Evaluate an individual eligibility condition
