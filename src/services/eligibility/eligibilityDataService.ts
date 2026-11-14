@@ -9,6 +9,7 @@ import {
 } from "../../constants/eligibility";
 
 export interface ProgramEligibilityAnswers {
+  receivesJkmMonthlyAssistance?: boolean | null;
   bat?: BatEligibilityInput | null;
   bpt?: BptEligibilityInput | null;
 }
@@ -17,7 +18,7 @@ export interface ProgramEligibilityAnswers {
 async function resolveEligibilityAnswers(
     answers: ProgramEligibilityAnswers = {}
 ): Promise<ProgramEligibilityAnswers> {
-  const [savedBat, savedBpt] = await Promise.all([
+  const [savedBat, savedBpt] = await Promise.allSettled([
     answers.bat === undefined
         ? getSavedEligibilityAnswers("BAT")
         : Promise.resolve(answers.bat),
@@ -27,9 +28,31 @@ async function resolveEligibilityAnswers(
         : Promise.resolve(answers.bpt),
   ]);
 
+  if (savedBat.status === "rejected") {
+    console.error(
+        "[Eligibility] Unable to retrieve BAT questionnaire answers:",
+        savedBat.reason
+    );
+  }
+
+  if (savedBpt.status === "rejected") {
+    console.error(
+        "[Eligibility] Unable to retrieve BPT questionnaire answers:",
+        savedBpt.reason
+    );
+  }
+
   return {
-    bat: savedBat ?? null,
-    bpt: savedBpt ?? null,
+    receivesJkmMonthlyAssistance:
+        answers.receivesJkmMonthlyAssistance ?? null,
+
+    bat: savedBat.status === "fulfilled"
+        ? savedBat.value ?? null
+        : null,
+
+    bpt: savedBpt.status === "fulfilled"
+        ? savedBpt.value ?? null
+        : null,
   };
 }
 
@@ -107,7 +130,7 @@ function toNullableNumber(
 
   const number = Number(value);
 
-  return Number.isFinite(number)
+  return Number.isFinite(number) && number >= 0
       ? number
       : null;
 }
@@ -119,6 +142,9 @@ function normalizeProgramEligibilityAnswers(
   const bpt = answers.bpt;
 
   return {
+    receivesJkmMonthlyAssistance:
+        answers.receivesJkmMonthlyAssistance ?? null,
+
     bat: bat
         ? {
           isJkmTargetGroup: bat.isJkmTargetGroup ?? null,
@@ -454,6 +480,9 @@ export async function getApplicantEligibilityData(
           end_date: assistance.end_date,
         })
     ),
+
+    // Explicit JKM monthly assistance declaration
+    receivesJkmMonthlyAssistance: programAnswers.receivesJkmMonthlyAssistance ?? null,
 
     // Program-specific eligibility answers
     bat: programAnswers.bat ?? null,
