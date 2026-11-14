@@ -95,6 +95,9 @@ export interface EligibilityFactsInput {
     end_date: string | null;
   }[];
 
+  // Explicit applicant declaration; null means unanswered
+  receivesJkmMonthlyAssistance?: boolean | null;
+
   bat?: BatEligibilityInput | null;
   bpt?: BptEligibilityInput | null;
 }
@@ -203,14 +206,25 @@ function calculateCompletedMonths(
       (reference.getFullYear() - start.getUTCFullYear()) * 12 +
       (reference.getMonth() - start.getUTCMonth());
 
-  if (reference.getDate() < start.getUTCDate()) {
+  const referenceMonthLastDay = new Date(
+      reference.getFullYear(),
+      reference.getMonth() + 1,
+      0
+  ).getDate();
+
+  const anniversaryDay = Math.min(
+      start.getUTCDate(),
+      referenceMonthLastDay
+  );
+
+  if (reference.getDate() < anniversaryDay) {
     months--;
   }
 
   return months >= 0 ? months : null;
 }
 
-// Convert nullable numeric values safely
+// Convert nullable non-negative numeric values safely
 function toNullableNumber(value: number | null): number | null {
   if (value === null || value === undefined) {
     return null;
@@ -218,18 +232,17 @@ function toNullableNumber(value: number | null): number | null {
 
   const number = Number(value);
 
-  return Number.isFinite(number) ? number : null;
+  return Number.isFinite(number) && number >= 0
+      ? number
+      : null;
 }
 
 // Determine whether active JKM monthly assistance is received
 function receivesJkmMonthlyAssistance(
     assistance: EligibilityFactsInput["welfareAssistance"],
-    referenceDate: Date
+    referenceDate: Date,
+    declaration: boolean | null = null
 ): boolean | null {
-  if (assistance.length === 0) {
-    return null;
-  }
-
   const referenceDateString = [
     referenceDate.getFullYear(),
     String(referenceDate.getMonth() + 1).padStart(2, "0"),
@@ -245,25 +258,63 @@ function receivesJkmMonthlyAssistance(
     const isActive = record.is_active === true;
 
     const hasStarted =
-        !record.start_date ||
+        record.start_date === null ||
         (parseDate(record.start_date) !== null &&
             record.start_date <= referenceDateString);
 
     const hasNotEnded =
-        !record.end_date ||
+        record.end_date === null ||
         (parseDate(record.end_date) !== null &&
             record.end_date >= referenceDateString);
 
+    return isJkm && isMonthly && isActive && hasStarted && hasNotEnded;
+  });
+
+  if (hasQualifyingAssistance) {
+    return true;
+  }
+
+  // An explicit positive declaration remains meaningful even without records
+  if (declaration === true) {
+    return true;
+  }
+
+  // Do not accept a negative declaration when relevant records are unresolved
+  const hasUncertainAssistance = assistance.some((record) => {
+    const isJkm = record.agency?.trim().toLowerCase() === "jkm";
+
+    if (!isJkm) return false;
+
+    const monthly = record.assistance_type?.trim().toLowerCase();
+
+    if (monthly && monthly !== "monthly") {
+      return false;
+    }
+
+    if (record.is_active === false) return false;
+
+    const start = record.start_date;
+    const end = record.end_date;
+
+    if (start !== null && parseDate(start) !== null &&
+        start > referenceDateString) return false;
+
+    if (end !== null && parseDate(end) !== null &&
+        end < referenceDateString) return false;
+
     return (
-        isJkm &&
-        isMonthly &&
-        isActive &&
-        hasStarted &&
-        hasNotEnded
+        monthly !== "monthly" ||
+        record.is_active === null ||
+        (start !== null && parseDate(start) === null) ||
+        (end !== null && parseDate(end) === null)
     );
   });
 
-  return hasQualifyingAssistance ? true : null;
+  if (hasUncertainAssistance) {
+    return null;
+  }
+
+  return declaration === false ? false : null;
 }
 
 function normalizeState(value: string | null): string | null {
@@ -331,23 +382,32 @@ function calculateStrEligibleChildren(
 
     const age = calculateAge(member.date_of_birth, referenceDate);
 
+    const citizenship = member.citizenship?.trim().toLowerCase();
+
     const isMalaysian =
-        member.citizenship === null
+        !citizenship
             ? null
-            : member.citizenship === "Malaysian";
+            : citizenship === "malaysian";
+
+    const employment = member.employment_status?.trim().toLowerCase();
 
     const hasNoEmployment =
-        member.employment_status === null
+        !employment
             ? null
-            : member.employment_status === "unemployed" ||
-            member.employment_status === "not_working";
+            : employment === "unemployed" ||
+            employment === "not_working";
+
+    const income = toNullableNumber(member.monthly_income);
 
     const hasNoIncome =
-        member.monthly_income === null
+        income === null
             ? null
-            : member.monthly_income === 0;
+            : income === 0;
 
-    const hasIdentification = member.identification_no?.trim() ? true : null;
+    const hasIdentification =
+        member.identification_no?.trim()
+            ? true
+            : null;
 
     const meetsAgeAndStudyRequirement =
         age === null
@@ -413,6 +473,7 @@ export function buildEligibilityFacts(
     livingArrangement,
     caregivers,
     welfareAssistance,
+    receivesJkmMonthlyAssistance: receivesJkmMonthlyAssistanceDeclaration = null,
     bat = null,
     bpt = null,
   } = input;
@@ -523,7 +584,9 @@ export function buildEligibilityFacts(
   // An empty list doesn't establish that no caregiver exists
   const recordedHasCaregiver = caregivers.length > 0 ? true : null;
 
-  const recordedCaregiverCitizenship = caregivers.length === 1 ? caregivers[0].citizenship : null;
+  const recordedCaregiverCitizenship = caregivers.length === 1
+      ? caregivers[0].citizenship
+      : null;
 
   const recordedCaregiverProvidesIntensiveCare =
       caregivers.length === 1
@@ -581,10 +644,17 @@ export function buildEligibilityFacts(
           referenceDate
       );
 
-  // Explicit patient-specific information takes precedence
-  const hasCaregiver = patient?.hasCaregiver ?? recordedHasCaregiver;
-  const caregiverCitizenship = bpt?.caregiverCitizenship ?? recordedCaregiverCitizenship;
-  const caregiverProvidesIntensiveCare = bpt?.caregiverProvidesIntensiveCare ?? recordedCaregiverProvidesIntensiveCare;
+  // Caregiver records belong to the applicant
+  // They can describe the patient's caregiver only when the applicant is the patient
+  const hasCaregiver = patient?.hasCaregiver ??
+      (patientIsApplicant ? recordedHasCaregiver : null);
+
+  const caregiverCitizenship = bpt?.caregiverCitizenship ??
+      (patientIsApplicant ? recordedCaregiverCitizenship : null);
+
+  const caregiverProvidesIntensiveCare =
+      bpt?.caregiverProvidesIntensiveCare ??
+      (patientIsApplicant ? recordedCaregiverProvidesIntensiveCare : null);
 
   const residesInExcludedCareCentre = null;
 
@@ -617,7 +687,8 @@ export function buildEligibilityFacts(
     // Welfare assistance information
     receivesJkmMonthlyAssistance: receivesJkmMonthlyAssistance(
         welfareAssistance,
-        referenceDate
+        referenceDate,
+        receivesJkmMonthlyAssistanceDeclaration
     ),
     isJkmTargetGroup: bat?.isJkmTargetGroup ?? null,
 
