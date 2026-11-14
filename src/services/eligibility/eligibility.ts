@@ -1,7 +1,7 @@
 import { getJkmEligibilityCriteria, getStrEligibilityCriteria } from "../api";
 import type { JkmProgramCode } from "../api";
 import type { EligibilityFacts, EligibilityResult, EligibilityRule } from "../../types/eligibility";
-import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityConditions";
+import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityThresholds";
 import { getApplicantEligibilityData, ProgramEligibilityAnswers } from "./eligibilityDataService";
 import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts";
 import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
