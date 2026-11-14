@@ -5,9 +5,7 @@ import type { EligibilityFacts, EligibilityRule, EligibilityStatus } from "../..
 import type { EligibilityThresholds } from "../../src/utils/eligibility/eligibilityThresholds";
 import { bweApiResponse } from "../fixtures/bweApiResponse";
 
-function createEligibleBweFacts(
-    overrides: Partial<EligibilityFacts> = {}
-): EligibilityFacts {
+function createEligibleBweFacts(overrides: Partial<EligibilityFacts> = {}): EligibilityFacts {
   return {
     age: 65,
     ageByBirthYear: 65,
@@ -66,35 +64,17 @@ function createEligibleBweFacts(
 }
 
 function getBweRules(): EligibilityRule[] {
-  return adaptJkmEligibilityResponse(
-      structuredClone(bweApiResponse),
-      "BWE"
-  );
+  return adaptJkmEligibilityResponse(structuredClone(bweApiResponse), "BWE");
 }
 
-function evaluate(
-    facts: EligibilityFacts,
-    thresholds: EligibilityThresholds = {}
-) {
-  return evaluateProgramEligibility(
-      "BWE",
-      getBweRules(),
-      facts,
-      thresholds
-  );
+function evaluate(facts: EligibilityFacts, thresholds: EligibilityThresholds = {}) {
+  return evaluateProgramEligibility("BWE", getBweRules(), facts, thresholds);
 }
 
 type BweEvaluationResult = ReturnType<typeof evaluate>;
 
-function expectRule(
-    result: BweEvaluationResult,
-    ruleId: string,
-    matched: boolean | null
-): void {
-  const rule = result.ruleResults.find(
-      (item) => item.ruleId === ruleId
-  );
-
+function expectRule(result: BweEvaluationResult, ruleId: string, matched: boolean | null): void {
+  const rule = result.ruleResults.find((item) => item.ruleId === ruleId);
   expect(rule).toBeDefined();
   expect(rule?.matched).toBe(matched);
 }
@@ -114,10 +94,7 @@ function expectCondition(
     field: keyof EligibilityFacts,
     passed: boolean | null
 ): void {
-  const rule = result.ruleResults.find(
-      (item) => item.ruleId === ruleId
-  );
-
+  const rule = result.ruleResults.find((item) => item.ruleId === ruleId);
   expect(rule).toBeDefined();
 
   const conditions = [
@@ -125,372 +102,137 @@ function expectCondition(
     ...(rule?.unmetConditions ?? []),
     ...(rule?.missingInformation ?? []),
   ];
-
-  const matchingConditions = conditions.filter(
-      (condition) => condition.field === field
-  );
-
+  const matchingConditions = conditions.filter((condition) => condition.field === field);
   expect(matchingConditions.length).toBeGreaterThan(0);
-
-  expect(
-      matchingConditions.some(
-          (condition) => condition.passed === passed
-      )
-  ).toBe(true);
+  expect(matchingConditions.some((condition) => condition.passed === passed)).toBe(true);
 }
 
 describe("BWE Eligibility Accuracy Validation", () => {
   test("ACC-001 - All standard requirements satisfied", () => {
     const result = evaluate(createEligibleBweFacts());
-
-    expectStatusAndRules(
-        result,
-        "potentially_eligible",
-        ["BWE-001"]
-    );
-
+    expectStatusAndRules(result, "potentially_eligible", ["BWE-001"]);
     expectRule(result, "BWE-001", true);
     expectRule(result, "BWE-002", false);
     expectRule(result, "BWE-003", false);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "citizenship",
-        true
-    );
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "residenceCountry",
-        true
-    );
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "ageByBirthYear",
-        true
-    );
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "residesInExcludedInstitution",
-        true
-    );
+    expectCondition(result, "BWE-001", "citizenship", true);
+    expectCondition(result, "BWE-001", "residenceCountry", true);
+    expectCondition(result, "BWE-001", "ageByBirthYear", true);
+    expectCondition(result, "BWE-001", "residesInExcludedInstitution", true);
   });
 
   test("ACC-002 - Applicant age 59", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          age: 59,
-          ageByBirthYear: 59,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_ineligible",
-        ["BWE-003"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({ age: 59, ageByBirthYear: 59 }));
+    expectStatusAndRules(result, "potentially_ineligible", ["BWE-003"]);
     expectRule(result, "BWE-001", false);
     expectRule(result, "BWE-002", false);
     expectRule(result, "BWE-003", true);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "ageByBirthYear",
-        false
-    );
+    expectCondition(result, "BWE-001", "ageByBirthYear", false);
   });
 
   test("ACC-003 - Applicant age exactly 60", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          age: 60,
-          ageByBirthYear: 60,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_eligible",
-        ["BWE-001"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({ age: 60, ageByBirthYear: 60 }));
+    expectStatusAndRules(result, "potentially_eligible", ["BWE-001"]);
     expectRule(result, "BWE-001", true);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "ageByBirthYear",
-        true
-    );
+    expectCondition(result, "BWE-001", "ageByBirthYear", true);
   });
 
   test("ACC-004 - Applicant is not Malaysian", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          citizenship: "Non-Malaysian",
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_ineligible",
-        ["BWE-003"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({ citizenship: "Non-Malaysian" }));
+    expectStatusAndRules(result, "potentially_ineligible", ["BWE-003"]);
     expectRule(result, "BWE-001", false);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "citizenship",
-        false
-    );
+    expectCondition(result, "BWE-001", "citizenship", false);
   });
 
   test("ACC-005 - Applicant resides outside Malaysia", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          residenceCountry: "Singapore",
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_ineligible",
-        ["BWE-003"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({ residenceCountry: "Singapore" }));
+    expectStatusAndRules(result, "potentially_ineligible", ["BWE-003"]);
     expectRule(result, "BWE-001", false);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "residenceCountry",
-        false
-    );
+    expectCondition(result, "BWE-001", "residenceCountry", false);
   });
 
   test("ACC-006 - Household income exactly RM1,236", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          monthlyHouseholdIncome: 1236,
-          perCapitaHouseholdIncome: 500,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_eligible",
-        ["BWE-001"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({
+      monthlyHouseholdIncome: 1236,
+      perCapitaHouseholdIncome: 500,
+    }));
+    expectStatusAndRules(result, "potentially_eligible", ["BWE-001"]);
     expectRule(result, "BWE-001", true);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "monthlyHouseholdIncome",
-        true
-    );
+    expectCondition(result, "BWE-001", "monthlyHouseholdIncome", true);
   });
 
   test("ACC-007 - Per-capita household income exactly RM348", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          monthlyHouseholdIncome: 1500,
-          perCapitaHouseholdIncome: 348,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_eligible",
-        ["BWE-001"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({
+      monthlyHouseholdIncome: 1500,
+      perCapitaHouseholdIncome: 348,
+    }));
+    expectStatusAndRules(result, "potentially_eligible", ["BWE-001"]);
     expectRule(result, "BWE-001", true);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "perCapitaHouseholdIncome",
-        true
-    );
+    expectCondition(result, "BWE-001", "perCapitaHouseholdIncome", true);
   });
 
   test("ACC-008 - Both income values exceed thresholds", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          monthlyHouseholdIncome: 1500,
-          perCapitaHouseholdIncome: 500,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_ineligible",
-        ["BWE-003"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({
+      monthlyHouseholdIncome: 1500,
+      perCapitaHouseholdIncome: 500,
+    }));
+    expectStatusAndRules(result, "potentially_ineligible", ["BWE-003"]);
     expectRule(result, "BWE-001", false);
     expectRule(result, "BWE-003", true);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "monthlyHouseholdIncome",
-        false
-    );
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "perCapitaHouseholdIncome",
-        false
-    );
+    expectCondition(result, "BWE-001", "monthlyHouseholdIncome", false);
+    expectCondition(result, "BWE-001", "perCapitaHouseholdIncome", false);
   });
 
   test("ACC-009 - Applicant resides in an excluded institution", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          residesInExcludedInstitution: true,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "potentially_ineligible",
-        ["BWE-003"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({ residesInExcludedInstitution: true }));
+    expectStatusAndRules(result, "potentially_ineligible", ["BWE-003"]);
     expectRule(result, "BWE-001", false);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "residesInExcludedInstitution",
-        false
-    );
+    expectCondition(result, "BWE-001", "residesInExcludedInstitution", false);
   });
 
   test("ACC-010 - Missing required information", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          monthlyHouseholdIncome: null,
-          perCapitaHouseholdIncome: null,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "insufficient_information",
-        []
-    );
-
+    const result = evaluate(createEligibleBweFacts({
+      monthlyHouseholdIncome: null,
+      perCapitaHouseholdIncome: null,
+    }));
+    expectStatusAndRules(result, "insufficient_information", []);
     expectRule(result, "BWE-001", null);
     expectRule(result, "BWE-003", null);
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "monthlyHouseholdIncome",
-        null
-    );
-
-    expectCondition(
-        result,
-        "BWE-001",
-        "perCapitaHouseholdIncome",
-        null
-    );
-
-    expect(
-        result.missingInformation.length
-    ).toBeGreaterThan(0);
+    expectCondition(result, "BWE-001", "monthlyHouseholdIncome", null);
+    expectCondition(result, "BWE-001", "perCapitaHouseholdIncome", null);
+    expect(result.missingInformation.length).toBeGreaterThan(0);
   });
 
   test("ACC-011 - Alternative pathway satisfied", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          monthlyHouseholdIncome: 2000,
-          perCapitaHouseholdIncome: 1000,
-          hasChildren: false,
-          dependsOnFamilyOrCaregiver: true,
-          familyOrCaregiverIncomeExceedsPgk: true,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "manual_verification",
-        ["BWE-002"]
-    );
-
+    const result = evaluate(createEligibleBweFacts({
+      monthlyHouseholdIncome: 2000,
+      perCapitaHouseholdIncome: 1000,
+      hasChildren: false,
+      dependsOnFamilyOrCaregiver: true,
+      familyOrCaregiverIncomeExceedsPgk: true,
+    }));
+    expectStatusAndRules(result, "manual_verification", ["BWE-002"]);
     expectRule(result, "BWE-001", false);
     expectRule(result, "BWE-002", true);
     expectRule(result, "BWE-003", false);
-
-    expectCondition(
-        result,
-        "BWE-002",
-        "hasChildren",
-        true
-    );
-
-    expectCondition(
-        result,
-        "BWE-002",
-        "dependsOnFamilyOrCaregiver",
-        true
-    );
-
-    expectCondition(
-        result,
-        "BWE-002",
-        "familyOrCaregiverIncomeExceedsPgk",
-        true
-    );
-
-    expect(
-        result.manualVerification.length
-    ).toBeGreaterThan(0);
+    expectCondition(result, "BWE-002", "hasChildren", true);
+    expectCondition(result, "BWE-002", "dependsOnFamilyOrCaregiver", true);
+    expectCondition(result, "BWE-002", "familyOrCaregiverIncomeExceedsPgk", true);
+    expect(result.manualVerification.length).toBeGreaterThan(0);
   });
 
   test("ACC-012 - Alternative pathway incomplete information", () => {
-    const result = evaluate(
-        createEligibleBweFacts({
-          monthlyHouseholdIncome: 2000,
-          perCapitaHouseholdIncome: 1000,
-          hasChildren: false,
-          dependsOnFamilyOrCaregiver: true,
-          familyOrCaregiverIncomeExceedsPgk: null,
-        })
-    );
-
-    expectStatusAndRules(
-        result,
-        "insufficient_information",
-        []
-    );
-
+    const result = evaluate(createEligibleBweFacts({
+      monthlyHouseholdIncome: 2000,
+      perCapitaHouseholdIncome: 1000,
+      hasChildren: false,
+      dependsOnFamilyOrCaregiver: true,
+      familyOrCaregiverIncomeExceedsPgk: null,
+    }));
+    expectStatusAndRules(result, "insufficient_information", []);
     expectRule(result, "BWE-001", false);
     expectRule(result, "BWE-002", null);
     expectRule(result, "BWE-003", null);
-
-    expectCondition(
-        result,
-        "BWE-002",
-        "familyOrCaregiverIncomeExceedsPgk",
-        null
-    );
+    expectCondition(result, "BWE-002", "familyOrCaregiverIncomeExceedsPgk", null);
   });
 
   test("ACC-013 - Dynamic threshold boundaries and missing threshold", () => {
@@ -502,113 +244,42 @@ describe("BWE Eligibility Accuracy Validation", () => {
       outcome: "potentially_eligible",
       conditions: {
         operator: "AND",
-        conditions: [
-          {
-            id: "THRESHOLD-001",
-            field: "monthlyHouseholdIncome",
-            operator: "lte",
-            thresholdRef: "householdIncomeLimit",
-            description: "Household income must not exceed threshold",
-          },
-        ],
+        conditions: [{
+          id: "THRESHOLD-001",
+          field: "monthlyHouseholdIncome",
+          operator: "lte",
+          thresholdRef: "householdIncomeLimit",
+          description: "Household income must not exceed threshold",
+        }],
       },
     };
+    const facts = createEligibleBweFacts({ monthlyHouseholdIncome: 1236 });
 
-    const facts = createEligibleBweFacts({
-      monthlyHouseholdIncome: 1236,
+    const boundaryResult = evaluateProgramEligibility("BWE", [thresholdRule], facts, {
+      householdIncomeLimit: 1236,
     });
+    expectStatusAndRules(boundaryResult, "potentially_eligible", ["BWE-THRESHOLD-TEST"]);
+    expectCondition(boundaryResult, "BWE-THRESHOLD-TEST", "monthlyHouseholdIncome", true);
 
-    const boundaryResult = evaluateProgramEligibility(
-        "BWE",
-        [thresholdRule],
-        facts,
-        {
-          householdIncomeLimit: 1236,
-        }
-    );
+    const aboveThresholdResult = evaluateProgramEligibility("BWE", [thresholdRule], facts, {
+      householdIncomeLimit: 1235,
+    });
+    expectRule(aboveThresholdResult, "BWE-THRESHOLD-TEST", false);
+    expectCondition(aboveThresholdResult, "BWE-THRESHOLD-TEST", "monthlyHouseholdIncome", false);
 
-    expectStatusAndRules(
-        boundaryResult,
-        "potentially_eligible",
-        ["BWE-THRESHOLD-TEST"]
-    );
+    const missingThresholdResult = evaluateProgramEligibility("BWE", [thresholdRule], facts, {});
+    expectStatusAndRules(missingThresholdResult, "insufficient_information", []);
+    expectRule(missingThresholdResult, "BWE-THRESHOLD-TEST", null);
+    expect(missingThresholdResult.ruleResults[0].missingInformation).toEqual([]);
+    expect(missingThresholdResult.missingInformation).toEqual([]);
 
-    expectCondition(
-        boundaryResult,
-        "BWE-THRESHOLD-TEST",
-        "monthlyHouseholdIncome",
-        true
-    );
-
-    const aboveThresholdResult = evaluateProgramEligibility(
-        "BWE",
-        [thresholdRule],
-        facts,
-        {
-          householdIncomeLimit: 1235,
-        }
-    );
-
-    expectRule(
-        aboveThresholdResult,
-        "BWE-THRESHOLD-TEST",
-        false
-    );
-
-    expectCondition(
-        aboveThresholdResult,
-        "BWE-THRESHOLD-TEST",
-        "monthlyHouseholdIncome",
-        false
-    );
-
-    const missingThresholdResult = evaluateProgramEligibility(
-        "BWE",
-        [thresholdRule],
-        facts,
-        {}
-    );
-
-    expectStatusAndRules(
-        missingThresholdResult,
-        "insufficient_information",
-        []
-    );
-
-    expectRule(
-        missingThresholdResult,
-        "BWE-THRESHOLD-TEST",
-        null
-    );
-
-    expectCondition(
-        missingThresholdResult,
-        "BWE-THRESHOLD-TEST",
-        "monthlyHouseholdIncome",
-        null
-    );
-
-    const invalidThresholdResult = evaluateProgramEligibility(
-        "BWE",
-        [thresholdRule],
-        facts,
-        {
-          householdIncomeLimit: Number.NaN,
-        }
-    );
-
-    expectRule(
-        invalidThresholdResult,
-        "BWE-THRESHOLD-TEST",
-        null
-    );
-
-    expectCondition(
-        invalidThresholdResult,
-        "BWE-THRESHOLD-TEST",
-        "monthlyHouseholdIncome",
-        null
-    );
+    const invalidThresholdResult = evaluateProgramEligibility("BWE", [thresholdRule], facts, {
+      householdIncomeLimit: Number.NaN,
+    });
+    expectStatusAndRules(invalidThresholdResult, "insufficient_information", []);
+    expectRule(invalidThresholdResult, "BWE-THRESHOLD-TEST", null);
+    expect(invalidThresholdResult.ruleResults[0].missingInformation).toEqual([]);
+    expect(invalidThresholdResult.missingInformation).toEqual([]);
   });
 
   test("ACC-014 - Contradictory outcomes require manual verification", () => {
@@ -621,15 +292,13 @@ describe("BWE Eligibility Accuracy Validation", () => {
         outcome: "potentially_eligible",
         conditions: {
           operator: "AND",
-          conditions: [
-            {
-              id: "CONFLICT-001",
-              field: "citizenship",
-              operator: "eq",
-              value: "Malaysian",
-              description: "Applicant is Malaysian",
-            },
-          ],
+          conditions: [{
+            id: "CONFLICT-001",
+            field: "citizenship",
+            operator: "eq",
+            value: "Malaysian",
+            description: "Applicant is Malaysian",
+          }],
         },
       },
       {
@@ -640,44 +309,22 @@ describe("BWE Eligibility Accuracy Validation", () => {
         outcome: "potentially_ineligible",
         conditions: {
           operator: "AND",
-          conditions: [
-            {
-              id: "CONFLICT-002",
-              field: "citizenship",
-              operator: "eq",
-              value: "Malaysian",
-              description: "Applicant is Malaysian",
-            },
-          ],
+          conditions: [{
+            id: "CONFLICT-002",
+            field: "citizenship",
+            operator: "eq",
+            value: "Malaysian",
+            description: "Applicant is Malaysian",
+          }],
         },
       },
     ];
-
-    const result = evaluateProgramEligibility(
-        "BWE",
-        conflictingRules,
-        createEligibleBweFacts()
-    );
-
-    expectStatusAndRules(
-        result,
-        "manual_verification",
-        [
-          "BWE-CONFLICT-ELIGIBLE",
-          "BWE-CONFLICT-INELIGIBLE",
-        ]
-    );
-
-    expectRule(
-        result,
-        "BWE-CONFLICT-ELIGIBLE",
-        true
-    );
-
-    expectRule(
-        result,
-        "BWE-CONFLICT-INELIGIBLE",
-        true
-    );
+    const result = evaluateProgramEligibility("BWE", conflictingRules, createEligibleBweFacts());
+    expectStatusAndRules(result, "manual_verification", [
+      "BWE-CONFLICT-ELIGIBLE",
+      "BWE-CONFLICT-INELIGIBLE",
+    ]);
+    expectRule(result, "BWE-CONFLICT-ELIGIBLE", true);
+    expectRule(result, "BWE-CONFLICT-INELIGIBLE", true);
   });
 });
