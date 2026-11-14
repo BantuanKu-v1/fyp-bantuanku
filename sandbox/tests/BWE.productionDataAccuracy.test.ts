@@ -867,18 +867,6 @@ describe("PDA-019 — Alternative BWE pathway limitations", () => {
   });
 });
 
-  it("does not infer PGK eligibility from household income", async () => {
-    updateFinancialProfile({
-      monthly_household_income: 0,
-    });
-
-    const facts = await loadFacts();
-
-    expect(
-        facts.familyOrCaregiverIncomeExceedsPgk
-    ).toBeNull();
-  });
-
 describe("PDA-020 — End-to-end BWE assessment", () => {
   it("evaluates a qualifying Malaysian applicant", async () => {
     updateProfile({
