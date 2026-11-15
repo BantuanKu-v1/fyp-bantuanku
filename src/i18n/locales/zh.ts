@@ -485,6 +485,134 @@ const zh = {
       },
     },
 
+    eligibility: {
+      questionnaire: {
+        title: "{{programCode}} 资格评估问卷",
+        subtitle: "请提供一些补充资料，以便我们初步评估您是否符合援助资格。",
+
+        loading: "正在加载资格评估问卷...",
+
+        yourProgress: "填写进度",
+        reviewProgress: "查看填写进度",
+
+        answeredCount: "已回答 {{answered}} / {{total}} 题",
+        questionCount: "第 {{current}} 题，共 {{total}} 题",
+
+        required: "必填",
+        optional: "选填",
+
+        numberPlaceholder: "请输入数字",
+        amountPlaceholder: "请输入金额（RM）",
+        countPlaceholder: "请输入整数",
+
+        numberHint: "请输入有效的非负数。",
+        dateHint: "请使用 YYYY-MM-DD 格式。",
+
+        reviewTitle: "检查您的答案",
+        reviewDescription: "保存前，请检查您填写的答案。",
+
+        reviewAnswers: "检查答案",
+        saveAnswers: "保存答案",
+
+        editAnswer: "编辑以下问题的答案：{{question}}",
+
+        noQuestions: "目前无需回答其他问题。",
+        unknownSelection: "无法识别所选选项",
+
+        disclaimer: "您的答案仅用于初步资格评估，并不保证政府援助申请一定获得批准。",
+
+        validation: {
+          boolean: "请选择是或否。",
+          select: "请选择其中一个可用选项。",
+          number: "请输入有效的数字。",
+          nonNegative: "不允许输入负数。",
+          integer: "请输入整数。",
+          decimalPlaces: "小数位数不得超过 {{count}} 位。",
+          min: "允许输入的最小值为 {{min}}。",
+          max: "允许输入的最大值为 {{max}}。",
+          date: "请输入有效日期，格式为 YYYY-MM-DD。",
+          futureDate: "不能选择未来的日期。",
+        },
+
+        errors: {
+          loadFailed: "无法加载资格评估问卷，请重试。",
+          saveFailed: "无法保存您的答案，请重试。",
+        },
+
+        questions: {
+          BAT: {
+            bat_target_group: {
+              label: "您是否属于社会福利局（JKM）的援助目标群体？",
+              description: "请根据您目前所知的情况选择。JKM 可能需要进一步核实。",
+            },
+
+            bat_recommendation: {
+              label: "您是否获得医疗专业人员或社会福利局（JKM）的推荐？",
+            },
+
+            bat_equipment: {
+              label: "您是否正在申请辅助器具？",
+            },
+
+            bat_equipment_cost: {
+              label: "所需辅助器具的预计费用是多少（RM）？",
+              description: "如果知道大概费用，请输入估计金额。您也可以留空。",
+            },
+          },
+
+          BPT: {
+            bpt_role: {
+              label: "您是以患者还是照顾者的身份提出申请？",
+              options: {
+                patient: "患者",
+                caregiver: "照顾者",
+              },
+            },
+
+            bpt_patient_citizenship: {
+              label: "患者是否为马来西亚公民？",
+            },
+
+            bpt_patient_residence: {
+              label: "患者目前是否居住在马来西亚？",
+            },
+
+            bpt_patient_oku: {
+              label: "患者是否为残障人士（OKU）？",
+            },
+
+            bpt_chronic_illness: {
+              label: "患者是否患有慢性疾病？",
+            },
+
+            bpt_bedridden: {
+              label: "患者是否长期卧床？",
+            },
+
+            bpt_continuous_treatment: {
+              label: "患者是否需要持续接受治疗？",
+            },
+
+            bpt_treatment_start: {
+              label: "患者从什么时候开始接受持续治疗？",
+            },
+
+            bpt_has_caregiver: {
+              label: "患者是否有照顾者？",
+            },
+
+            bpt_caregiver_citizenship: {
+              label: "照顾者是否为马来西亚公民？",
+            },
+
+            bpt_intensive_care: {
+              label: "照顾者是否提供密集照护？",
+            },
+          },
+        },
+      },
+    },
+
     validation: {
       required: "此项为必填项。",
 

@@ -437,7 +437,7 @@ const ms = {
           title: "Pengesahan Isi Rumah",
           description: "Sila semak senarai ahli isi rumah anda dan sahkan bahawa semua ahli telah disenaraikan, termasuk jika anda tinggal bersendirian. Anda masih boleh menambah atau mengedit ahli isi rumah selepas pengesahan, tetapi anda perlu mengesahkan semula.",
           confirmed: "Maklumat isi rumah telah disahkan.",
-          agreement: "Saya mengesahkan bahawa maklumat ahli isi rumah saya adalah lengkap and tepat.",
+          agreement: "Saya mengesahkan bahawa maklumat ahli isi rumah saya adalah lengkap dan tepat.",
           button: "Sahkan Maklumat Isi Rumah",
         },
       },
@@ -477,6 +477,134 @@ const ms = {
         loadTitle: "Tidak dapat memuatkan profil",
         loadDescription: "Maklumat profil anda tidak dapat dimuatkan.",
         tryAgain: "Cuba Lagi",
+      },
+    },
+
+    eligibility: {
+      questionnaire: {
+        title: "Soal Selidik Kelayakan {{programCode}}",
+        subtitle: "Beberapa maklumat tambahan akan membantu kami membuat penilaian awal kelayakan anda.",
+
+        loading: "Sedang memuatkan soal selidik anda...",
+
+        yourProgress: "Kemajuan Anda",
+        reviewProgress: "Semakan Jawapan Anda",
+
+        answeredCount: "{{answered}} daripada {{total}} telah dijawab",
+        questionCount: "Soalan {{current}} daripada {{total}}",
+
+        required: "Wajib",
+        optional: "Pilihan",
+
+        numberPlaceholder: "Masukkan nombor",
+        amountPlaceholder: "Masukkan jumlah (RM)",
+        countPlaceholder: "Masukkan nombor bulat",
+
+        numberHint: "Masukkan nombor sah yang tidak negatif.",
+        dateHint: "Gunakan format YYYY-MM-DD.",
+
+        reviewTitle: "Semak Jawapan Anda",
+        reviewDescription: "Sila semak jawapan anda sebelum menyimpan.",
+
+        reviewAnswers: "Semak Jawapan",
+        saveAnswers: "Simpan Jawapan",
+
+        editAnswer: "Edit jawapan untuk {{question}}",
+
+        noQuestions: "Tiada soalan tambahan diperlukan buat masa ini.",
+        unknownSelection: "Pilihan tidak dikenali",
+
+        disclaimer: "Jawapan anda hanya digunakan untuk penilaian awal kelayakan dan tidak menjamin kelulusan bantuan kerajaan.",
+
+        validation: {
+          boolean: "Sila pilih Ya atau Tidak.",
+          select: "Sila pilih salah satu pilihan yang tersedia.",
+          number: "Masukkan nombor yang sah.",
+          nonNegative: "Nilai negatif tidak dibenarkan.",
+          integer: "Masukkan nombor bulat.",
+          decimalPlaces: "Masukkan tidak lebih daripada {{count}} tempat perpuluhan.",
+          min: "Nilai minimum yang dibenarkan ialah {{min}}.",
+          max: "Nilai maksimum yang dibenarkan ialah {{max}}.",
+          date: "Masukkan tarikh yang sah dalam format YYYY-MM-DD.",
+          futureDate: "Tarikh pada masa hadapan tidak dibenarkan.",
+        },
+
+        errors: {
+          loadFailed: "Soal selidik anda tidak dapat dimuatkan. Sila cuba lagi.",
+          saveFailed: "Jawapan anda tidak dapat disimpan. Sila cuba lagi.",
+        },
+
+        questions: {
+          BAT: {
+            bat_target_group: {
+              label: "Adakah anda tergolong dalam kumpulan sasar JKM?",
+              description: "Pilih status anda berdasarkan maklumat yang diketahui. JKM mungkin perlu mengesahkannya.",
+            },
+
+            bat_recommendation: {
+              label: "Adakah anda mempunyai syor daripada pegawai perubatan atau JKM?",
+            },
+
+            bat_equipment: {
+              label: "Adakah anda memohon alat bantuan?",
+            },
+
+            bat_equipment_cost: {
+              label: "Berapakah anggaran kos alat bantuan tersebut (RM)?",
+              description: "Masukkan anggaran kos jika diketahui. Anda boleh membiarkan soalan ini tanpa jawapan.",
+            },
+          },
+
+          BPT: {
+            bpt_role: {
+              label: "Adakah anda memohon sebagai pesakit atau penjaga?",
+              options: {
+                patient: "Pesakit",
+                caregiver: "Penjaga",
+              },
+            },
+
+            bpt_patient_citizenship: {
+              label: "Adakah pesakit warganegara Malaysia?",
+            },
+
+            bpt_patient_residence: {
+              label: "Adakah pesakit kini menetap di Malaysia?",
+            },
+
+            bpt_patient_oku: {
+              label: "Adakah pesakit seorang orang kurang upaya (OKU)?",
+            },
+
+            bpt_chronic_illness: {
+              label: "Adakah pesakit menghidap penyakit kronik?",
+            },
+
+            bpt_bedridden: {
+              label: "Adakah pesakit terlantar di katil?",
+            },
+
+            bpt_continuous_treatment: {
+              label: "Adakah pesakit memerlukan rawatan berterusan?",
+            },
+
+            bpt_treatment_start: {
+              label: "Bilakah rawatan berterusan bermula?",
+            },
+
+            bpt_has_caregiver: {
+              label: "Adakah pesakit mempunyai penjaga?",
+            },
+
+            bpt_caregiver_citizenship: {
+              label: "Adakah penjaga warganegara Malaysia?",
+            },
+
+            bpt_intensive_care: {
+              label: "Adakah penjaga menyediakan penjagaan intensif?",
+            },
+          },
+        },
       },
     },
 

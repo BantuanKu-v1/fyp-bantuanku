@@ -478,6 +478,134 @@ const en = {
       },
     },
 
+    eligibility: {
+      questionnaire: {
+        title: "{{programCode}} Eligibility Questionnaire",
+        subtitle: "A few additional details will help us assess your preliminary eligibility.",
+
+        loading: "Loading your questionnaire...",
+
+        yourProgress: "Your Progress",
+        reviewProgress: "Review Your Answers",
+
+        answeredCount: "{{answered}} of {{total}} answered",
+        questionCount: "Question {{current}} of {{total}}",
+
+        required: "Required",
+        optional: "Optional",
+
+        numberPlaceholder: "Enter a number",
+        amountPlaceholder: "Enter amount (RM)",
+        countPlaceholder: "Enter a whole number",
+
+        numberHint: "Enter a valid non-negative number.",
+        dateHint: "Use the format YYYY-MM-DD.",
+
+        reviewTitle: "Review Your Answers",
+        reviewDescription: "Please check your answers before saving.",
+
+        reviewAnswers: "Review Answers",
+        saveAnswers: "Save Answers",
+
+        editAnswer: "Edit {{question}}",
+
+        noQuestions: "No additional questions are currently required.",
+        unknownSelection: "Unknown selection",
+
+        disclaimer: "Your answers are used for preliminary eligibility assessment only and do not guarantee government approval.",
+
+        validation: {
+          boolean: "Please select Yes or No.",
+          select: "Please select an available option.",
+          number: "Enter a valid number.",
+          nonNegative: "Negative values are not allowed.",
+          integer: "Enter a whole number.",
+          decimalPlaces: "Enter no more than {{count}} decimal places.",
+          min: "The minimum allowed value is {{min}}.",
+          max: "The maximum allowed value is {{max}}.",
+          date: "Enter a valid date in YYYY-MM-DD format.",
+          futureDate: "Future dates are not allowed.",
+        },
+
+        errors: {
+          loadFailed: "Unable to load your questionnaire. Please try again.",
+          saveFailed: "Unable to save your answers. Please try again.",
+        },
+
+        questions: {
+          BAT: {
+            bat_target_group: {
+              label: "Are you part of a JKM target group?",
+              description: "Select your known status. JKM may need to verify this.",
+            },
+
+            bat_recommendation: {
+              label: "Do you have a recommendation from a medical professional or JKM?",
+            },
+
+            bat_equipment: {
+              label: "Are you requesting assistive equipment?",
+            },
+
+            bat_equipment_cost: {
+              label: "What is the estimated equipment cost (RM)?",
+              description: "Enter an estimate if known. You may leave it unanswered.",
+            },
+          },
+
+          BPT: {
+            bpt_role: {
+              label: "Are you applying as a patient or caregiver?",
+              options: {
+                patient: "Patient",
+                caregiver: "Caregiver",
+              },
+            },
+
+            bpt_patient_citizenship: {
+              label: "Is the patient a Malaysian citizen?",
+            },
+
+            bpt_patient_residence: {
+              label: "Does the patient currently reside in Malaysia?",
+            },
+
+            bpt_patient_oku: {
+              label: "Is the patient a person with disabilities (OKU)?",
+            },
+
+            bpt_chronic_illness: {
+              label: "Does the patient have a chronic illness?",
+            },
+
+            bpt_bedridden: {
+              label: "Is the patient bedridden?",
+            },
+
+            bpt_continuous_treatment: {
+              label: "Does the patient require continuous treatment?",
+            },
+
+            bpt_treatment_start: {
+              label: "When did continuous treatment begin?",
+            },
+
+            bpt_has_caregiver: {
+              label: "Does the patient have a caregiver?",
+            },
+
+            bpt_caregiver_citizenship: {
+              label: "Is the caregiver a Malaysian citizen?",
+            },
+
+            bpt_intensive_care: {
+              label: "Does the caregiver provide intensive care?",
+            },
+          },
+        },
+      },
+    },
+
     validation: {
       required: "This field is required.",
 
