@@ -6,6 +6,7 @@ import type {
   ProgramEligibilityCheck,
   SupportedProgramCode,
 } from "../services/eligibility/eligibility";
+import { logEligibilityTestReport } from "../utils/eligibility/eligibilityTestLogger";
 
 interface UseEligibilityReturn {
   assessment: ApplicantEligibilityAssessment | null;
@@ -25,7 +26,9 @@ interface UseEligibilityReturn {
   resetEligibility: () => void;
 }
 
-export function useEligibility(): UseEligibilityReturn {
+export function useEligibility(
+    testAccountId = "Unspecified"
+): UseEligibilityReturn {
   const [assessment, setAssessment] =
       useState<ApplicantEligibilityAssessment | null>(null);
 
@@ -114,17 +117,21 @@ export function useEligibility(): UseEligibilityReturn {
 
           setAssessments(results);
 
-          console.log(
-              "[useEligibility] All-program assessment completed:",
-              JSON.stringify(
-                  results.map((item) => ({
-                    programCode: item.programCode,
-                    status: item.assessment?.result.status ?? null,
-                    error: item.error,
-                  })),
-                  null,
-                  2
-              )
+          logEligibilityTestReport(
+              testAccountId,
+              results.map((item) => ({
+                programCode: item.programCode,
+                status: item.assessment?.result.status ?? null,
+                error: item.error
+                    ? String(item.error)
+                    : null,
+                matchedRuleIds:
+                item.assessment?.result.matchedRuleIds,
+                missingInformation:
+                item.assessment?.result.missingInformation,
+                unmetConditions:
+                item.assessment?.result.unmetConditions,
+              }))
           );
 
           return results;
@@ -152,7 +159,7 @@ export function useEligibility(): UseEligibilityReturn {
           }
         }
       },
-      []
+      [testAccountId]
   );
 
   const resetEligibility = useCallback(() => {

@@ -1,14 +1,8 @@
 import { describe, expect, test } from "@jest/globals";
 import { adaptJkmEligibilityResponse } from "../../src/adapters/jkmEligibilityAdapter";
 import { evaluateProgramEligibility } from "../../src/utils/eligibility/eligibilityEngine";
-import type {
-  EligibilityFacts,
-  EligibilityRule,
-  EligibilityStatus,
-} from "../../src/types/eligibility";
-
-import type { EligibilityThresholds } from "../../src/utils/eligibility/eligibilityConditions";
-
+import type { EligibilityFacts, EligibilityRule, EligibilityStatus } from "../../src/types/eligibility";
+import type { EligibilityThresholds } from "../../src/utils/eligibility/eligibilityThresholds";
 import { baApiResponse } from "../fixtures/baApiResponse";
 
 function createEligibleBaFacts(
@@ -453,12 +447,16 @@ describe("BA Eligibility Accuracy Validation", () => {
     expectRule(result, "BA-002", null);
     expectRule(result, "BA-003", null);
 
-    expectCondition(
-        result,
-        "BA-002",
-        "baAdditionalCircumstancesRequireReview",
-        null
+    // External assessment fields are deliberately excluded from
+    // user-facing missingInformation, even when the rule is unresolved.
+    const reviewRule = result.ruleResults.find(
+        (rule) => rule.ruleId === "BA-002"
     );
+    expect(reviewRule).toBeDefined();
+    expect(reviewRule?.missingInformation.some(
+        (condition) =>
+            condition.field === "baAdditionalCircumstancesRequireReview"
+    )).toBe(false);
   });
 
   test("ACC-012 - Putrajaya residence qualifies", () => {
@@ -578,12 +576,12 @@ describe("BA Eligibility Accuracy Validation", () => {
         null
     );
 
-    expectCondition(
-        missingThresholdResult,
-        "BA-THRESHOLD-TEST",
-        "monthlyHouseholdIncome",
-        null
-    );
+    // Missing configuration thresholds are not missing applicant data.
+    expect(
+        missingThresholdResult.ruleResults.find(
+            (rule) => rule.ruleId === "BA-THRESHOLD-TEST"
+        )?.missingInformation
+    ).toEqual([]);
 
     const invalidThresholdResult = evaluateProgramEligibility(
         "BA",
@@ -598,12 +596,16 @@ describe("BA Eligibility Accuracy Validation", () => {
         null
     );
 
-    expectCondition(
+    expectStatusAndRules(
         invalidThresholdResult,
-        "BA-THRESHOLD-TEST",
-        "monthlyHouseholdIncome",
-        null
+        "insufficient_information",
+        []
     );
+    expect(
+        invalidThresholdResult.ruleResults.find(
+            (rule) => rule.ruleId === "BA-THRESHOLD-TEST"
+        )?.missingInformation
+    ).toEqual([]);
   });
 
   test("ACC-015 - Contradictory outcomes require manual verification", () => {

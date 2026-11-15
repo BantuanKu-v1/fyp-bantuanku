@@ -3,11 +3,11 @@ import type { MainTabParamList } from "../types/tabNavigator";
 import { FileText, Home, Search, UserRound } from "lucide-react-native";
 import { Platform } from "react-native";
 
-import HomeScreen from "../screens/home/HomeScreen"
 import ProgramsScreen from "../screens/programs/ProgramsScreen";
 import ApplicationsScreen from "../screens/applications/ApplicationsScreen";
 import AnimatedTabIcon from "./AnimatedTabIcon";
 import ProfileStackNavigator from "./ProfileStackNavigator";
+import HomeStackNavigator from "./HomeStackNavigation";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -17,15 +17,15 @@ export default function MainTabNavigator() {
         screenOptions={{
           headerShown: false,
 
-          // tabBarShowLabel: false,
-
           tabBarActiveTintColor: "#0352CE",
           tabBarInactiveTintColor: "#9CA3AF",
 
           tabBarStyle: {
             borderTopColor: "#E2E5EA",
-            paddingTop: Platform.OS === "ios" ? 8 : 0,
-            paddingBottom: Platform.OS === "android" ? 6 : 0,
+          },
+
+          tabBarItemStyle: {
+            transform: [{ translateY: Platform.OS === "ios" ? 8 : 0 }],
           },
 
           tabBarLabelStyle: {
@@ -37,7 +37,7 @@ export default function MainTabNavigator() {
         {/* Home */}
         <Tab.Screen
           name="Home"
-          component={HomeScreen}
+          component={HomeStackNavigator}
           options={{
             title: "Home",
             tabBarIcon: ({ color, size, focused }) => (

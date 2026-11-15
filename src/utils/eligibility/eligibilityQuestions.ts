@@ -35,6 +35,13 @@ function isQuestionVisible(
     return true;
   }
 
+  if (
+      question.field === "patient.treatmentStartDate" &&
+      getNestedValue(values, "patient.isBedridden") !== false
+  ) {
+    return false;
+  }
+
   return (
       getNestedValue(values, question.showWhen.field) ===
       question.showWhen.equals

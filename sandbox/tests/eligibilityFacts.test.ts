@@ -659,7 +659,7 @@ describe("Eligibility Facts - Health Information", () => {
 
 // Caregiver tests
 describe("Eligibility Facts - Caregivers", () => {
-  test("identifies a recorded caregiver", () => {
+  test("identifies a recorded caregiver for the applicant as patient", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           caregivers: [
@@ -668,10 +668,14 @@ describe("Eligibility Facts - Caregivers", () => {
               provides_intensive_care: true,
             },
           ],
+          bpt: {
+            applicantRole: "patient",
+          },
         }),
         REFERENCE_DATE
     );
 
+    expect(facts.applicantIsPatient).toBe(true);
     expect(facts.hasCaregiver).toBe(true);
     expect(facts.caregiverCitizenship).toBe("Malaysian");
     expect(facts.caregiverProvidesIntensiveCare).toBe(true);
@@ -681,6 +685,22 @@ describe("Eligibility Facts - Caregivers", () => {
     const facts = buildEligibilityFacts(
         createApplicant({
           caregivers: [],
+        }),
+        REFERENCE_DATE
+    );
+
+    expect(facts.hasCaregiver).toBeNull();
+  });
+
+  test("does not assign applicant caregiver records to an unidentified patient", () => {
+    const facts = buildEligibilityFacts(
+        createApplicant({
+          caregivers: [
+            {
+              citizenship: "Malaysian",
+              provides_intensive_care: true,
+            },
+          ],
         }),
         REFERENCE_DATE
     );

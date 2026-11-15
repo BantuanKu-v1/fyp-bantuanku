@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -7,10 +7,14 @@ import {
   View,
 } from "react-native";
 
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import Screen from "../../components/layout/Screen";
 import ScreenHeader from "../../components/layout/ScreenHeader";
 
 import { useEligibility } from "../../hooks/useEligibility";
+
+import type { HomeStackParamList } from "../../navigation/HomeStackNavigation";
 
 import type {
   ProgramEligibilityCheck,
@@ -28,6 +32,13 @@ const PROGRAM_NAMES: Record<SupportedProgramCode, string> = {
   BPT: "Bantuan Penjagaan",
   STR: "Sumbangan Tunai Rahmah (2026)",
 };
+
+type QuestionnaireProgramCode = "BAT" | "BPT";
+
+type Props = NativeStackScreenProps<
+    HomeStackParamList,
+    "HomeScreen"
+>;
 
 // ============================================================
 // ELIGIBILITY STATUS HELPERS
@@ -55,19 +66,19 @@ function getStatusLabel(status: string | undefined): string {
 function getStatusColor(status: string | undefined): string {
   switch (status) {
     case "potentially_eligible":
-      return "text-green-700 dark:text-green-400";
+      return "text-success-foreground";
 
     case "potentially_ineligible":
-      return "text-red-600 dark:text-red-400";
+      return "text-error";
 
     case "insufficient_information":
-      return "text-amber-700 dark:text-amber-400";
+      return "text-warning-foreground";
 
     case "manual_verification":
-      return "text-blue-700 dark:text-blue-400";
+      return "text-info";
 
     default:
-      return "text-gray-600 dark:text-gray-400";
+      return "text-muted-foreground";
   }
 }
 
@@ -77,9 +88,13 @@ function getStatusColor(status: string | undefined): string {
 
 interface ProgramResultProps {
   item: ProgramEligibilityCheck;
+  onOpenQuestionnaire: (programCode: QuestionnaireProgramCode) => void;
 }
 
-function ProgramResult({ item }: ProgramResultProps) {
+function ProgramResult({
+                         item,
+                         onOpenQuestionnaire,
+                       }: ProgramResultProps) {
   const { programCode, assessment, error } = item;
 
   const result = assessment?.result;
@@ -87,15 +102,18 @@ function ProgramResult({ item }: ProgramResultProps) {
 
   const missingInformation = result?.missingInformation ?? [];
 
+  const hasQuestionnaire =
+      programCode === "BAT" || programCode === "BPT";
+
   return (
-      <View className="gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+      <View className="gap-3 rounded-xl border border-border bg-background p-4">
         {/* Program name */}
         <View className="gap-1">
-          <Text className="text-base font-semibold text-gray-900 dark:text-white">
+          <Text className="text-base font-semibold text-foreground">
             {PROGRAM_NAMES[programCode]}
           </Text>
 
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
+          <Text className="text-xs text-muted-foreground">
             {programCode}
           </Text>
         </View>
@@ -109,7 +127,7 @@ function ProgramResult({ item }: ProgramResultProps) {
 
         {/* Criteria version */}
         {assessment && (
-            <Text className="text-xs text-gray-500 dark:text-gray-400">
+            <Text className="text-xs text-muted-foreground">
               Criteria Version: {assessment.criteriaVersion}
             </Text>
         )}
@@ -117,11 +135,11 @@ function ProgramResult({ item }: ProgramResultProps) {
         {/* Matched rules */}
         {result && result.matchedRuleIds.length > 0 && (
             <View className="gap-1">
-              <Text className="text-sm font-medium text-gray-900 dark:text-white">
+              <Text className="text-sm font-medium text-foreground">
                 Matched Rules
               </Text>
 
-              <Text className="text-xs text-gray-600 dark:text-gray-400">
+              <Text className="text-xs text-muted-foreground">
                 {result.matchedRuleIds.join(", ")}
               </Text>
             </View>
@@ -130,14 +148,14 @@ function ProgramResult({ item }: ProgramResultProps) {
         {/* Missing information */}
         {missingInformation.length > 0 && (
             <View className="gap-2">
-              <Text className="text-sm font-medium text-gray-900 dark:text-white">
+              <Text className="text-sm font-medium text-foreground">
                 Missing Information
               </Text>
 
               {missingInformation.map((condition, index) => (
                   <Text
                       key={`${programCode}-missing-${index}`}
-                      className="text-xs text-gray-600 dark:text-gray-400"
+                      className="text-xs text-muted-foreground"
                   >
                     {JSON.stringify(condition)}
                   </Text>
@@ -145,16 +163,31 @@ function ProgramResult({ item }: ProgramResultProps) {
             </View>
         )}
 
+        {/* Questionnaire action */}
+        {hasQuestionnaire && (
+            <Pressable
+                onPress={() => onOpenQuestionnaire(programCode)}
+                accessibilityRole="button"
+                className="items-center rounded-xl border border-primary px-4 py-3"
+            >
+              <Text className="font-semibold text-primary">
+                {status === "insufficient_information"
+                    ? "Complete Questionnaire"
+                    : "View / Update Answers"}
+              </Text>
+            </Pressable>
+        )}
+
         {/* Individual program error */}
         {error && (
-            <Text className="text-sm text-red-600 dark:text-red-400">
+            <Text className="text-sm text-error">
               {error}
             </Text>
         )}
 
         {/* Assessment timestamp */}
         {assessment && (
-            <Text className="text-xs text-gray-500 dark:text-gray-400">
+            <Text className="text-xs text-muted-foreground">
               Assessed At:{" "}
               {new Date(assessment.assessedAt).toLocaleString()}
             </Text>
@@ -170,11 +203,13 @@ function ProgramResult({ item }: ProgramResultProps) {
 interface ResultSectionProps {
   title: string;
   items: ProgramEligibilityCheck[];
+  onOpenQuestionnaire: (programCode: QuestionnaireProgramCode) => void;
 }
 
 function ResultSection({
                          title,
                          items,
+                         onOpenQuestionnaire,
                        }: ResultSectionProps) {
   if (items.length === 0) {
     return null;
@@ -182,7 +217,7 @@ function ResultSection({
 
   return (
       <View className="gap-3">
-        <Text className="text-lg font-semibold text-gray-900 dark:text-white">
+        <Text className="text-lg font-semibold text-foreground">
           {title}
         </Text>
 
@@ -190,6 +225,7 @@ function ResultSection({
             <ProgramResult
                 key={item.programCode}
                 item={item}
+                onOpenQuestionnaire={onOpenQuestionnaire}
             />
         ))}
       </View>
@@ -200,7 +236,10 @@ function ResultSection({
 // HOME SCREEN
 // ============================================================
 
-export default function HomeScreen() {
+export default function HomeScreen({
+                                     navigation,
+                                     route,
+                                   }: Props) {
   const {
     assessments,
     loading,
@@ -223,6 +262,43 @@ export default function HomeScreen() {
 
     await assessAllEligibility();
   };
+
+  // ============================================================
+  // QUESTIONNAIRE NAVIGATION
+  // ============================================================
+
+  const handleOpenQuestionnaire = (
+      programCode: QuestionnaireProgramCode
+  ) => {
+    navigation.navigate("EligibilityQuestionnaire", {
+      programCode,
+    });
+  };
+
+  // ============================================================
+  // REFRESH ELIGIBILITY AFTER QUESTIONNAIRE
+  // ============================================================
+
+  useEffect(() => {
+    const shouldRefresh = route.params?.refreshEligibility;
+
+    if (!shouldRefresh) {
+      return;
+    }
+
+    navigation.setParams({
+      refreshEligibility: false,
+    });
+
+    if (hasChecked) {
+      void assessAllEligibility();
+    }
+  }, [
+    route.params?.refreshEligibility,
+    hasChecked,
+    assessAllEligibility,
+    navigation,
+  ]);
 
   // ============================================================
   // CLASSIFY ASSESSMENT RESULTS
@@ -278,15 +354,69 @@ export default function HomeScreen() {
         >
           {/* Introduction */}
           <View className="gap-2">
-            <Text className="text-xl font-semibold text-gray-900 dark:text-white">
+            <Text className="text-xl font-semibold text-foreground">
               Check My Eligibility
             </Text>
 
-            <Text className="text-sm text-gray-600 dark:text-gray-400">
+            <Text className="text-sm text-muted-foreground">
               Find out which government assistance programs
               you may qualify for based on your profile
               information.
             </Text>
+          </View>
+
+          {/* Additional eligibility information */}
+          <View className="gap-3 rounded-xl border border-border bg-surface p-4">
+            <View className="gap-1">
+              <Text className="text-base font-semibold text-foreground">
+                Additional Eligibility Information
+              </Text>
+
+              <Text className="text-sm text-muted-foreground">
+                Complete these questionnaires to help us assess
+                your eligibility for BAT and BPT more accurately.
+              </Text>
+            </View>
+
+            {/* BAT questionnaire */}
+            <Pressable
+                onPress={() => handleOpenQuestionnaire("BAT")}
+                accessibilityRole="button"
+                accessibilityLabel="Open BAT questionnaire"
+                className="gap-1 rounded-lg border border-border bg-background p-4"
+            >
+              <Text className="text-sm font-semibold text-foreground">
+                BAT Questionnaire
+              </Text>
+
+              <Text className="text-xs text-muted-foreground">
+                Assistive equipment and medical recommendations
+              </Text>
+
+              <Text className="mt-1 text-xs font-semibold text-primary">
+                Open Questionnaire
+              </Text>
+            </Pressable>
+
+            {/* BPT questionnaire */}
+            <Pressable
+                onPress={() => handleOpenQuestionnaire("BPT")}
+                accessibilityRole="button"
+                accessibilityLabel="Open BPT questionnaire"
+                className="gap-1 rounded-lg border border-border bg-background p-4"
+            >
+              <Text className="text-sm font-semibold text-foreground">
+                BPT Questionnaire
+              </Text>
+
+              <Text className="text-xs text-muted-foreground">
+                Patient health and caregiver information
+              </Text>
+
+              <Text className="mt-1 text-xs font-semibold text-primary">
+                Open Questionnaire
+              </Text>
+            </Pressable>
           </View>
 
           {/* Eligibility check button */}
@@ -296,7 +426,9 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Check my eligibility"
               accessibilityState={{ disabled: loading }}
-              className="items-center rounded-xl bg-blue-600 px-4 py-4"
+              className={`items-center rounded-xl px-4 py-4 ${
+                  loading ? "bg-primary-dark" : "bg-primary"
+              }`}
           >
             {loading ? (
                 <View className="flex-row items-center gap-2">
@@ -318,12 +450,12 @@ export default function HomeScreen() {
 
           {/* Overall error */}
           {error && (
-              <View className="rounded-lg bg-red-50 p-4 dark:bg-red-950">
-                <Text className="text-sm font-medium text-red-600 dark:text-red-400">
+              <View className="rounded-lg bg-error-background p-4">
+                <Text className="text-sm font-medium text-error">
                   Eligibility Check Failed
                 </Text>
 
-                <Text className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <Text className="mt-1 text-sm text-error">
                   {error}
                 </Text>
               </View>
@@ -333,33 +465,33 @@ export default function HomeScreen() {
           {hasChecked && !loading && assessments.length > 0 && (
               <View className="gap-6">
                 {/* Summary */}
-                <View className="gap-3 rounded-xl bg-gray-100 p-4 dark:bg-gray-800">
-                  <Text className="text-lg font-semibold text-gray-900 dark:text-white">
+                <View className="gap-3 rounded-xl bg-surface p-4">
+                  <Text className="text-lg font-semibold text-foreground">
                     Eligibility Summary
                   </Text>
 
-                  <Text className="text-sm text-gray-700 dark:text-gray-300">
+                  <Text className="text-sm text-foreground">
                     Programs Assessed: {completedCount}/{assessments.length}
                   </Text>
 
-                  <Text className="text-sm text-green-700 dark:text-green-400">
+                  <Text className="text-sm text-success-foreground">
                     Potentially Eligible: {eligiblePrograms.length}
                   </Text>
 
-                  <Text className="text-sm text-blue-700 dark:text-blue-400">
+                  <Text className="text-sm text-info">
                     Manual Verification: {manualVerificationPrograms.length}
                   </Text>
 
-                  <Text className="text-sm text-amber-700 dark:text-amber-400">
+                  <Text className="text-sm text-warning-foreground">
                     Insufficient Information: {insufficientInformationPrograms.length}
                   </Text>
 
-                  <Text className="text-sm text-gray-700 dark:text-gray-300">
+                  <Text className="text-sm text-foreground">
                     Potentially Ineligible: {ineligiblePrograms.length}
                   </Text>
 
                   {failedPrograms.length > 0 && (
-                      <Text className="text-sm text-red-600 dark:text-red-400">
+                      <Text className="text-sm text-error">
                         Failed Assessments: {failedPrograms.length}
                       </Text>
                   )}
@@ -370,10 +502,11 @@ export default function HomeScreen() {
                     <ResultSection
                         title="Programs You May Qualify For"
                         items={eligiblePrograms}
+                        onOpenQuestionnaire={handleOpenQuestionnaire}
                     />
                 ) : (
-                    <View className="rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
-                      <Text className="text-sm text-gray-700 dark:text-gray-300">
+                    <View className="rounded-xl bg-surface p-4">
+                      <Text className="text-sm text-foreground">
                         No programs were identified as potentially
                         eligible from the completed assessments.
                       </Text>
@@ -384,28 +517,32 @@ export default function HomeScreen() {
                 <ResultSection
                     title="Requires Manual Verification"
                     items={manualVerificationPrograms}
+                    onOpenQuestionnaire={handleOpenQuestionnaire}
                 />
 
                 {/* Programs requiring additional information */}
                 <ResultSection
                     title="More Information Required"
                     items={insufficientInformationPrograms}
+                    onOpenQuestionnaire={handleOpenQuestionnaire}
                 />
 
                 {/* Programs not currently matched */}
                 <ResultSection
                     title="Programs Not Currently Matched"
                     items={ineligiblePrograms}
+                    onOpenQuestionnaire={handleOpenQuestionnaire}
                 />
 
                 {/* Failed assessments */}
                 <ResultSection
                     title="Assessments That Could Not Be Completed"
                     items={failedPrograms}
+                    onOpenQuestionnaire={handleOpenQuestionnaire}
                 />
 
                 {/* Disclaimer */}
-                <Text className="text-xs text-gray-500 dark:text-gray-400">
+                <Text className="text-xs text-muted-foreground">
                   These results are preliminary assessments
                   based on your available profile information
                   and retrieved government program criteria.
