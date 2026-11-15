@@ -1,31 +1,45 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   Pressable,
   ScrollView,
   Text,
   TextInput,
-  View
+  View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { getQuestionsForProgram } from "../../utils/eligibility/eligibilityQuestions";
+import { ELIGIBILITY_QUESTIONS } from "../../constants/eligibilityQuestions";
 import { getSavedEligibilityAnswers, saveEligibilityAnswers } from "../../services/eligibility/eligibilityQuestionnaireService";
-import type { EligibilityQuestion } from "../../types/eligibilityQuestions";
+import type { EligibilityQuestion, EligibilityProgramCode } from "../../types/eligibilityQuestions";
 import type { ProgramEligibilityAnswers } from "../../services/eligibility/eligibilityDataService";
 
-type ProgramCode = "BAT" | "BPT";
-type AnswerObject = Record<string, unknown>;
+type ProgramCode = EligibilityProgramCode;
+type Answers = Record<string, unknown>;
+type ErrorCode =
+    | "required"
+    | "boolean"
+    | "select"
+    | "number"
+    | "nonNegative"
+    | "integer"
+    | "decimalPlaces"
+    | "min"
+    | "max"
+    | "date"
+    | "futureDate";
 
-interface EligibilityQuestionnaireProps {
+interface Props {
   programCode: ProgramCode;
   onSaved?: () => void;
   onCancel?: () => void;
 }
 
-function getValue(
-    object: AnswerObject,
-    path: string
-): unknown {
+const BASE = "eligibility.questionnaire";
+
+function getValue(object: Answers, path: string): unknown {
   return path.split(".").reduce<unknown>((value, key) => {
     if (
         value === null ||
@@ -35,18 +49,18 @@ function getValue(
       return undefined;
     }
 
-    return (value as AnswerObject)[key];
+    return (value as Answers)[key];
   }, object);
 }
 
 function setValue(
-    object: AnswerObject,
+    object: Answers,
     path: string,
     value: unknown
-): AnswerObject {
+): Answers {
   const keys = path.split(".");
-  const result: AnswerObject = { ...object };
-  let current = result;
+  const result = { ...object };
+  let current: Answers = result;
 
   keys.forEach((key, index) => {
     if (index === keys.length - 1) {
@@ -54,34 +68,68 @@ function setValue(
       return;
     }
 
-    const existing = current[key];
+    const previous = current[key];
 
     current[key] =
-        existing !== null &&
-        typeof existing === "object" &&
-        !Array.isArray(existing)
-            ? { ...(existing as AnswerObject) }
+        previous !== null &&
+        typeof previous === "object" &&
+        !Array.isArray(previous)
+            ? { ...(previous as Answers) }
             : {};
 
-    current = current[key] as AnswerObject;
+    current = current[key] as Answers;
   });
 
   return result;
 }
 
-function toProgramAnswers(
+function removeValue(
+    object: Answers,
+    path: string
+): Answers {
+  const keys = path.split(".");
+  const result = { ...object };
+  let current: Answers = result;
+
+  for (let i = 0; i < keys.length - 1; i++) {
+    const previous = current[keys[i]];
+
+    if (
+        previous === null ||
+        typeof previous !== "object" ||
+        Array.isArray(previous)
+    ) {
+      return result;
+    }
+
+    current[keys[i]] = { ...(previous as Answers) };
+    current = current[keys[i]] as Answers;
+  }
+
+  delete current[keys[keys.length - 1]];
+
+  return result;
+}
+
+function programAnswers(
     programCode: ProgramCode,
-    answers: AnswerObject
+    answers: Answers
 ): ProgramEligibilityAnswers {
   return programCode === "BAT"
       ? { bat: answers as ProgramEligibilityAnswers["bat"] }
       : { bpt: answers as ProgramEligibilityAnswers["bpt"] };
 }
 
-function isValidDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return false;
-  }
+function answered(value: unknown): boolean {
+  return (
+      value !== null &&
+      value !== undefined &&
+      (typeof value !== "string" || value.trim() !== "")
+  );
+}
+
+function validDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
 
   const date = new Date(`${value}T00:00:00Z`);
 
@@ -91,329 +139,472 @@ function isValidDate(value: string): boolean {
   );
 }
 
+function futureDate(value: string): boolean {
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  return value > today;
+}
+
+function validationCode(
+    question: EligibilityQuestion,
+    value: unknown,
+    draft?: string
+): ErrorCode | null {
+  const raw =
+      question.type === "number"
+          ? draft ?? (typeof value === "number" ? String(value) : "")
+          : undefined;
+
+  if (question.type === "number") {
+    if (!answered(raw)) {
+      return question.required ? "required" : null;
+    }
+  } else if (!answered(value)) {
+    return question.required ? "required" : null;
+  }
+
+  if (question.type === "boolean" && typeof value !== "boolean") {
+    return "boolean";
+  }
+
+  if (
+      question.type === "select" &&
+      !question.options?.some((o) => o.value === value)
+  ) {
+    return "select";
+  }
+
+  if (question.type === "number") {
+    if (!/^\d+(?:\.\d+)?$/.test(raw ?? "")) {
+      return "number";
+    }
+
+    const number = Number(raw);
+
+    if (!Number.isFinite(number)) {
+      return "number";
+    }
+
+    if (number < 0) {
+      return "nonNegative";
+    }
+
+    if (
+        question.inputMode === "integer" &&
+        !Number.isInteger(number)
+    ) {
+      return "integer";
+    }
+
+    if (
+        question.decimalPlaces !== undefined &&
+        (raw?.split(".")[1]?.length ?? 0) > question.decimalPlaces
+    ) {
+      return "decimalPlaces";
+    }
+
+    if (question.min !== undefined && number < question.min) {
+      return "min";
+    }
+
+    if (question.max !== undefined && number > question.max) {
+      return "max";
+    }
+  }
+
+  if (question.type === "date") {
+    if (typeof value !== "string" || !validDate(value)) {
+      return "date";
+    }
+
+    if (!question.allowFutureDate && futureDate(value)) {
+      return "futureDate";
+    }
+  }
+
+  return null;
+}
+
+function visibleAnswers(
+    programCode: ProgramCode,
+    answers: Answers
+): Answers {
+  const visibleFields = new Set(
+      getQuestionsForProgram(
+          programCode,
+          programAnswers(programCode, answers)
+      ).map((question) => question.field)
+  );
+
+  return ELIGIBILITY_QUESTIONS
+      .filter(
+          (question) =>
+              question.programCode === programCode &&
+              !visibleFields.has(question.field)
+      )
+      .reduce(
+          (result, question) => removeValue(result, question.field),
+          answers
+      );
+}
+
 export default function EligibilityQuestionnaire({
                                                    programCode,
                                                    onSaved,
-                                                   onCancel
-                                                 }: EligibilityQuestionnaireProps) {
-  const [answers, setAnswers] = useState<AnswerObject>({});
+                                                   onCancel,
+                                                 }: Props) {
+  const { t } = useTranslation();
+
+  const [answers, setAnswers] = useState<Answers>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [index, setIndex] = useState(0);
+  const [review, setReview] = useState(false);
+  const [editingReview, setEditingReview] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<
+      ErrorCode | "saveFailed" | null
+  >(null);
+
+  const translate = (key: string, fallback?: string) =>
+      t(key, { defaultValue: fallback ?? key });
+
+  const label = (q: EligibilityQuestion) =>
+      translate(
+          `${BASE}.questions.${programCode}.${q.id}.label`,
+          q.label
+      );
+
+  const description = (q: EligibilityQuestion) =>
+      q.description
+          ? translate(
+              `${BASE}.questions.${programCode}.${q.id}.description`,
+              q.description
+          )
+          : undefined;
+
+  const optionLabel = (
+      q: EligibilityQuestion,
+      option: { value: unknown; label: string }
+  ) => {
+    if (option.label === "Yes") {
+      return t("common.yes");
+    }
+
+    if (option.label === "No") {
+      return t("common.no");
+    }
+
+    return translate(
+        `${BASE}.questions.${programCode}.${q.id}.options.${String(option.value)}`,
+        option.label
+    );
+  };
 
   useEffect(() => {
     let active = true;
 
-    async function loadAnswers() {
-      setLoading(true);
-      setError(null);
-      setAnswers({});
+    setLoading(true);
+    setLoadFailed(false);
+    setError(null);
+    setAnswers({});
+    setDrafts({});
+    setIndex(0);
+    setReview(false);
+    setEditingReview(false);
 
-      try {
-        const saved = await getSavedEligibilityAnswers(programCode);
-
-        if (active) {
-          setAnswers(
-              saved && typeof saved === "object"
-                  ? { ...saved }
-                  : {}
-          );
-        }
-      } catch (err) {
-        if (active) {
-          setError(
-              err instanceof Error
-                  ? err.message
-                  : "Failed to load questionnaire."
-          );
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadAnswers();
+    getSavedEligibilityAnswers(programCode)
+        .then((saved) => {
+          if (active) {
+            setAnswers(
+                saved &&
+                typeof saved === "object" &&
+                !Array.isArray(saved)
+                    ? { ...saved }
+                    : {}
+            );
+          }
+        })
+        .catch(() => {
+          if (active) setLoadFailed(true);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
 
     return () => {
       active = false;
     };
   }, [programCode]);
 
-  const visibleQuestions = useMemo(
+  const questions = useMemo(
       () =>
           getQuestionsForProgram(
               programCode,
-              toProgramAnswers(programCode, answers)
+              programAnswers(programCode, answers)
           ),
       [programCode, answers]
   );
 
-  function updateAnswer(field: string, value: unknown) {
-    setAnswers((prev) => setValue(prev, field, value));
+  const count = questions.length;
+  const safeIndex = Math.min(index, Math.max(count - 1, 0));
+  const question = questions[safeIndex];
+
+  const completed = questions.filter(
+      (q) =>
+          answered(getValue(answers, q.field)) &&
+          !validationCode(
+              q,
+              getValue(answers, q.field),
+              drafts[q.field]
+          )
+  ).length;
+
+  const progress = count ? (completed / count) * 100 : 100;
+
+  const update = (field: string, value: unknown) => {
+    setAnswers((previous) => setValue(previous, field, value));
     setError(null);
-  }
+  };
 
-  function validate(): string | null {
-    for (const question of visibleQuestions) {
-      const value = getValue(answers, question.field);
+  const updateNumber = (field: string, text: string) => {
+    if (!/^\d*(?:\.\d*)?$/.test(text)) return;
 
-      if (
-          question.required &&
-          (value === null || value === undefined || value === "")
-      ) {
-        return `Please answer: ${question.label}`;
-      }
+    setDrafts((previous) => ({
+      ...previous,
+      [field]: text,
+    }));
 
-      if (
-          question.type === "number" &&
-          value !== null &&
-          value !== undefined &&
-          value !== ""
-      ) {
-        if (
-            typeof value !== "number" ||
-            !Number.isFinite(value) ||
-            value < 0
-        ) {
-          return `Please enter a valid number for: ${question.label}`;
-        }
-      }
+    if (!text) {
+      update(field, null);
+    } else if (
+        /^\d+(?:\.\d+)?$/.test(text) &&
+        Number.isFinite(Number(text))
+    ) {
+      update(field, Number(text));
+    } else {
+      setError(null);
+    }
+  };
 
-      if (
-          question.type === "date" &&
-          value !== null &&
-          value !== undefined &&
-          value !== ""
-      ) {
-        if (
-            typeof value !== "string" ||
-            !isValidDate(value)
-        ) {
-          return `Please enter a valid date (YYYY-MM-DD) for: ${question.label}`;
-        }
-      }
+  const next = () => {
+    if (!question) return;
 
-      if (
-          question.type === "select" &&
-          value !== null &&
-          value !== undefined &&
-          value !== ""
-      ) {
-        if (
-            !question.options?.some(
-                (option) => option.value === value
-            )
-        ) {
-          return `Please select a valid option for: ${question.label}`;
-        }
-      }
+    const issue = validationCode(
+        question,
+        getValue(answers, question.field),
+        drafts[question.field]
+    );
+
+    if (issue) {
+      setError(issue);
+      return;
     }
 
-    return null;
-  }
+    setError(null);
+    Keyboard.dismiss();
 
-  async function handleSave() {
-    const validationError = validate();
+    if (editingReview || safeIndex === count - 1) {
+      setReview(true);
+      setEditingReview(false);
+    } else {
+      setIndex(safeIndex + 1);
+    }
+  };
 
-    if (validationError) {
-      setError(validationError);
-      return;
+  const back = () => {
+    Keyboard.dismiss();
+    setError(null);
+
+    if (review) {
+      setReview(false);
+      setEditingReview(false);
+    } else if (editingReview) {
+      setReview(true);
+      setEditingReview(false);
+    } else if (safeIndex > 0) {
+      setIndex(safeIndex - 1);
+    } else {
+      onCancel?.();
+    }
+  };
+
+  const save = async () => {
+    if (saving || loadFailed) return;
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+
+      const issue = validationCode(
+          q,
+          getValue(answers, q.field),
+          drafts[q.field]
+      );
+
+      if (issue) {
+        setIndex(i);
+        setReview(false);
+        setEditingReview(false);
+        setError(issue);
+        return;
+      }
     }
 
     setSaving(true);
     setError(null);
 
     try {
+      const cleanedAnswers = visibleAnswers(programCode, answers);
+
       if (programCode === "BAT") {
         await saveEligibilityAnswers(
             "BAT",
-            answers as NonNullable<ProgramEligibilityAnswers["bat"]>
+            cleanedAnswers as NonNullable<ProgramEligibilityAnswers["bat"]>
         );
       } else {
         await saveEligibilityAnswers(
             "BPT",
-            answers as NonNullable<ProgramEligibilityAnswers["bpt"]>
+            cleanedAnswers as NonNullable<ProgramEligibilityAnswers["bpt"]>
         );
       }
 
       onSaved?.();
-    } catch (err) {
-      setError(
-          err instanceof Error
-              ? err.message
-              : "Failed to save questionnaire."
-      );
+    } catch {
+      setError("saveFailed");
     } finally {
       setSaving(false);
     }
-  }
+  };
 
-  function renderQuestion(question: EligibilityQuestion) {
-    const value = getValue(answers, question.field);
+  const displayAnswer = (q: EligibilityQuestion) => {
+    const value = getValue(answers, q.field);
+
+    if (!answered(value)) {
+      return t("common.notProvided");
+    }
+
+    if (q.type === "boolean") {
+      return t(value ? "common.yes" : "common.no");
+    }
+
+    if (q.type === "select") {
+      const option = q.options?.find((o) => o.value === value);
+
+      return option
+          ? optionLabel(q, option)
+          : t(`${BASE}.unknownSelection`);
+    }
+
+    if (q.type === "number" && q.inputMode === "currency") {
+      return `RM ${Number(value).toFixed(q.decimalPlaces ?? 2)}`;
+    }
+
+    return String(value);
+  };
+
+  const radio = (
+      q: EligibilityQuestion,
+      value: unknown,
+      option: { label: string; value: unknown }
+  ) => {
+    const selected = value === option.value;
 
     return (
-        <View
-            key={question.id}
-            className="mb-4 rounded-2xl border border-border bg-background p-4"
+        <Pressable
+            key={String(option.value)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected, disabled: saving }}
+            disabled={saving}
+            onPress={() => update(q.field, option.value)}
+            className={`flex-row items-center rounded-2xl border p-4 ${
+                selected
+                    ? "border-primary bg-info-background"
+                    : "border-border bg-surface"
+            }`}
         >
-          <Text className="mb-2 text-base font-semibold leading-6 text-foreground">
-            {question.label}
-            {question.required ? (
-                <Text className="text-error"> *</Text>
-            ) : null}
+          <View
+              className={`mr-3 h-5 w-5 items-center justify-center rounded-full border-2 ${
+                  selected ? "border-primary" : "border-border"
+              }`}
+          >
+            {selected && (
+                <View className="h-2.5 w-2.5 rounded-full bg-primary" />
+            )}
+          </View>
+
+          <Text
+              className={`flex-1 text-base ${
+                  selected
+                      ? "font-semibold text-primary-dark"
+                      : "text-foreground"
+              }`}
+          >
+            {option.label}
           </Text>
-
-          {question.description ? (
-              <Text className="mb-4 text-sm leading-5 text-muted-foreground">
-                {question.description}
-              </Text>
-          ) : null}
-
-          {question.type === "boolean" && (
-              <View className="flex-row gap-3">
-                {[
-                  { label: "Yes", value: true },
-                  { label: "No", value: false }
-                ].map((option) => {
-                  const selected = value === option.value;
-
-                  return (
-                      <Pressable
-                          key={option.label}
-                          accessibilityRole="radio"
-                          accessibilityState={{ selected }}
-                          className={`flex-1 items-center rounded-xl border px-4 py-3 ${
-                              selected
-                                  ? "border-primary bg-info-background"
-                                  : "border-border bg-surface"
-                          }`}
-                          onPress={() =>
-                              updateAnswer(
-                                  question.field,
-                                  option.value
-                              )
-                          }
-                      >
-                        <Text
-                            className={`text-sm ${
-                                selected
-                                    ? "font-semibold text-primary-dark"
-                                    : "text-foreground"
-                            }`}
-                        >
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                  );
-                })}
-              </View>
-          )}
-
-          {question.type === "select" && (
-              <View className="gap-2">
-                {question.options?.map((option) => {
-                  const selected = value === option.value;
-
-                  return (
-                      <Pressable
-                          key={String(option.value)}
-                          accessibilityRole="radio"
-                          accessibilityState={{ selected }}
-                          className={`flex-row items-center rounded-xl border px-4 py-3 ${
-                              selected
-                                  ? "border-primary bg-info-background"
-                                  : "border-border bg-surface"
-                          }`}
-                          onPress={() =>
-                              updateAnswer(
-                                  question.field,
-                                  option.value
-                              )
-                          }
-                      >
-                        <View
-                            className={`mr-3 h-5 w-5 items-center justify-center rounded-full border ${
-                                selected
-                                    ? "border-primary"
-                                    : "border-border"
-                            }`}
-                        >
-                          {selected ? (
-                              <View className="h-2.5 w-2.5 rounded-full bg-primary" />
-                          ) : null}
-                        </View>
-
-                        <Text
-                            className={`flex-1 text-sm ${
-                                selected
-                                    ? "font-semibold text-primary-dark"
-                                    : "text-foreground"
-                            }`}
-                        >
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                  );
-                })}
-              </View>
-          )}
-
-          {question.type === "number" && (
-              <TextInput
-                  className="rounded-xl border border-border bg-surface px-4 py-3 text-base text-foreground"
-                  keyboardType="decimal-pad"
-                  placeholder="Enter amount"
-                  placeholderTextColor="#626775"
-                  value={
-                    typeof value === "number"
-                        ? String(value)
-                        : ""
-                  }
-                  onChangeText={(text) => {
-                    if (text.trim() === "") {
-                      updateAnswer(question.field, null);
-                      return;
-                    }
-
-                    const number = Number(text);
-
-                    if (Number.isFinite(number)) {
-                      updateAnswer(question.field, number);
-                    }
-                  }}
-              />
-          )}
-
-          {question.type === "date" && (
-              <TextInput
-                  className="rounded-xl border border-border bg-surface px-4 py-3 text-base text-foreground"
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#626775"
-                  value={
-                    typeof value === "string"
-                        ? value
-                        : ""
-                  }
-                  onChangeText={(text) =>
-                      updateAnswer(question.field, text)
-                  }
-                  autoCapitalize="none"
-                  keyboardType="numbers-and-punctuation"
-              />
-          )}
-        </View>
+        </Pressable>
     );
-  }
+  };
 
   if (loading) {
     return (
         <View className="flex-1 items-center justify-center gap-3 bg-background">
           <ActivityIndicator size="large" color="#0352CE" />
           <Text className="text-sm text-muted-foreground">
-            Loading questionnaire...
+            {t(`${BASE}.loading`)}
           </Text>
+        </View>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+        <View className="flex-1 justify-center gap-4 bg-background px-5">
+          <Text
+              accessibilityRole="alert"
+              className="text-center text-error"
+          >
+            {t(`${BASE}.errors.loadFailed`)}
+          </Text>
+
+          <Pressable
+              accessibilityRole="button"
+              className="rounded-2xl bg-primary p-4"
+              onPress={() => {
+                setLoading(true);
+                setLoadFailed(false);
+
+                getSavedEligibilityAnswers(programCode)
+                    .then((saved) => {
+                      setAnswers(
+                          saved &&
+                          typeof saved === "object" &&
+                          !Array.isArray(saved)
+                              ? { ...saved }
+                              : {}
+                      );
+                    })
+                    .catch(() => setLoadFailed(true))
+                    .finally(() => setLoading(false));
+              }}
+          >
+            <Text className="text-center font-semibold text-white">
+              {t("common.retry")}
+            </Text>
+          </Pressable>
+
+          {onCancel && (
+              <Pressable accessibilityRole="button" onPress={onCancel}>
+                <Text className="text-center text-foreground">
+                  {t("common.cancel")}
+                </Text>
+              </Pressable>
+          )}
         </View>
     );
   }
@@ -421,73 +612,294 @@ export default function EligibilityQuestionnaire({
   return (
       <ScrollView
           className="flex-1 bg-background"
-          contentContainerClassName="px-5 pb-10 pt-6"
+          contentContainerClassName="px-5 pb-12 pt-6"
           keyboardShouldPersistTaps="handled"
       >
         <View className="mb-6">
-          <Text className="mb-2 text-2xl font-bold text-foreground">
-            {programCode} Eligibility Questionnaire
-          </Text>
+          {/*<Text className="mb-2 text-2xl font-bold text-foreground">*/}
+          {/*  {t(`${BASE}.title`, { programCode })}*/}
+          {/*</Text>*/}
 
           <Text className="text-sm leading-6 text-muted-foreground">
-            Please provide the additional information required
-            for your preliminary eligibility assessment.
+            {t(`${BASE}.subtitle`)}
           </Text>
         </View>
 
-        <View className="mb-5 flex-row items-center justify-between rounded-xl bg-info-background px-4 py-3">
-          <Text className="text-sm font-medium text-info-foreground">
-            Additional Information
-          </Text>
+        <View className="mb-6 rounded-2xl bg-surface p-4">
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-foreground">
+              {t(`${BASE}.${review ? "reviewProgress" : "yourProgress"}`)}
+            </Text>
 
-          <Text className="text-xs text-info-foreground">
-            {visibleQuestions.length} questions
-          </Text>
+            <Text className="text-sm font-semibold text-primary">
+              {t(`${BASE}.answeredCount`, {
+                answered: completed,
+                total: count,
+              })}
+            </Text>
+          </View>
+
+          <View className="h-2 overflow-hidden rounded-full bg-border">
+            <View
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${progress}%` }}
+            />
+          </View>
+
+          {!review && question && (
+              <Text className="mt-3 text-xs text-muted-foreground">
+                {t(`${BASE}.questionCount`, {
+                  current: safeIndex + 1,
+                  total: count,
+                })}
+              </Text>
+          )}
         </View>
 
-        {error ? (
-            <View className="mb-5 rounded-xl border border-error bg-error-background p-4">
+        {error && (
+            <View
+                accessibilityRole="alert"
+                className="mb-5 rounded-2xl border border-error bg-error-background p-4"
+            >
               <Text className="text-sm text-error-foreground">
-                {error}
+                {error === "required"
+                    ? t("validation.required")
+                    : error === "saveFailed"
+                        ? t(`${BASE}.errors.saveFailed`)
+                        : t(`${BASE}.validation.${error}`, {
+                          min: question?.min,
+                          max: question?.max,
+                          count: question?.decimalPlaces,
+                        })}
               </Text>
             </View>
-        ) : null}
+        )}
 
-        {visibleQuestions.map(renderQuestion)}
+        {review ? (
+            <View>
+              <Text className="mb-2 text-xl font-bold text-foreground">
+                {t(`${BASE}.reviewTitle`)}
+              </Text>
 
-        <View className="mt-5 flex-row gap-3">
-          {onCancel ? (
+              <Text className="mb-5 text-sm leading-6 text-muted-foreground">
+                {t(`${BASE}.reviewDescription`)}
+              </Text>
+
+              <View className="gap-3">
+                {questions.map((q, i) => (
+                    <View
+                        key={q.id}
+                        className="rounded-2xl border border-border bg-background p-4"
+                    >
+                      <Text className="mb-2 text-sm text-muted-foreground">
+                        {label(q)}
+                      </Text>
+
+                      <View className="flex-row items-center justify-between gap-3">
+                        <Text className="flex-1 text-base font-semibold text-foreground">
+                          {displayAnswer(q)}
+                        </Text>
+
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={t(`${BASE}.editAnswer`, {
+                              question: label(q),
+                            })}
+                            disabled={saving}
+                            className="rounded-xl bg-info-background px-4 py-2"
+                            onPress={() => {
+                              setIndex(i);
+                              setReview(false);
+                              setEditingReview(true);
+                              setError(null);
+                            }}
+                        >
+                          <Text className="text-sm font-semibold text-primary-dark">
+                            {t("common.edit")}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                ))}
+              </View>
+            </View>
+        ) : question ? (
+            <View className="rounded-3xl border border-border bg-background p-5">
+              <View className="mb-4 flex-row">
+                <View className="rounded-full bg-info-background px-3 py-1">
+                  <Text className="text-xs font-semibold text-info-foreground">
+                    {t(
+                        `${BASE}.${question.required ? "required" : "optional"}`
+                    )}
+                  </Text>
+                </View>
+              </View>
+
+              <Text className="mb-3 text-xl font-bold leading-8 text-foreground">
+                {label(question)}
+              </Text>
+
+              {description(question) ? (
+                  <Text className="mb-6 text-sm leading-6 text-muted-foreground">
+                    {description(question)}
+                  </Text>
+              ) : (
+                  <View className="mb-5" />
+              )}
+
+              {question.type === "boolean" && (
+                  <View className="gap-3" accessibilityRole="radiogroup">
+                    {radio(question, getValue(answers, question.field), {
+                      label: t("common.yes"),
+                      value: true,
+                    })}
+                    {radio(question, getValue(answers, question.field), {
+                      label: t("common.no"),
+                      value: false,
+                    })}
+                  </View>
+              )}
+
+              {question.type === "select" && (
+                  <View className="gap-3" accessibilityRole="radiogroup">
+                    {question.options?.map((option) =>
+                        radio(question, getValue(answers, question.field), {
+                          value: option.value,
+                          label: optionLabel(question, option),
+                        })
+                    )}
+                  </View>
+              )}
+
+              {question.type === "number" && (
+                  <View>
+                    <View className="flex-row items-center rounded-2xl border border-border bg-surface">
+                      {question.inputMode === "currency" && (
+                          <Text className="pl-4 text-lg font-semibold text-foreground">
+                            RM
+                          </Text>
+                      )}
+
+                      <TextInput
+                          accessibilityLabel={label(question)}
+                          className="flex-1 px-4 py-4 text-lg text-foreground"
+                          keyboardType={
+                            question.inputMode === "integer"
+                                ? "number-pad"
+                                : "decimal-pad"
+                          }
+                          placeholder={t(
+                              `${BASE}.${
+                                  question.inputMode === "currency"
+                                      ? "amountPlaceholder"
+                                      : question.inputMode === "integer"
+                                          ? "countPlaceholder"
+                                          : "numberPlaceholder"
+                              }`
+                          )}
+                          placeholderTextColor="#626775"
+                          value={
+                              drafts[question.field] ??
+                              (typeof getValue(answers, question.field) === "number"
+                                  ? String(getValue(answers, question.field))
+                                  : "")
+                          }
+                          onChangeText={(text) =>
+                              updateNumber(question.field, text)
+                          }
+                          editable={!saving}
+                          maxLength={16}
+                      />
+                    </View>
+
+                    <Text className="mt-3 text-xs text-muted-foreground">
+                      {t(`${BASE}.numberHint`)}
+                    </Text>
+                  </View>
+              )}
+
+              {question.type === "date" && (
+                  <View>
+                    <TextInput
+                        accessibilityLabel={label(question)}
+                        className="rounded-2xl border border-border bg-surface px-4 py-4 text-lg text-foreground"
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor="#626775"
+                        value={
+                          typeof getValue(answers, question.field) === "string"
+                              ? String(getValue(answers, question.field))
+                              : ""
+                        }
+                        onChangeText={(text) =>
+                            update(question.field, text)
+                        }
+                        keyboardType="numbers-and-punctuation"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        maxLength={10}
+                        editable={!saving}
+                    />
+
+                    <Text className="mt-3 text-xs text-muted-foreground">
+                      {t(`${BASE}.dateHint`)}
+                    </Text>
+                  </View>
+              )}
+            </View>
+        ) : (
+            <View className="rounded-2xl border border-border p-5">
+              <Text className="text-foreground">
+                {t(`${BASE}.noQuestions`)}
+              </Text>
+            </View>
+        )}
+
+        <View className="mt-7 flex-row gap-3">
+          {(safeIndex > 0 || review || editingReview || onCancel) && (
               <Pressable
-                  className="flex-1 items-center justify-center rounded-xl border border-border bg-background px-4 py-4"
-                  onPress={onCancel}
+                  accessibilityRole="button"
+                  className="flex-1 items-center justify-center rounded-2xl border border-border bg-background px-4 py-4"
+                  onPress={back}
                   disabled={saving}
               >
                 <Text className="font-semibold text-foreground">
-                  Cancel
+                  {t("common.back")}
                 </Text>
               </Pressable>
-          ) : null}
+          )}
 
           <Pressable
-              className={`flex-1 items-center justify-center rounded-xl bg-primary px-4 py-4 ${
+              accessibilityRole="button"
+              className={`flex-1 items-center justify-center rounded-2xl bg-primary px-4 py-4 ${
                   saving ? "opacity-50" : ""
               }`}
-              onPress={() => void handleSave()}
+              onPress={() => {
+                if (review || count === 0) {
+                  void save();
+                } else {
+                  next();
+                }
+              }}
               disabled={saving}
           >
             {saving ? (
                 <ActivityIndicator color="#FFFFFF" />
             ) : (
                 <Text className="font-semibold text-white">
-                  Save Answers
+                  {review || count === 0
+                      ? t(`${BASE}.saveAnswers`)
+                      : editingReview
+                          ? t(`${BASE}.reviewAnswers`)
+                          : safeIndex === count - 1
+                              ? t(`${BASE}.reviewAnswers`)
+                              : t("common.continue")}
                 </Text>
             )}
           </Pressable>
         </View>
 
-        <Text className="mt-5 text-center text-xs leading-5 text-muted-foreground">
-          Your answers are used for preliminary eligibility
-          assessment and do not guarantee approval.
+        <Text className="mt-6 text-center text-xs leading-5 text-muted-foreground">
+          {t(`${BASE}.disclaimer`)}
         </Text>
       </ScrollView>
   );
