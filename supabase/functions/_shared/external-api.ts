@@ -17,6 +17,7 @@ export interface ExternalApiRequestOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   timeoutMs?: number;
+  notFoundReturnsNull?: boolean;
 }
 
 export function getExternalApiConfig(
@@ -46,11 +47,25 @@ export function getExternalApiConfig(
   };
 }
 
+export function externalApiRequest<T>(
+    config: ExternalApiConfig,
+    path: string,
+    options: ExternalApiRequestOptions & {
+      notFoundReturnsNull: true;
+    }
+): Promise<T | null>;
+
+export function externalApiRequest<T>(
+    config: ExternalApiConfig,
+    path: string,
+    options: ExternalApiRequestOptions
+): Promise<T>;
+
 export async function externalApiRequest<T>(
     config: ExternalApiConfig,
     path: string,
     options: ExternalApiRequestOptions
-): Promise<T> {
+): Promise<T | null> {
   if (!path.startsWith("/") || path.startsWith("//")) {
     throw new Error("Invalid external API path");
   }
@@ -66,7 +81,7 @@ export async function externalApiRequest<T>(
       },
       ...(options.body === undefined
           ? {}
-          : {body: JSON.stringify(options.body)}),
+          : { body: JSON.stringify(options.body) }),
       signal: AbortSignal.timeout(
           options.timeoutMs ?? DEFAULT_API_TIMEOUT_MS,
       ),
@@ -81,6 +96,15 @@ export async function externalApiRequest<T>(
         502,
         "Unable to connect to the external service."
     );
+  }
+
+  // Only an explicit HTTP 404 can represent "not found"
+  // Network failures and timeouts must never return null
+  if (
+      response.status === 404 &&
+      options.notFoundReturnsNull === true
+  ) {
+    return null;
   }
 
   let result: ExternalApiResponse<T>;
