@@ -3,7 +3,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 import { HttpError } from "../_shared/response.ts";
 import { nullableText } from "../_shared/validators.ts";
 import { mapToStrApplication, type StrMapperInput } from "./str-mapper.ts";
-import { submitToStrApi, type StrSubmissionConfirmation } from "./str-api.ts";
+import { findStrApplicationByExternalId, submitToStrApi, type StrSubmissionConfirmation } from "./str-api.ts";
 
 interface SubmitStrApplicationInput {
   applicationId: string;
@@ -34,10 +34,12 @@ interface TrackingRecord {
   reference_no: string | null;
   provider_status: string | null;
   submitted_at: string | null;
+  updated_at: string;
 }
 
 const PROVIDER = "str";
 const MIN_APPLICATION_YEAR = 2027;
+const STALE_PENDING_MS = 2 * 60 * 1000; // 2 minutes
 
 function requireField(value: unknown, fieldName: string): string {
   const text = nullableText(value);
@@ -259,6 +261,35 @@ async function claimSubmission(
   return tracking;
 }
 
+function validateTrackingIdentity(
+    tracking: TrackingRecord,
+    applicationId: string,
+): void {
+  if (
+      tracking.application_id !== applicationId ||
+      tracking.external_application_id !== applicationId
+  ) {
+    throw new HttpError(
+        500,
+        "STR submission tracking identity does not match.",
+    );
+  }
+}
+
+function isStalePending(tracking: TrackingRecord): boolean {
+  if (tracking.submission_state !== "pending") {
+    return false;
+  }
+
+  const updatedAt = Date.parse(tracking.updated_at);
+
+  if (!Number.isFinite(updatedAt)) {
+    return false;
+  }
+
+  return Date.now() - updatedAt >= STALE_PENDING_MS;
+}
+
 function toSubmissionResult(
     tracking: TrackingRecord,
     alreadySubmitted: boolean,
@@ -297,7 +328,8 @@ async function saveConfirmation(
     supabase: SupabaseClient,
     trackingId: string,
     confirmation: StrSubmissionConfirmation,
-): Promise<void> {
+    allowedStates: SubmissionState[],
+): Promise<boolean> {
   const { data, error } = await supabase
       .from("external_application_submissions")
       .update({
@@ -309,19 +341,49 @@ async function saveConfirmation(
         last_synced_at: new Date().toISOString(),
       })
       .eq("id", trackingId)
-      .eq("submission_state", "pending")
+      .in("submission_state", allowedStates)
       .select("id")
       .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
     console.error(
         "Failed to save STR confirmation:",
-        error?.message ?? "Tracking record was not pending",
+        error.message,
     );
 
     throw new HttpError(
         500,
         "STR may have accepted the application, but confirmation could not be saved.",
+    );
+  }
+
+  return data !== null;
+}
+
+async function syncApplicationStatus(
+    supabase: SupabaseClient,
+    applicationId: string,
+    submittedAt: string,
+): Promise<void> {
+  const { data, error } = await supabase
+      .from("applications")
+      .update({
+        status: "simulated_submitted",
+        simulated_submitted_at: submittedAt,
+      })
+      .eq("id", applicationId)
+      .select("id")
+      .maybeSingle();
+
+  if (error || !data) {
+    console.error(
+        "Failed to synchronize STR application status:",
+        error?.message ?? "Application not found",
+    );
+
+    throw new HttpError(
+        500,
+        "STR submission was confirmed but the application status couldn't be synchronized.",
     );
   }
 }
@@ -346,44 +408,182 @@ async function markUnknown(
   }
 }
 
+async function getConfirmedResult(
+    supabase: SupabaseClient,
+    applicationId: string,
+    alreadySubmitted: boolean,
+): Promise<SubmissionResult> {
+  const tracking = await getTrackingRecord(
+      supabase,
+      applicationId,
+  );
+
+  if (!tracking) {
+    throw new HttpError(
+        500,
+        "STR confirmation tracking could not be retrieved.",
+    );
+  }
+
+  validateTrackingIdentity(tracking, applicationId);
+
+  const result = toSubmissionResult(
+      tracking,
+      alreadySubmitted,
+  );
+
+  await syncApplicationStatus(
+      supabase,
+      applicationId,
+      result.submittedAt!,
+  );
+
+  return result;
+}
+
+async function recoverSubmission(
+    supabase: SupabaseClient,
+    tracking: TrackingRecord,
+): Promise<SubmissionResult> {
+  validateTrackingIdentity(
+      tracking,
+      tracking.application_id,
+  );
+
+  if (tracking.submission_state === "submitted") {
+    return getConfirmedResult(
+        supabase,
+        tracking.application_id,
+        true,
+    );
+  }
+
+  if (
+      tracking.submission_state !== "unknown" &&
+      tracking.submission_state !== "pending"
+  ) {
+    throw new HttpError(
+        409,
+        "This STR submission is not eligible for recovery.",
+    );
+  }
+
+  if (
+      tracking.submission_state === "pending" &&
+      !isStalePending(tracking)
+  ) {
+    throw new HttpError(
+        409,
+        "The STR submission is still being processed. Please try again later.",
+    );
+  }
+
+  // The lookup can return null only for an explicit HTTP 404
+  // Network errors, timeouts and invalid responses throw instead
+  const recovered = await findStrApplicationByExternalId(
+      tracking.external_application_id,
+  );
+
+  if (!recovered) {
+    // A 404 does not prove that a previous POST cannot still complete
+    // Keep the record blocked from automatic resubmission
+    if (tracking.submission_state === "pending") {
+      await markUnknown(supabase, tracking.id);
+    }
+
+    throw new HttpError(
+        409,
+        "STR has not confirmed this application. " +
+        "The submission remains uncertain and will not be sent again automatically.",
+    );
+  }
+
+  // STR returned a valid application belonging to this external ID
+  const confirmation: StrSubmissionConfirmation = {
+    id: recovered.id,
+    referenceNo: recovered.referenceNo,
+    status: recovered.status,
+    submittedAt: recovered.submittedAt,
+  };
+
+  const saved = await saveConfirmation(
+      supabase,
+      tracking.id,
+      confirmation,
+      ["pending", "unknown"],
+  );
+
+  if (!saved) {
+    // Another request may have completed recovery first
+    const current = await getTrackingRecord(
+        supabase,
+        tracking.application_id,
+    );
+
+    if (current?.submission_state === "submitted") {
+      return getConfirmedResult(
+          supabase,
+          tracking.application_id,
+          true,
+      );
+    }
+
+    throw new HttpError(
+        409,
+        "The STR submission state changed during recovery. Please try again.",
+    );
+  }
+
+  return getConfirmedResult(
+      supabase,
+      tracking.application_id,
+      true,
+  );
+}
+
 export async function submitStrApplication(
     input: SubmitStrApplicationInput,
 ): Promise<SubmissionResult> {
   const supabase = createAdminClient();
 
-  // Verify the authenticated user's ownership.
+  // Verify ownership before reading or modifying submission details
   const { application, profile } = await loadApplication(
       supabase,
       input.applicationId,
       input.userId,
   );
 
-  // Confirm that this is an STR application
-  // Eligibility criteria remain external to BantuanKu
-  await validateStrProgram(supabase, application.program_id);
+  // Verify the program. Eligibility criteria remain external
+  await validateStrProgram(
+      supabase,
+      application.program_id,
+  );
 
-  // Return an existing confirmed submission
   const existing = await getTrackingRecord(
       supabase,
       input.applicationId,
   );
 
-  if (existing?.submission_state === "submitted") {
-    return toSubmissionResult(existing, true);
+  if (existing) {
+    validateTrackingIdentity(existing, input.applicationId);
+
+    if (existing.submission_state === "submitted") {
+      return getConfirmedResult(
+          supabase,
+          input.applicationId,
+          true,
+      );
+    }
+
+    if (
+        existing.submission_state === "unknown" ||
+        existing.submission_state === "pending"
+    ) {
+      return recoverSubmission(supabase, existing);
+    }
   }
 
-  if (
-      existing?.submission_state === "pending" ||
-      existing?.submission_state === "unknown"
-  ) {
-    throw new HttpError(
-        409,
-        "The STR submission is pending or its outcome is uncertain. " +
-        "Please wait for confirmation.",
-    );
-  }
-
-  // Validate the information required by the STR API
+  // Only new or previously failed submissions reach this point
   validateProfile(profile);
 
   const applicantData = await loadApplicantData(
@@ -394,13 +594,11 @@ export async function submitStrApplication(
   validateAddress(applicantData.address);
   validateHouseholdMembers(applicantData.householdMembers);
 
-  // The mock STR API accepts application years from 2027 onward.
   const applicationYear = Math.max(
       MIN_APPLICATION_YEAR,
       new Date().getUTCFullYear(),
   );
 
-  // Build the provider-specific payload
   const mapperInput: StrMapperInput = {
     applicationId: input.applicationId,
     applicationYear,
@@ -412,64 +610,99 @@ export async function submitStrApplication(
 
   const payload = mapToStrApplication(mapperInput);
 
-  // Atomically claim the submission in PostgreSQL
+  // Atomically claim the application before contacting STR
   const tracking = await claimSubmission(
       supabase,
       input.applicationId,
   );
 
   if (!tracking) {
+    // Another request claimed or completed the submission
+    const current = await getTrackingRecord(
+        supabase,
+        input.applicationId,
+    );
+
+    if (!current) {
+      throw new HttpError(
+          409,
+          "The STR submission could not be claimed.",
+      );
+    }
+
+    validateTrackingIdentity(current, input.applicationId);
+
+    if (current.submission_state === "submitted") {
+      return getConfirmedResult(
+          supabase,
+          input.applicationId,
+          true,
+      );
+    }
+
+    if (
+        current.submission_state === "unknown" ||
+        current.submission_state === "pending"
+    ) {
+      return recoverSubmission(supabase, current);
+    }
+
+    throw new HttpError(
+        409,
+        "The STR submission could not be started safely.",
+    );
+  }
+
+  let confirmation: StrSubmissionConfirmation;
+
+  try {
+    confirmation = await submitToStrApi(payload);
+  } catch (error) {
+    // STR might have accepted the application before the error
+    await markUnknown(supabase, tracking.id);
+    throw error;
+  }
+
+  let saved: boolean;
+
+  try {
+    saved = await saveConfirmation(
+        supabase,
+        tracking.id,
+        confirmation,
+        ["pending"],
+    );
+  } catch (error) {
+    await markUnknown(supabase, tracking.id);
+    throw error;
+  }
+
+  if (!saved) {
+    // Recovery may have saved the confirmation concurrently
     const current = await getTrackingRecord(
         supabase,
         input.applicationId,
     );
 
     if (current?.submission_state === "submitted") {
-      return toSubmissionResult(current, true);
+      return getConfirmedResult(
+          supabase,
+          input.applicationId,
+          true,
+      );
     }
 
-    throw new HttpError(
-        409,
-        "The STR submission is already in progress or requires recovery.",
-    );
-  }
-
-  // Contact STR only after acquiring the claim
-  let confirmation: StrSubmissionConfirmation;
-
-  try {
-    confirmation = await submitToStrApi(payload);
-  } catch (error) {
-    // A timeout, malformed response or other failure may occur after STR has already accepted the application
     await markUnknown(supabase, tracking.id);
-    throw error;
-  }
 
-  // Persist the confirmed submission
-  // Do not call STR again if this database write fails
-  try {
-    await saveConfirmation(
-        supabase,
-        tracking.id,
-        confirmation,
-    );
-  } catch (error) {
-    await markUnknown(supabase, tracking.id);
-    throw error;
-  }
-
-  // Return the confirmed result
-  const updated = await getTrackingRecord(
-      supabase,
-      input.applicationId,
-  );
-
-  if (!updated) {
     throw new HttpError(
         500,
-        "STR confirmation was saved but could not be retrieved.",
+        "STR accepted the application but confirmation couldn't be saved.",
     );
   }
 
-  return toSubmissionResult(updated, false);
+  return getConfirmedResult(
+      supabase,
+      input.applicationId,
+      false,
+  );
 }
