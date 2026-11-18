@@ -1,6 +1,6 @@
 import type { User } from "@supabase/supabase-js";
-import { createAuthClient } from "./supabase";
-import { HttpError } from "./response";
+import { createAuthClient } from "./supabase.ts";
+import { HttpError } from "./response.ts";
 
 export async function requireUser(req: Request): Promise<User> {
   const authorization = req.headers.get("Authorization");

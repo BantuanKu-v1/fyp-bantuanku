@@ -1,4 +1,4 @@
-import { HttpError } from "./response";
+import { HttpError } from "./response.ts";
 
 export function nullableText(value: unknown): string | null {
   if (typeof value !== "string") {

@@ -1,4 +1,4 @@
-import { corsHeaders } from "./cors";
+import { corsHeaders } from "./cors.ts";
 
 export interface ApiResponse<T = unknown> {
   success: boolean;

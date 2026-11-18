@@ -1,7 +1,7 @@
-import { handleCors } from "../_shared/cors";
-import { errorResponse, handleError, successResponse } from "../_shared/response";
-import { requireUser } from "../_shared/auth";
-import { parseJsonBody, requiredUuid } from "../_shared/validators";
+import { handleCors } from "../_shared/cors.ts";
+import { errorResponse, handleError, successResponse } from "../_shared/response.ts";
+import { requireUser } from "../_shared/auth.ts";
+import { parseJsonBody, requiredUuid } from "../_shared/validators.ts";
 
 Deno.serve(async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
