@@ -18,6 +18,11 @@ export interface StrStatusResponse {
   updatedAt: string;
 }
 
+export interface StrRecoveredApplication extends StrSubmissionConfirmation {
+  externalApplicationId: string;
+  updatedAt: string;
+}
+
 const STR_STATUSES: readonly StrApplicationStatus[] = [
   "submitted",
   "under_review",
@@ -114,6 +119,31 @@ function validateStrStatusResponse(
   };
 }
 
+function validateStrRecoveredApplication(
+    value: unknown,
+    expectedExternalId: string
+): StrRecoveredApplication {
+  const confirmation = validateStrSubmissionConfirmation(value);
+
+  if (
+      !isRecord(value) ||
+      !isNonEmptyString(value.externalApplicationId) ||
+      value.externalApplicationId !== expectedExternalId ||
+      !isValidDateTime(value.updatedAt)
+  ) {
+    throw new HttpError(
+        502,
+        "The STR service returned an invalid recovery response.",
+    );
+  }
+
+  return {
+    ...confirmation,
+    externalApplicationId: value.externalApplicationId,
+    updatedAt: value.updatedAt,
+  };
+}
+
 export async function submitToStrApi(
     payload: StrApplicationPayload,
 ): Promise<StrSubmissionConfirmation> {
@@ -141,4 +171,33 @@ export async function getStrApplicationStatus(
   );
 
   return validateStrStatusResponse(data);
+}
+
+export async function findStrApplicationByExternalId(
+    externalApplicationId: string
+): Promise<StrRecoveredApplication | null> {
+  if (!isNonEmptyString(externalApplicationId)) {
+    throw new HttpError(
+        400,
+        "External application ID is required.",
+    );
+  }
+
+  const data = await externalApiRequest<unknown>(
+      getStrApiConfig(),
+      `/api/v1/applications/external/${encodeURIComponent(externalApplicationId)}`,
+      {
+        method: "GET",
+        notFoundReturnsNull: true,
+      },
+  );
+
+  if (data === null) {
+    return null;
+  }
+
+  return validateStrRecoveredApplication(
+      data,
+      externalApplicationId,
+  );
 }
