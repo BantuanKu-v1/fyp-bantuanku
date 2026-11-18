@@ -3,6 +3,7 @@
     "strict": true,
     "lib": ["deno.ns", "deno.window", "dom"]
   },
+  "nodeModulesDir": "none",
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
   }

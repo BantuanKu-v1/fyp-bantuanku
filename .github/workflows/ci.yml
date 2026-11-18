@@ -56,7 +56,11 @@ jobs:
           deno-version: v2.x
 
       - name: TypeScript check
-        run: deno check supabase/functions/submit-str-application/index.ts
+        run: |
+          deno check \
+            --config supabase/functions/submit-str-application/deno.json \
+            supabase/functions/_shared/*.ts \
+            supabase/functions/submit-str-application/index.ts
 
       - name: Lint Edge Functions
         run: deno lint supabase/functions
