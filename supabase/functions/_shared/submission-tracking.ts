@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { HttpError } from "./response.ts";
 
 export type ExternalProvider = "str" | "jkm";
 export type SubmissionState = "pending" | "submitted" | "failed" | "unknown";
