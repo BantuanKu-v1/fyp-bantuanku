@@ -1,8 +1,8 @@
 import type { ApplicationStatus } from "../types/applications";
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
-  draft: "Draft",
-  in_progress: "In Progress",
-  ready_for_review: "Ready for Review",
-  simulated_submitted: "Submitted",
+  draft: "applications.statuses.draft",
+  in_progress: "applications.statuses.inProgress",
+  ready_for_review: "applications.statuses.readyForReview",
+  simulated_submitted: "applications.statuses.submitted",
 };
