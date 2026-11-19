@@ -9,7 +9,6 @@ import { lookupPostcode } from "../../../services/postcodeService";
 
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
-import RegistrationProgress from "../../../components/auth/RegistrationProgress";
 import Select from "../../../components/ui/Select";
 
 type RegisterResidenceStepProps = {
@@ -150,7 +149,6 @@ export default function RegisterResidenceStep({
   return (
       <View>
         <View className="mb-8">
-          <RegistrationProgress currentStep={3} />
 
           <Text className="text-3xl font-bold text-foreground">
             {t("auth.register.residence.title")}

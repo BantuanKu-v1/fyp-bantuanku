@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { SupportedLanguage } from "../../i18n/types";
 import { useState } from "react";
 import { changeLanguage } from "../../i18n";
-import {Image, Pressable, Text, View} from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 import Screen from "../../components/layout/Screen";
 import { isSupportedLanguage, languageOptions } from "../../i18n/language";
