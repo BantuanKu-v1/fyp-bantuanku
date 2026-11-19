@@ -7,7 +7,6 @@ import { useEffect, useMemo } from "react";
 
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
-import RegistrationProgress from "../../../components/auth/RegistrationProgress";
 
 type RegisterAccountStepProps = {
   defaultValues?: RegisterFormData;
@@ -48,7 +47,6 @@ export default function RegisterAccountStep({
   return (
       <View>
         <View className="mb-8">
-          <RegistrationProgress currentStep={1} />
 
           <Text className="text-3xl font-bold text-foreground">
             {t("auth.register.account.title")}

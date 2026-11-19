@@ -12,7 +12,6 @@ import Input from "../../../components/ui/Input";
 import Card from "../../../components/ui/Card";
 import DateInput from "../../../components/ui/DatePicker";
 import Button from "../../../components/ui/Button";
-import RegistrationProgress from "../../../components/auth/RegistrationProgress";
 import AlertDialog from "../../../components/ui/AlertDialog";
 
 type RegisterHouseholdIncomeStepProps = {
@@ -333,7 +332,6 @@ export default function RegisterHouseholdIncomeStep({
   return (
       <View>
         <View className="mb-8">
-          <RegistrationProgress currentStep={4} />
 
           <Text className="text-3xl font-bold text-foreground">
             {t("auth.register.householdIncome.title")}

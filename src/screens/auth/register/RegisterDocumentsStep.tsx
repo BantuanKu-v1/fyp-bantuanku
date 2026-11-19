@@ -7,7 +7,6 @@ import { Pressable, Text, View } from "react-native";
 import { REGISTRATION_DOCUMENT_SECTIONS } from "../../../constants/registration";
 import { FileText, Plus, RefreshCw, Trash2, Upload } from "lucide-react-native";
 
-import RegistrationProgress from "../../../components/auth/RegistrationProgress";
 import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import AlertDialog from "../../../components/ui/AlertDialog";
@@ -191,7 +190,6 @@ export default function RegisterDocumentsStep({
   return (
       <View>
         <View className="mb-8">
-          <RegistrationProgress currentStep={5} />
 
           <Text className="text-3xl font-bold text-foreground">
             {t("auth.register.documents.title")}

@@ -11,7 +11,6 @@ import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import Button from "../../../components/ui/Button";
 import DateInput from "../../../components/ui/DatePicker";
-import RegistrationProgress from "../../../components/auth/RegistrationProgress";
 
 type RegisterPersonalStepProps = {
   defaultValues?: RegisterPersonalFormData;
@@ -91,7 +90,6 @@ export default function RegisterPersonalStep({
   return (
       <View>
         <View className="mb-8">
-          <RegistrationProgress currentStep={2} />
 
           <Text className="text-3xl font-bold text-foreground">
             {t("auth.register.personal.title")}
