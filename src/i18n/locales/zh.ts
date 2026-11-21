@@ -485,6 +485,36 @@ const zh = {
       },
     },
 
+    applications: {
+      title: "我的申请",
+      description: "查看已提交的援助申请及其最新状态。",
+
+      totalApplications: "申请总数",
+      myApplications: "申请记录",
+
+      status: "申请状态",
+      lastUpdated: "最后更新",
+
+      statuses: {
+        draft: "草稿",
+        inProgress: "填写中",
+        readyForReview: "待提交审核",
+        submitted: "已提交",
+      },
+
+      empty: {
+        title: "暂无申请记录",
+        description:
+            "您尚未提交任何援助申请。提交申请后，您可以在这里查看申请状态。",
+      },
+
+      errors: {
+        loadTitle: "无法加载申请记录",
+        loadDescription:
+            "无法获取您的申请记录。请检查网络连接后重试。",
+      },
+    },
+
     eligibility: {
       questionnaire: {
         title: "{{programCode}} 资格评估问卷",

@@ -478,6 +478,36 @@ const en = {
       },
     },
 
+    applications: {
+      title: "My Applications",
+      description: "Track your submitted aid applications and their latest status.",
+
+      totalApplications: "Total Applications",
+      myApplications: "Application History",
+
+      status: "Application Status",
+      lastUpdated: "Last Updated",
+
+      statuses: {
+        draft: "Draft",
+        inProgress: "In Progress",
+        readyForReview: "Ready for Review",
+        submitted: "Submitted",
+      },
+
+      empty: {
+        title: "No Applications Yet",
+        description:
+            "You haven't submitted any aid applications yet. Once you submit an application, you can track its status here.",
+      },
+
+      errors: {
+        loadTitle: "Unable to Load Applications",
+        loadDescription:
+            "We couldn't retrieve your applications. Please check your connection and try again.",
+      },
+    },
+
     eligibility: {
       questionnaire: {
         title: "{{programCode}} Eligibility Questionnaire",

@@ -480,6 +480,36 @@ const ms = {
       },
     },
 
+    applications: {
+      title: "Permohonan Saya",
+      description: "Jejaki permohonan bantuan yang telah dihantar dan status terkini.",
+
+      totalApplications: "Jumlah Permohonan",
+      myApplications: "Sejarah Permohonan",
+
+      status: "Status Permohonan",
+      lastUpdated: "Kemas Kini Terakhir",
+
+      statuses: {
+        draft: "Draf",
+        inProgress: "Sedang Diisi",
+        readyForReview: "Sedia untuk Semakan",
+        submitted: "Telah Dihantar",
+      },
+
+      empty: {
+        title: "Belum Ada Permohonan",
+        description:
+            "Anda belum menghantar sebarang permohonan bantuan. Selepas menghantar permohonan, anda boleh menyemak statusnya di sini.",
+      },
+
+      errors: {
+        loadTitle: "Tidak Dapat Memuatkan Permohonan",
+        loadDescription:
+            "Kami tidak dapat mendapatkan senarai permohonan anda. Sila semak sambungan internet dan cuba lagi.",
+      },
+    },
+
     eligibility: {
       questionnaire: {
         title: "Soal Selidik Kelayakan {{programCode}}",
