@@ -10,7 +10,7 @@ import Section from "../../components/layout/Section";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 
-import { APPLICATION_STATUS_LABELS } from "../../constants/applications";
+import { APPLICATION_STATUS_LABELS } from "../../constants/applications/applications.ts";
 import { getMyApplications } from "../../services/applications/applicationServices";
 import type { ApplicationSummary } from "../../types/applications";
 
