@@ -41,6 +41,24 @@ const PROVIDER = "str";
 const MIN_APPLICATION_YEAR = 2027;
 const STALE_PENDING_MS = 2 * 60 * 1000; // 2 minutes
 
+// Log database errors without exposing applicant data or credentials
+function logDatabaseError(
+    operation: string,
+    error: {
+      code?: string;
+      message: string;
+      details?: string;
+      hint?: string;
+    },
+): void {
+  console.error(`[STR] ${operation}:`, {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    hint: error.hint,
+  });
+}
+
 function requireField(value: unknown, fieldName: string): string {
   const text = nullableText(value);
 
@@ -95,6 +113,7 @@ async function loadApplication(
       .maybeSingle();
 
   if (applicationError) {
+    logDatabaseError("Load application failed", applicationError);
     throw new HttpError(500, "Unable to load application.");
   }
 
@@ -110,6 +129,7 @@ async function loadApplication(
       .maybeSingle();
 
   if (profileError) {
+    logDatabaseError("Verify application ownership failed", profileError);
     throw new HttpError(500, "Unable to verify application ownership.");
   }
 
@@ -131,6 +151,7 @@ async function validateStrProgram(
       .maybeSingle();
 
   if (error) {
+    logDatabaseError("Verify STR program failed", error);
     throw new HttpError(500, "Unable to verify aid program.");
   }
 
@@ -175,6 +196,7 @@ async function loadApplicantData(
       ]);
 
   if (addressResult.error) {
+    logDatabaseError("Load applicant address failed", addressResult.error);
     throw new HttpError(500, "Unable to load applicant address.");
   }
 
@@ -183,10 +205,12 @@ async function loadApplicantData(
   }
 
   if (financialResult.error) {
+    logDatabaseError("Load financial information failed", financialResult.error);
     throw new HttpError(500, "Unable to load financial information.");
   }
 
   if (householdResult.error) {
+    logDatabaseError("Load household information failed", householdResult.error);
     throw new HttpError(500, "Unable to load household information.");
   }
 
@@ -209,6 +233,8 @@ async function getTrackingRecord(
       .maybeSingle();
 
   if (error) {
+    logDatabaseError("STR tracking SELECT failed", error);
+
     throw new HttpError(
         500,
         "Unable to load external submission tracking.",
@@ -231,7 +257,7 @@ async function claimSubmission(
   );
 
   if (error) {
-    console.error("STR submission claim failed:", error.message);
+    logDatabaseError("STR submission claim failed", error);
 
     throw new HttpError(
         500,
@@ -346,10 +372,7 @@ async function saveConfirmation(
       .maybeSingle();
 
   if (error) {
-    console.error(
-        "Failed to save STR confirmation:",
-        error.message,
-    );
+    logDatabaseError("Save STR confirmation failed", error);
 
     throw new HttpError(
         500,
@@ -376,10 +399,13 @@ async function syncApplicationStatus(
       .maybeSingle();
 
   if (error || !data) {
-    console.error(
-        "Failed to synchronize STR application status:",
-        error?.message ?? "Application not found",
-    );
+    if (error) {
+      logDatabaseError("Synchronize STR application status failed", error);
+    } else {
+      console.error(
+          "[STR] Synchronize application status failed: Application not found",
+      );
+    }
 
     throw new HttpError(
         500,
@@ -401,10 +427,7 @@ async function markUnknown(
       .eq("submission_state", "pending");
 
   if (error) {
-    console.error(
-        "Unable to mark STR submission as unknown:",
-        error.message,
-    );
+    logDatabaseError("Mark STR submission as unknown failed", error);
   }
 }
 
@@ -478,15 +501,11 @@ async function recoverSubmission(
     );
   }
 
-  // The lookup can return null only for an explicit HTTP 404
-  // Network errors, timeouts and invalid responses throw instead
   const recovered = await findStrApplicationByExternalId(
       tracking.external_application_id,
   );
 
   if (!recovered) {
-    // A 404 does not prove that a previous POST cannot still complete
-    // Keep the record blocked from automatic resubmission
     if (tracking.submission_state === "pending") {
       await markUnknown(supabase, tracking.id);
     }
@@ -514,7 +533,6 @@ async function recoverSubmission(
   );
 
   if (!saved) {
-    // Another request may have completed recovery first
     const current = await getTrackingRecord(
         supabase,
         tracking.application_id,
