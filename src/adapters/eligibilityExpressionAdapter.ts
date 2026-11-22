@@ -5,7 +5,7 @@ import type {
   EligibilityOperator, EligibilityRule, EligibilityRuleGroup,
   EligibilityValue
 } from "../types/eligibility";
-import { SUPPORTED_ELIGIBILITY_OPERATORS } from "../constants/eligibility";
+import { SUPPORTED_ELIGIBILITY_OPERATORS } from "../constants/eligibility/eligibility";
 
 // Map government API fields to eligibility facts
 export type EligibilityFieldMap = Readonly<Record<string, keyof EligibilityFacts>>;

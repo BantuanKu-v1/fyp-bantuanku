@@ -1,4 +1,4 @@
-import { ELIGIBILITY_QUESTIONS } from "../../constants/eligibilityQuestions";
+import { ELIGIBILITY_QUESTIONS } from "../../constants/eligibility/eligibilityQuestions";
 import type { EligibilityQuestion } from "../../types/eligibilityQuestions";
 import type { ProgramEligibilityAnswers } from "../../services/eligibility/eligibilityDataService";
 
