@@ -9,7 +9,7 @@ import {
 import {
   JKM_MANUAL_VERIFICATION_OUTCOMES,
   JKM_OUTCOMES
-} from "../constants/eligibility";
+} from "../constants/eligibility/eligibility";
 import {
   adaptEligibilityExpression,
   normalizeEligibilityRuleGroup,

@@ -1,4 +1,4 @@
-import type { EligibilityOperator } from "../types/eligibility";
+import type { EligibilityOperator } from "../../types/eligibility.ts";
 
 export const JKM_PROGRAM_CODES = [
   "BA",

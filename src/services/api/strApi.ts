@@ -1,4 +1,4 @@
-import { REQUEST_TIMEOUT_MS } from "../../constants/eligibility";
+import { REQUEST_TIMEOUT_MS } from "../../constants/eligibility/eligibility";
 
 const STR_API_BASE_URL = process.env.EXPO_PUBLIC_STR_API_BASE_URL
     ?.trim()

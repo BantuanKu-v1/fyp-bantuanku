@@ -1,4 +1,4 @@
-import type { EligibilityThresholds } from "../utils/eligibility/eligibilityThresholds";
+import type { EligibilityThresholds } from "../../utils/eligibility/eligibilityThresholds.ts";
 
 // Static PGK thresholds for preliminary JKM eligibility assessments
 // Based on the 2024 PGK adopted by JKM affective 1 January 2026

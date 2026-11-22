@@ -4,10 +4,10 @@ import { FileText, Home, Search, UserRound } from "lucide-react-native";
 import { Platform } from "react-native";
 
 import ProgramsScreen from "../screens/programs/ProgramsScreen";
-import ApplicationsScreen from "../screens/applications/ApplicationsScreen";
 import AnimatedTabIcon from "./AnimatedTabIcon";
 import ProfileStackNavigator from "./ProfileStackNavigator";
 import HomeStackNavigator from "./HomeStackNavigation";
+import ApplicationsStackNavigator from "./ApplicationsStackNavigator.tsx";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -71,7 +71,7 @@ export default function MainTabNavigator() {
         {/* Applications */}
         <Tab.Screen
           name="Applications"
-          component={ApplicationsScreen}
+          component={ApplicationsStackNavigator}
           options={{
             title: "Applications",
             tabBarIcon: ({ color, size, focused }) => (

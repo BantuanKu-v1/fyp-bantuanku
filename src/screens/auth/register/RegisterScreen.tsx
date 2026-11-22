@@ -7,7 +7,7 @@ import {
   RegisterPersonalFormData,
   RegisterResidenceFormData
 } from "../../../schemas/registration";
-import { KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SelectedDocument } from "../../../types/documents";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -17,6 +17,7 @@ import { uploadRegistrationDocuments } from "../../../services/documentService";
 
 import AuthBackground from "../../../components/auth/AuthBackground";
 import Screen from "../../../components/layout/Screen";
+import RegistrationProgress from "../../../components/auth/RegistrationProgress";
 import RegisterAccountStep from "./RegisterAccountStep";
 import RegisterPersonalStep from "./RegisterPersonalStep";
 import RegisterResidenceStep from "./RegisterResidenceStep";
@@ -160,78 +161,75 @@ export default function RegisterScreen({
         <AuthBackground />
 
         <Screen transparent>
-          <KeyboardAvoidingView
-              className="flex-1"
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
-            {step === 1 && (
-                <View className="flex-1 justify-center">
-                  <RegisterAccountStep onContinue={handleAccountContinue} defaultValues={accountData} />
+          <RegistrationProgress currentStep={step} />
 
-                  <View className="mt-6 flex-row items-center justify-center">
-                    <Text className="text-sm text-muted-foreground">
-                      {t("auth.register.account.alreadyHaveAccount")}{" "}
-                    </Text>
+          {step === 1 && (
+              <View>
+                <RegisterAccountStep onContinue={handleAccountContinue} defaultValues={accountData} />
 
-                    <Pressable
+                <View className="mt-6 flex-row items-center justify-center">
+                  <Text className="text-sm text-muted-foreground">
+                    {t("auth.register.account.alreadyHaveAccount")}{" "}
+                  </Text>
+
+                  <Pressable
                       accessibilityRole="link"
                       onPress={() => navigation.goBack()}
                       hitSlop={8}
-                    >
-                      <Text className="text-sm font-semibold text-primary">
-                        {t("auth.register.account.signIn")}
-                      </Text>
-                    </Pressable>
-                  </View>
+                  >
+                    <Text className="text-sm font-semibold text-primary">
+                      {t("auth.register.account.signIn")}
+                    </Text>
+                  </Pressable>
                 </View>
-            )}
+              </View>
+          )}
 
-            {step === 2 && (
-                  <View className="flex-1 justify-center">
-                    <RegisterPersonalStep
-                      defaultValues={personalData}
-                      onBack={() => setStep(1)}
-                      onContinue={handlePersonalContinue}
-                      myKadError={myKadError ?? undefined}
-                    />
-                  </View>
-              )}
+          {step === 2 && (
+              <View>
+                <RegisterPersonalStep
+                    defaultValues={personalData}
+                    onBack={() => setStep(1)}
+                    onContinue={handlePersonalContinue}
+                    myKadError={myKadError ?? undefined}
+                />
+              </View>
+          )}
 
-            {step === 3 && (
-                <View className="flex-1 justify-center">
-                  <RegisterResidenceStep
+          {step === 3 && (
+              <View>
+                <RegisterResidenceStep
                     defaultValues={residenceData}
                     onBack={() => setStep(2)}
                     onContinue={handleResidenceContinue}
-                  />
-                </View>
-            )}
+                />
+              </View>
+          )}
 
-            {step === 4 && (
-                <View className="flex-1 justify-center">
-                  <RegisterHouseholdIncomeStep
+          {step === 4 && (
+              <View>
+                <RegisterHouseholdIncomeStep
                     defaultValues={householdIncomeData}
                     onBack={() => setStep(3)}
                     onContinue={handleHouseholdIncomeContinue}
-                  />
-                </View>
-            )}
+                />
+              </View>
+          )}
 
-            {step === 5 && (
-                <View className="flex-1 justify-center">
-                  {submitting ? (
-                      <RegisterLoading />
-                  ) : (
-                      <RegisterDocumentsStep
-                          documents={documents}
-                          onChange={setDocuments}
-                          onBack={() => setStep(4)}
-                          onComplete={handleDocumentComplete}
-                      />
-                  )}
-                </View>
-            )}
-          </KeyboardAvoidingView>
+          {step === 5 && (
+              <View>
+                {submitting ? (
+                    <RegisterLoading />
+                ) : (
+                    <RegisterDocumentsStep
+                        documents={documents}
+                        onChange={setDocuments}
+                        onBack={() => setStep(4)}
+                        onComplete={handleDocumentComplete}
+                    />
+                )}
+              </View>
+          )}
         </Screen>
 
         <AlertDialog

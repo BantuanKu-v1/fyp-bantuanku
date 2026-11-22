@@ -1,5 +1,5 @@
 import { EligibilityFacts } from "../../types/eligibility";
-import { RELATIONSHIP_CHILD_LABELS } from "../../constants/eligibility";
+import { RELATIONSHIP_CHILD_LABELS } from "../../constants/eligibility/eligibility";
 
 export interface BatEligibilityInput {
   isJkmTargetGroup?: boolean | null;

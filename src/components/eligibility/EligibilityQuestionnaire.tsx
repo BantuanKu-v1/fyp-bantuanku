@@ -11,7 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { getQuestionsForProgram } from "../../utils/eligibility/eligibilityQuestions";
-import { ELIGIBILITY_QUESTIONS } from "../../constants/eligibilityQuestions";
+import { ELIGIBILITY_QUESTIONS } from "../../constants/eligibility/eligibilityQuestions";
 import { getSavedEligibilityAnswers, saveEligibilityAnswers } from "../../services/eligibility/eligibilityQuestionnaireService";
 import type { EligibilityQuestion, EligibilityProgramCode } from "../../types/eligibilityQuestions";
 import type { ProgramEligibilityAnswers } from "../../services/eligibility/eligibilityDataService";

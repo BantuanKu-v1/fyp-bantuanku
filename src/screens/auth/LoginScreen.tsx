@@ -17,8 +17,8 @@ import AuthBackground from "../../components/auth/AuthBackground";
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
 export default function LoginScreen({
-                                      navigation
-                                    }: Props){
+    navigation
+}: Props){
   const { t, i18n } = useTranslation();
   const [authError, setAuthError] = useState<string | null>(null);
 

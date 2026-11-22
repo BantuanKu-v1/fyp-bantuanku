@@ -448,6 +448,32 @@ export default function HomeScreen({
             )}
           </Pressable>
 
+          {/* STR application integration testing */}
+          <View className="gap-3 rounded-xl border border-border bg-surface p-4">
+            <View className="gap-1">
+              <Text className="text-base font-semibold text-foreground">
+                STR Application Testing
+              </Text>
+
+              <Text className="text-sm text-muted-foreground">
+                Test the STR application workflow, including draft creation,
+                applicant information validation, and submission to the
+                STR Mock Web.
+              </Text>
+            </View>
+
+            <Pressable
+                onPress={() => navigation.navigate("StrApplication")}
+                accessibilityRole="button"
+                accessibilityLabel="Test STR application"
+                className="items-center rounded-xl bg-primary px-4 py-4"
+            >
+              <Text className="font-semibold text-white">
+                Test STR Application
+              </Text>
+            </Pressable>
+          </View>
+
           {/* Overall error */}
           {error && (
               <View className="rounded-lg bg-error-background p-4">

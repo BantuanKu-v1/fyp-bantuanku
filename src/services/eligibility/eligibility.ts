@@ -7,7 +7,7 @@ import { buildEligibilityFacts } from "../../utils/eligibility/eligibilityFacts"
 import { adaptJkmEligibilityResponse } from "../../adapters/jkmEligibilityAdapter";
 import { adaptStrEligibilityResponse } from "../../adapters/strEligibilityAdapter";
 import { evaluateProgramEligibility } from "../../utils/eligibility/eligibilityEngine";
-import { DEFAULT_ELIGIBILITY_THRESHOLDS } from "../../constants/eligibilityPgk";
+import { DEFAULT_ELIGIBILITY_THRESHOLDS } from "../../constants/eligibility/eligibilityPgk";
 
 export type SupportedProgramCode = JkmProgramCode | "STR";
 

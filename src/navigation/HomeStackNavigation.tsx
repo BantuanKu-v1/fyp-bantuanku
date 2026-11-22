@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "../screens/home/HomeScreen";
 import EligibilityQuestionnaireScreen from "../screens/eligibility/EligibilityQuestionnaireScreen";
+import StrApplicationScreen from "../screens/applications/str/StrApplicationScreen";
 
 export type HomeStackParamList = {
   HomeScreen: {
@@ -9,6 +10,7 @@ export type HomeStackParamList = {
   EligibilityQuestionnaire: {
     programCode: "BAT" | "BPT"
   };
+  StrApplication: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -28,6 +30,11 @@ export default function HomeStackNavigator() {
         <Stack.Screen
           name="EligibilityQuestionnaire"
           component={EligibilityQuestionnaireScreen}
+        />
+
+        <Stack.Screen
+            name="StrApplication"
+            component={StrApplicationScreen}
         />
       </Stack.Navigator>
   );

@@ -480,6 +480,100 @@ const ms = {
       },
     },
 
+    applications: {
+      title: "Permohonan Saya",
+      description: "Jejaki permohonan bantuan yang telah dihantar dan status terkini.",
+
+      totalApplications: "Jumlah Permohonan",
+      myApplications: "Sejarah Permohonan",
+
+      status: "Status Permohonan",
+      lastUpdated: "Kemas Kini Terakhir",
+
+      statuses: {
+        draft: "Draf",
+        inProgress: "Sedang Diisi",
+        readyForReview: "Sedia untuk Semakan",
+        submitted: "Telah Dihantar",
+      },
+
+      empty: {
+        title: "Belum Ada Permohonan",
+        description:
+            "Anda belum menghantar sebarang permohonan bantuan. Selepas menghantar permohonan, anda boleh menyemak statusnya di sini.",
+      },
+
+      errors: {
+        loadTitle: "Tidak Dapat Memuatkan Permohonan",
+        loadDescription:
+            "Kami tidak dapat mendapatkan senarai permohonan anda. Sila semak sambungan internet dan cuba lagi.",
+      },
+
+      str: {
+        title: "Permohonan STR",
+        description: "Semak maklumat anda sebelum menghantar permohonan STR.",
+
+        sections: {
+          applicationDetails: "Butiran Permohonan",
+          applicantInformation: "Maklumat Pemohon",
+          applicationReadiness: "Kesediaan Permohonan",
+          submissionConfirmation: "Pengesahan Penghantaran",
+        },
+
+        fields: {
+          program: "Program Bantuan",
+          agency: "Agensi",
+          applicationId: "ID Permohonan",
+          status: "Status Permohonan",
+          fullName: "Nama Penuh",
+          identificationNo: "Nombor Kad Pengenalan",
+          dateOfBirth: "Tarikh Lahir",
+          citizenship: "Kewarganegaraan",
+          referenceNo: "Nombor Rujukan",
+          providerApplicationId: "ID Permohonan STR",
+          providerStatus: "Status STR",
+          submittedAt: "Tarikh Penghantaran",
+        },
+
+        readiness: {
+          applicant: "Maklumat Pemohon",
+          address: "Alamat Kediaman",
+          household: "Maklumat Isi Rumah",
+          householdMembers: "Ahli Isi Rumah",
+          complete: "Lengkap",
+          incomplete: "Belum Lengkap",
+        },
+
+        buttons: {
+          submit: "Hantar Permohonan STR",
+          alreadySubmitted: "Permohonan Telah Dihantar",
+          refresh: "Muat Semula Maklumat",
+          cancel: "Batal",
+          confirm: "Sahkan Penghantaran",
+        },
+
+        messages: {
+          loading: "Sedang memuatkan permohonan STR anda...",
+          loadError: "Tidak dapat memuatkan permohonan STR anda. Sila cuba lagi.",
+          notProvided: "Tidak dinyatakan",
+          notAvailable: "Tidak tersedia",
+          attentionRequired: "Perhatian Diperlukan",
+          missingInformation: "Lengkapkan maklumat yang belum diisi dalam profil anda sebelum menghantar permohonan.",
+          confirmTitle: "Hantar Permohonan STR?",
+          confirmDescription: "Sila sahkan bahawa maklumat anda adalah tepat sebelum menghantar permohonan kepada STR.",
+          successTitle: "Permohonan Telah Dihantar",
+          successDescription: "Permohonan STR anda berjaya dihantar. Nombor rujukan: {{referenceNo}}",
+          submissionError: "Tidak dapat menghantar permohonan STR anda. Sila cuba lagi.",
+          alreadySubmittedTitle: "Permohonan Telah Dihantar Sebelum Ini",
+          alreadySubmittedDescription: "Permohonan STR anda telah dihantar. Anda tidak perlu menghantarnya sekali lagi.",
+          existingConfirmation: "Ini ialah pengesahan daripada penghantaran anda yang terdahulu.",
+          submissionUncertain: "Kami tidak dapat mengesahkan sama ada STR telah menerima permohonan anda. Muat semula dan semak status sebelum mencuba lagi.",
+          invalidConfirmation: "Perkhidmatan STR mengembalikan pengesahan penghantaran yang tidak sah. Sila semak status permohonan anda.",
+        },
+
+      },
+    },
+
     eligibility: {
       questionnaire: {
         title: "Soal Selidik Kelayakan {{programCode}}",

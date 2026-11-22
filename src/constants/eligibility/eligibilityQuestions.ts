@@ -1,4 +1,4 @@
-import type { EligibilityQuestion } from "../types/eligibilityQuestions";
+import type { EligibilityQuestion } from "../../types/eligibilityQuestions.ts";
 
 export const BAT_ELIGIBILITY_QUESTIONS: EligibilityQuestion[] = [
   {
@@ -6,8 +6,7 @@ export const BAT_ELIGIBILITY_QUESTIONS: EligibilityQuestion[] = [
     programCode: "BAT",
     field: "isJkmTargetGroup",
     label: "Are you part of a JKM target group?",
-    description:
-        "Select your known status. JKM may need to verify this.",
+    description: "Select your known status. JKM may need to verify this.",
     type: "boolean",
     required: true,
   },
@@ -15,8 +14,7 @@ export const BAT_ELIGIBILITY_QUESTIONS: EligibilityQuestion[] = [
     id: "bat_recommendation",
     programCode: "BAT",
     field: "hasMedicalOrJkmRecommendation",
-    label:
-        "Do you have a recommendation from a medical professional or JKM?",
+    label: "Do you have a recommendation from a medical professional or JKM?",
     type: "boolean",
     required: true,
   },
@@ -33,8 +31,7 @@ export const BAT_ELIGIBILITY_QUESTIONS: EligibilityQuestion[] = [
     programCode: "BAT",
     field: "estimatedEquipmentCost",
     label: "What is the estimated equipment cost (RM)?",
-    description:
-        "Enter an estimate if known. You may leave it unanswered.",
+    description: "Enter an estimate if known. You may leave it unanswered.",
     type: "number",
     required: false,
     showWhen: {

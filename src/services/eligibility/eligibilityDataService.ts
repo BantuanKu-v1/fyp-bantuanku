@@ -6,7 +6,7 @@ import {
   INVALID_COUNTRY_PLACEHOLDERS,
   MALAYSIA_COUNTRY_VALUES,
   VALID_ISO_ALPHA2_COUNTRY_CODES,
-} from "../../constants/eligibility";
+} from "../../constants/eligibility/eligibility";
 
 export interface ProgramEligibilityAnswers {
   receivesJkmMonthlyAssistance?: boolean | null;
