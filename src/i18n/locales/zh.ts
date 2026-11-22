@@ -513,6 +513,70 @@ const zh = {
         loadDescription:
             "无法获取您的申请记录。请检查网络连接后重试。",
       },
+
+      str: {
+        title: "STR 援助申请",
+        description: "提交 STR 申请前，请先核对您的资料。",
+
+        sections: {
+          applicationDetails: "申请详情",
+          applicantInformation: "申请人资料",
+          applicationReadiness: "申请资料完整度",
+          submissionConfirmation: "提交确认",
+        },
+
+        fields: {
+          program: "援助计划",
+          agency: "负责机构",
+          applicationId: "申请编号",
+          status: "申请状态",
+          fullName: "姓名",
+          identificationNo: "身份证号码",
+          dateOfBirth: "出生日期",
+          citizenship: "国籍",
+          referenceNo: "参考编号",
+          providerApplicationId: "STR 申请编号",
+          providerStatus: "STR 状态",
+          submittedAt: "提交时间",
+        },
+
+        readiness: {
+          applicant: "申请人资料",
+          address: "居住地址",
+          household: "家庭资料",
+          householdMembers: "家庭成员",
+          complete: "已完成",
+          incomplete: "未完成",
+        },
+
+        buttons: {
+          submit: "提交 STR 申请",
+          alreadySubmitted: "申请已提交",
+          refresh: "刷新资料",
+          cancel: "取消",
+          confirm: "确认提交",
+        },
+
+        messages: {
+          loading: "正在加载您的 STR 申请...",
+          loadError: "无法加载您的 STR 申请，请重试。",
+          notProvided: "未提供",
+          notAvailable: "暂无资料",
+          attentionRequired: "需要注意",
+          missingInformation: "请先在个人资料中补充缺失信息，再提交申请。",
+          confirmTitle: "提交 STR 申请？",
+          confirmDescription: "提交 STR 申请前，请确认您所填写的资料准确无误。",
+          successTitle: "申请已提交",
+          successDescription: "您的 STR 申请已成功提交。参考编号：{{referenceNo}}",
+          submissionError: "无法提交您的 STR 申请，请重试。",
+          alreadySubmittedTitle: "申请已提交过",
+          alreadySubmittedDescription: "您的 STR 申请已经提交，无需重复提交。",
+          existingConfirmation: "这是您上一次提交申请的确认信息。",
+          submissionUncertain: "无法确认 STR 是否已收到您的申请。请刷新并检查申请状态，再决定是否重试。",
+          invalidConfirmation: "STR 服务返回了无效的提交确认。请检查您的申请状态。",
+        },
+
+      },
     },
 
     eligibility: {

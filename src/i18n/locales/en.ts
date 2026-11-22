@@ -506,6 +506,69 @@ const en = {
         loadDescription:
             "We couldn't retrieve your applications. Please check your connection and try again.",
       },
+
+      str: {
+        title: "STR Application",
+        description: "Review your information before submitting your STR application.",
+
+        sections: {
+          applicationDetails: "Application Details",
+          applicantInformation: "Applicant Information",
+          applicationReadiness: "Application Readiness",
+          submissionConfirmation: "Submission Confirmation",
+        },
+
+        fields: {
+          program: "Aid Program",
+          agency: "Agency",
+          applicationId: "Application ID",
+          status: "Application Status",
+          fullName: "Full Name",
+          identificationNo: "IC Number",
+          dateOfBirth: "Date of Birth",
+          citizenship: "Citizenship",
+          referenceNo: "Reference Number",
+          providerApplicationId: "STR Application ID",
+          providerStatus: "STR Status",
+          submittedAt: "Submitted At",
+        },
+
+        readiness: {
+          applicant: "Applicant Information",
+          address: "Residential Address",
+          household: "Household Information",
+          householdMembers: "Household Members",
+          complete: "Complete",
+          incomplete: "Incomplete",
+        },
+
+        buttons: {
+          submit: "Submit STR Application",
+          alreadySubmitted: "Application Submitted",
+          refresh: "Refresh Information",
+          cancel: "Cancel",
+          confirm: "Confirm Submission",
+        },
+
+        messages: {
+          loading: "Loading your STR application...",
+          loadError: "Unable to load your STR application. Please try again.",
+          notProvided: "Not provided",
+          notAvailable: "Not available",
+          attentionRequired: "Attention Required",
+          missingInformation: "Complete the missing information in your profile before submitting.",
+          confirmTitle: "Submit STR Application?",
+          confirmDescription: "Please confirm that your information is accurate before submitting your application to STR.",
+          successTitle: "Application Submitted",
+          successDescription: "Your STR application was submitted successfully. Reference number: {{referenceNo}}",
+          submissionError: "Unable to submit your STR application. Please try again.",
+          alreadySubmittedTitle: "Application Already Submitted",
+          alreadySubmittedDescription: "Your STR application has already been submitted. You do not need to submit it again.",
+          existingConfirmation: "This is the confirmation from your previous submission.",
+          submissionUncertain: "We could not confirm whether STR received your application. Refresh and check its status before trying again.",
+          invalidConfirmation: "The STR service returned an invalid submission confirmation. Please check your application status.",
+        },
+      },
     },
 
     eligibility: {
