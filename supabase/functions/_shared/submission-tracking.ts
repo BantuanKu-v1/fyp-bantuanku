@@ -31,7 +31,7 @@ export async function getExternalSubmission(
     provider: ExternalProvider
 ): Promise<ExternalSubmission | null> {
   const { data, error } = await db
-      .from("external_application_submissios")
+      .from("external_application_submissions")
       .select("*")
       .eq("application_id", applicationId)
       .eq("provider", provider)
