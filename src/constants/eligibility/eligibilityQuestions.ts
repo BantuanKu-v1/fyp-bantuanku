@@ -1,4 +1,4 @@
-import type { EligibilityQuestion } from "../types/eligibilityQuestions";
+import type { EligibilityQuestion } from "../../types/eligibilityQuestions.ts";
 
 export const BAT_ELIGIBILITY_QUESTIONS: EligibilityQuestion[] = [
   {
