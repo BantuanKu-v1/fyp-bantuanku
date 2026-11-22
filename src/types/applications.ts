@@ -13,3 +13,31 @@ export type ApplicationSummary = {
   createdAt: string;
   updatedAt: string;
 };
+
+export interface StrSubmissionResult {
+  applicationId: string;
+  provider: "str";
+  submissionState: "submitted";
+  providerApplicationId: string;
+  referenceNo: string;
+  providerStatus: string | null;
+  submittedAt: string;
+  alreadySubmitted: boolean;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+  errors?: unknown;
+}
+
+export interface StrApplicantReview {
+  fullName: string | null;
+  identificationNo: string | null;
+  dateOfBirth: string | null;
+  citizenship: string | null;
+  householdComplete: boolean;
+  addressComplete: boolean;
+  householdMembersComplete: boolean;
+}
