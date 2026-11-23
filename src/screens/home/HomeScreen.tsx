@@ -30,7 +30,7 @@ const PROGRAM_NAMES: Record<SupportedProgramCode, string> = {
   BA: "Bantuan Am",
   BAT: "Bantuan Alat Tiruan / Alat Sokongan",
   BPT: "Bantuan Penjagaan",
-  STR: "Sumbangan Tunai Rahmah (2026)",
+  STR: "Sumbangan Tunai Rahmah",
 };
 
 type QuestionnaireProgramCode = "BAT" | "BPT";
