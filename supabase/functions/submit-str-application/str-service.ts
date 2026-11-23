@@ -2,8 +2,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { HttpError } from "../_shared/response.ts";
 import { nullableText } from "../_shared/validators.ts";
-import { mapToStrApplication, type StrMapperInput } from "./str-mapper.ts";
-import { findStrApplicationByExternalId, submitToStrApi, type StrSubmissionConfirmation } from "./str-api.ts";
+import {
+  mapToStrApplication,
+  type StrMapperInput,
+  type StrSupportingDocumentInput,
+} from "./str-mapper.ts";
+import {
+  findStrApplicationByExternalId,
+  submitToStrApi,
+  type StrSubmissionConfirmation,
+} from "./str-api.ts";
 
 interface SubmitStrApplicationInput {
   applicationId: string;
@@ -38,8 +46,9 @@ interface TrackingRecord {
 }
 
 const PROVIDER = "str";
-const MIN_APPLICATION_YEAR = 2027;
+const STR_APPLICATION_YEAR = 2026;
 const STALE_PENDING_MS = 2 * 60 * 1000; // 2 minutes
+const MAX_SUPPORTING_DOCUMENTS = 100;
 
 // Log database errors without exposing applicant data or credentials
 function logDatabaseError(
@@ -219,6 +228,120 @@ async function loadApplicantData(
     financialProfile: financialResult.data,
     householdMembers: householdResult.data ?? [],
   };
+}
+
+// Load only documents attached to the current application
+// Explicitly verify document ownership because the admin client bypasses RLS
+async function loadSupportingDocuments(
+    supabase: SupabaseClient,
+    applicationId: string,
+    profileId: string,
+): Promise<StrSupportingDocumentInput[]> {
+  const {
+    data: applicationDocuments,
+    error: applicationDocumentsError,
+  } = await supabase
+      .from("application_documents")
+      .select("id, document_id, requirement_type")
+      .eq("application_id", applicationId)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .limit(MAX_SUPPORTING_DOCUMENTS + 1);
+
+  if (applicationDocumentsError) {
+    logDatabaseError(
+        "Load application supporting documents failed",
+        applicationDocumentsError,
+    );
+
+    throw new HttpError(
+        500,
+        "Unable to load application supporting documents.",
+    );
+  }
+
+  if (!applicationDocuments || applicationDocuments.length === 0) {
+    return [];
+  }
+
+  if (applicationDocuments.length > MAX_SUPPORTING_DOCUMENTS) {
+    throw new HttpError(
+        422,
+        `A maximum of ${MAX_SUPPORTING_DOCUMENTS} supporting documents is allowed.`,
+    );
+  }
+
+  // Retrieve each unique document only once
+  const documentIds = [
+    ...new Set(
+        applicationDocuments.map((item) =>
+            requireField(item.document_id, "document_id")
+        ),
+    ),
+  ];
+
+  // Retrieve metadata only. Private storage paths are excluded
+  const { data: documents, error: documentsError } = await supabase
+      .from("documents")
+      .select(`
+        id,
+        document_type,
+        original_filename,
+        mime_type,
+        file_size_bytes,
+        issued_at,
+        expires_at
+      `)
+      .eq("profile_id", profileId)
+      .in("id", documentIds);
+
+  if (documentsError) {
+    logDatabaseError(
+        "Load supporting document metadata failed",
+        documentsError,
+    );
+
+    throw new HttpError(
+        500,
+        "Unable to load supporting document metadata.",
+    );
+  }
+
+  const documentsById = new Map<string, DatabaseRow>();
+
+  for (const document of documents ?? []) {
+    documentsById.set(
+        String(document.id),
+        document,
+    );
+  }
+
+  // Reject the submission if any linked document is missing or does not belong to the applicant's profile
+  return applicationDocuments.map((item) => {
+    const documentId = requireField(
+        item.document_id,
+        "document_id",
+    );
+
+    const requirementType = requireField(
+        item.requirement_type,
+        "requirement_type",
+    );
+
+    const document = documentsById.get(documentId);
+
+    if (!document) {
+      throw new HttpError(
+          422,
+          "An attached supporting document is missing or does not belong to the applicant.",
+      );
+    }
+
+    return {
+      requirementType,
+      document,
+    };
+  });
 }
 
 async function getTrackingRecord(
@@ -604,18 +727,35 @@ export async function submitStrApplication(
   // Only new or previously failed submissions reach this point
   validateProfile(profile);
 
-  const applicantData = await loadApplicantData(
-      supabase,
-      String(profile.id),
+  const profileId = requireField(
+      profile.id,
+      "profile_id",
   );
+
+  // Load applicant information and application-specific documents.
+  const [applicantData, supportingDocuments] =
+      await Promise.all([
+        loadApplicantData(
+            supabase,
+            profileId,
+        ),
+
+        loadSupportingDocuments(
+            supabase,
+            input.applicationId,
+            profileId,
+        ),
+      ]);
 
   validateAddress(applicantData.address);
   validateHouseholdMembers(applicantData.householdMembers);
 
-  const applicationYear = Math.max(
-      MIN_APPLICATION_YEAR,
-      new Date().getUTCFullYear(),
-  );
+  // const applicationYear = Math.max(
+  //     MIN_APPLICATION_YEAR,
+  //     new Date().getUTCFullYear(),
+  // );
+
+  const applicationYear = STR_APPLICATION_YEAR;
 
   const mapperInput: StrMapperInput = {
     applicationId: input.applicationId,
@@ -624,8 +764,10 @@ export async function submitStrApplication(
     address: applicantData.address,
     financialProfile: applicantData.financialProfile,
     householdMembers: applicantData.householdMembers,
+    supportingDocuments,
   };
 
+  // Validate and map the payload before claiming the submission
   const payload = mapToStrApplication(mapperInput);
 
   // Atomically claim the application before contacting STR
