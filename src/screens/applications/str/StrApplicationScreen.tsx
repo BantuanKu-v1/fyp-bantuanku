@@ -13,8 +13,26 @@ import {
 import Screen from "../../../components/layout/Screen";
 import ScreenHeader from "../../../components/layout/ScreenHeader";
 
+import {
+  getStrApplicantReview,
+  getStrExternalSubmissionState,
+  submitStrApplication
+} from "../../../services/applications/strApplicationService";
+
+import type { StrExternalSubmissionState } from "../../../services/applications/strApplicationService";
+
+import {
+  getApplicationPreliminaryEligibility,
+  persistApplicationEligibilityAssessment
+} from "../../../services/applications/applicationEligibilityService";
+
 import { getOrCreateStrApplication } from "../../../services/applications/applicationServices";
-import { getStrApplicantReview, submitStrApplication } from "../../../services/applications/strApplicationService";
+
+import { assessApplicantEligibility } from "../../../services/eligibility/eligibility";
+
+import type {
+  PreliminaryEligibilitySnapshot
+} from "../../../types/eligibility";
 
 import { APPLICATION_STATUS_LABELS } from "../../../constants/applications/applications";
 import { STR_APPLICATION_LABELS } from "../../../constants/applications/strApplication";
@@ -47,6 +65,16 @@ interface DetailRowProps {
   label: string;
   value: string | null;
   fallback: string;
+}
+
+function isExistingSubmission(
+    state: StrExternalSubmissionState | null
+): boolean {
+  return (
+      state === "pending" ||
+      state === "unknown" ||
+      state === "submitted"
+  );
 }
 
 function DetailRow({
@@ -158,30 +186,55 @@ export default function StrApplicationScreen() {
   const [application, setApplication] = useState<ApplicationSummary | null>(null);
   const [applicant, setApplicant] = useState<StrApplicantReview | null>(null);
   const [confirmation, setConfirmation] = useState<StrSubmissionResult | null>(null);
+  const [externalSubmissionState, setExternalSubmissionState] = useState<StrExternalSubmissionState | null>(null);
+  const [preliminaryEligibility, setPreliminaryEligibility] = useState<PreliminaryEligibilitySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [submissionStateVerified, setSubmissionStateVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
   const [showApplicantDetails, setShowApplicantDetails] = useState(false);
   const [showReadiness, setShowReadiness] = useState(true);
+  const [showPreliminaryEligibility, setShowPreliminaryEligibility] = useState(false);
   const [showConfirmationDetails, setShowConfirmationDetails] = useState(false);
   const submittingRef = useRef(false);
+  const applicationRef = useRef<ApplicationSummary | null>(null);
 
   const loadApplication = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      setSubmissionStateVerified(false);
 
       const strApplication =
+          applicationRef.current ??
           await getOrCreateStrApplication();
 
-      const applicantReview =
-          await getStrApplicantReview(
-              strApplication.profileId,
-          );
+      const [
+        applicantReview,
+        submissionState,
+        eligibilitySnapshot,
+      ] = await Promise.all([
+        getStrApplicantReview(
+            strApplication.profileId,
+        ),
+
+        getStrExternalSubmissionState(
+            strApplication.id,
+        ),
+
+        getApplicationPreliminaryEligibility(
+            strApplication.id,
+        ),
+      ]);
+
+      applicationRef.current = strApplication;
 
       setApplication(strApplication);
       setApplicant(applicantReview);
+      setExternalSubmissionState(submissionState);
+      setPreliminaryEligibility(eligibilitySnapshot);
+      setSubmissionStateVerified(true);
     } catch (err) {
       setError(
           err instanceof Error
@@ -207,14 +260,22 @@ export default function StrApplicationScreen() {
   const applicationReady =
       profileComplete && applicant?.addressComplete && applicant?.householdComplete && applicant?.householdMembersComplete;
 
-  const alreadySubmitted = application?.status === "simulated_submitted";
+  const alreadySubmitted =
+      application?.status === "simulated_submitted" ||
+      externalSubmissionState === "submitted";
+
+  const requiresRecovery = isExistingSubmission(externalSubmissionState);
 
   const canSubmit =
       !!application &&
-      applicationReady &&
-      !alreadySubmitted &&
+      submissionStateVerified &&
       !loading &&
-      !submitting;
+      !submitting &&
+      (
+          requiresRecovery
+              ? !confirmation
+              : applicationReady && !alreadySubmitted
+      );
 
   const completedChecks = applicant
       ? [
@@ -236,22 +297,57 @@ export default function StrApplicationScreen() {
       setSubmitting(true);
       setError(null);
 
+      const submissionState =
+          await getStrExternalSubmissionState(
+              application.id,
+          );
+
+      setExternalSubmissionState(submissionState);
+
+      if (!isExistingSubmission(submissionState)) {
+        if (!applicationReady || alreadySubmitted) {
+          throw new Error(
+              "This application is not ready for submission.",
+          );
+        }
+
+        const assessment =
+            await assessApplicantEligibility("STR");
+
+        const snapshot =
+            await persistApplicationEligibilityAssessment(
+                application.id,
+                assessment,
+            );
+
+        setPreliminaryEligibility(snapshot);
+        setShowPreliminaryEligibility(true);
+      } else {
+        const snapshot =
+            await getApplicationPreliminaryEligibility(
+                application.id,
+            );
+
+        setPreliminaryEligibility(snapshot);
+      }
+
       const result = await submitStrApplication(
           application.id,
       );
 
       setConfirmation(result);
+      setExternalSubmissionState("submitted");
       setShowConfirmationDetails(true);
 
-      setApplication((previous) =>
-          previous
-              ? {
-                ...previous,
-                status: "simulated_submitted",
-                simulatedSubmittedAt: result.submittedAt,
-              }
-              : previous,
-      );
+      const updatedApplication: ApplicationSummary = {
+        ...application,
+        status: "simulated_submitted",
+        simulatedSubmittedAt: result.submittedAt,
+      };
+
+      applicationRef.current = updatedApplication;
+
+      setApplication(updatedApplication);
 
       Alert.alert(
           t(labels.messages.successTitle),
@@ -271,6 +367,18 @@ export default function StrApplicationScreen() {
 
       setError(translatedMessage);
 
+      try {
+        const submissionState =
+            await getStrExternalSubmissionState(
+                application.id,
+            );
+
+        setExternalSubmissionState(submissionState);
+        setSubmissionStateVerified(true);
+      } catch {
+        setSubmissionStateVerified(false);
+      }
+
       Alert.alert(
           t(labels.messages.submissionError),
           translatedMessage,
@@ -283,6 +391,11 @@ export default function StrApplicationScreen() {
 
   const confirmSubmission = () => {
     if (!canSubmit) {
+      return;
+    }
+
+    if (requiresRecovery) {
+      void handleSubmit();
       return;
     }
 
@@ -520,6 +633,101 @@ export default function StrApplicationScreen() {
           {application && (
               <View className="rounded-2xl border border-gray-200 bg-white p-4">
                 <SectionHeader
+                    title={t("applications.eligibility.title", {
+                      defaultValue: "Preliminary Eligibility",
+                    })}
+                    expanded={showPreliminaryEligibility}
+                    onPress={() => setShowPreliminaryEligibility(!showPreliminaryEligibility)}
+                />
+
+                {!showPreliminaryEligibility && preliminaryEligibility && (
+                    <View className="mt-2 gap-1">
+                      <Text className="text-sm font-semibold text-gray-900">
+                        {t(
+                            `applications.eligibility.statuses.${preliminaryEligibility.status}`,
+                            {
+                              defaultValue: preliminaryEligibility.status
+                                  .split("_")
+                                  .map(
+                                      (word) =>
+                                          word.charAt(0).toUpperCase() +
+                                          word.slice(1),
+                                  )
+                                  .join(" "),
+                            },
+                        )}
+                      </Text>
+                    </View>
+                )}
+
+                {showPreliminaryEligibility && (
+                    <View className="mt-3 border-t border-gray-100 pt-2">
+                      {preliminaryEligibility ? (
+                          <>
+                            <DetailRow
+                                label={t("applications.eligibility.status", {
+                                  defaultValue: "Eligibility Status",
+                                })}
+                                value={t(
+                                    `applications.eligibility.statuses.${preliminaryEligibility.status}`,
+                                    {
+                                      defaultValue: preliminaryEligibility.status
+                                          .split("_")
+                                          .map(
+                                              (word) =>
+                                                  word.charAt(0).toUpperCase() +
+                                                  word.slice(1),
+                                          )
+                                          .join(" "),
+                                    },
+                                )}
+                                fallback={fallback}
+                            />
+
+                            <DetailRow
+                                label={t("applications.eligibility.criteriaVersion", {
+                                  defaultValue: "Criteria Version",
+                                })}
+                                value={String(preliminaryEligibility.criteriaVersion)}
+                                fallback={fallback}
+                            />
+
+                            <DetailRow
+                                label={t("applications.eligibility.assessedAt", {
+                                  defaultValue: "Assessed At",
+                                })}
+                                value={formatDate(preliminaryEligibility.assessedAt)}
+                                fallback={fallback}
+                            />
+
+                            <Text className="mt-2 text-sm leading-5 text-gray-500">
+                              {t("applications.eligibility.disclaimer", {
+                                defaultValue:
+                                    "This preliminary assessment is provided by BantuanKu and does not represent an official STR application decision.",
+                              })}
+                            </Text>
+                          </>
+                      ) : (
+                          <Text className="mt-2 text-sm leading-5 text-gray-500">
+                            {requiresRecovery || alreadySubmitted
+                                ? t("applications.eligibility.notAvailable", {
+                                  defaultValue:
+                                      "No preliminary eligibility assessment is available for this submission.",
+                                })
+                                : t("applications.eligibility.notAssessed", {
+                                  defaultValue:
+                                      "Your preliminary eligibility will be assessed before submission.",
+                                })}
+                          </Text>
+                      )}
+                    </View>
+                )}
+              </View>
+          )}
+
+          {application && (
+              <View className="rounded-2xl border border-gray-200 bg-white p-4">
+                <SectionHeader
                     title={t(labels.sections.applicationDetails)}
                     expanded={showApplicationDetails}
                     onPress={() => setShowApplicationDetails(!showApplicationDetails)}
@@ -636,9 +844,13 @@ export default function StrApplicationScreen() {
                 <ActivityIndicator color="#FFFFFF" />
             ) : (
                 <Text className="text-center text-sm font-bold text-white">
-                  {alreadySubmitted
-                      ? t(labels.buttons.alreadySubmitted)
-                      : t(labels.buttons.submit)}
+                  {requiresRecovery && !confirmation
+                      ? t("applications.buttons.retrieveConfirmation", {
+                        defaultValue: "Retrieve Submission Confirmation",
+                      })
+                      : alreadySubmitted
+                          ? t(labels.buttons.alreadySubmitted)
+                          : t(labels.buttons.submit)}
                 </Text>
             )}
           </Pressable>
