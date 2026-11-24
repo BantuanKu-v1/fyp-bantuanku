@@ -50,3 +50,6 @@ sandbox/.supabase-test.env
 # automated testing reports
 /coverage/
 /test-reports/
+
+# Temporary files
+/tmp/
