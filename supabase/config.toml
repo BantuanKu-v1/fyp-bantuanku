@@ -418,6 +418,11 @@ enabled = true
 enabled = true
 verify_jwt = false
 import_map = "./functions/submit-str-application/deno.json"
+
+[function.sync-external-application-status]
+enabled = true
+verify_jwt = false
+
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
 entrypoint = "./functions/submit-str-application/index.ts"
