@@ -6,6 +6,8 @@ import {
   mapToStrApplication,
   type StrMapperInput,
   type StrSupportingDocumentInput,
+    type StrPreliminaryEligibility,
+    type StrPreliminaryEligibilityStatus
 } from "./str-mapper.ts";
 import {
   findStrApplicationByExternalId,
@@ -344,6 +346,119 @@ async function loadSupportingDocuments(
   });
 }
 
+function isPreliminaryEligibilityStatus(
+    value: unknown
+): value is StrPreliminaryEligibilityStatus {
+  return (
+      value === "potentially_eligible" ||
+      value === "potentially_ineligible" ||
+      value === "insufficient_information" ||
+      value === "manual_verification"
+  );
+}
+
+async function loadPreliminaryEligibility(
+    supabase: SupabaseClient,
+    applicationId: string
+): Promise<StrPreliminaryEligibility> {
+  const { data, error } = await supabase
+      .from("application_data")
+      .select("data")
+      .eq("application_id", applicationId)
+      .maybeSingle();
+
+  if (error) {
+    logDatabaseError("Log STR preliminary eligibility failed", error);
+
+    throw new HttpError(
+        500,
+        "Unable to load STR preliminary eligibility."
+    );
+  }
+
+  if (
+      !data ||
+      !data.data ||
+      typeof data.data !== "object" ||
+      Array.isArray(data.data)
+  ) {
+    throw new HttpError(
+        422,
+        "A preliminary eligibility assessment is required."
+    );
+  }
+
+  const applicationData = data.data as DatabaseRow;
+  const preliminaryEligibility = applicationData.preliminaryEligibility;
+
+  if (
+      !preliminaryEligibility ||
+      typeof preliminaryEligibility !== "object" ||
+      Array.isArray(preliminaryEligibility)
+  ) {
+    throw new HttpError(
+        422,
+        "A preliminary eligibility assessment is required."
+    );
+  }
+
+  const snapshot = preliminaryEligibility as DatabaseRow;
+
+  if (snapshot.programCode !== "STR") {
+    throw new HttpError(
+        422,
+        "The preliminary eligibility assessment does not belong to STR."
+    );
+  }
+
+  const status = snapshot.status;
+  const criteriaVersion = snapshot.criteriaVersion;
+  const assessedAt = snapshot.assessedAt;
+
+  if (!isPreliminaryEligibilityStatus(status)) {
+    throw new HttpError(
+        422,
+        "Invalid STR preliminary eligibility status."
+    );
+  }
+
+  if (
+      typeof criteriaVersion !== "number" ||
+      !Number.isSafeInteger(criteriaVersion) ||
+      criteriaVersion <= 0
+  ) {
+    throw new HttpError(
+        422,
+        "Invalid STR eligibility criteria version"
+    );
+  }
+
+  if (typeof assessedAt !== "string") {
+    throw new HttpError(
+        422,
+        "Invalid STR eligibility assessment timestamp."
+    );
+  }
+
+  const assessmentDate = new Date(assessedAt);
+
+  if (
+      !Number.isFinite(assessmentDate.getTime()) ||
+      assessmentDate.toISOString() !== assessedAt
+  ) {
+    throw new HttpError(
+        422,
+        "Invalid STR eligibility assessment timestamp."
+    );
+  }
+
+  return {
+    status,
+    criteriaVersion,
+    assessedAt,
+  };
+}
+
 async function getTrackingRecord(
     supabase: SupabaseClient,
     applicationId: string,
@@ -533,6 +648,38 @@ async function syncApplicationStatus(
     throw new HttpError(
         500,
         "STR submission was confirmed but the application status couldn't be synchronized.",
+    );
+  }
+}
+
+async function markFailed(
+    supabase: SupabaseClient,
+    tracking: TrackingRecord
+): Promise<void> {
+  const { data, error } = await supabase
+      .from("external_application_submissions")
+      .update({
+        submission_state: "failed"
+      })
+      .eq("id", tracking.id)
+      .eq("submission_state", "pending")
+      .eq("updated_at", tracking.updated_at)
+      .select("id")
+      .maybeSingle();
+
+  if (error) {
+    logDatabaseError("Mark STR submission as failed failed", error);
+
+    throw new HttpError(
+        500,
+        "Unable to release the STR submission claim."
+    );
+  }
+
+  if (!data) {
+    throw new HttpError(
+        409,
+        "The STR submission state changed. Refresh and try again."
     );
   }
 }
@@ -768,7 +915,10 @@ export async function submitStrApplication(
   };
 
   // Validate and map the payload before claiming the submission
-  const payload = mapToStrApplication(mapperInput);
+  mapToStrApplication(mapperInput);
+
+  // Verify that a preliminary eligibility assessment exists before claiming the submission
+  await loadPreliminaryEligibility(supabase, input.applicationId);
 
   // Atomically claim the application before contacting STR
   const tracking = await claimSubmission(
@@ -813,12 +963,28 @@ export async function submitStrApplication(
     );
   }
 
+  let payload: ReturnType<typeof mapToStrApplication>;
+
+  try {
+    // Retrieve the final preliminary eligibility snapshot after claiming the submission
+    const preliminaryEligibility = await loadPreliminaryEligibility(supabase, input.applicationId);
+
+    payload = mapToStrApplication({
+      ...mapperInput,
+      preliminaryEligibility,
+    });
+  } catch (error) {
+    // STR hasn't been contacted so the submission can be safely marked as failed
+    await markFailed(supabase, tracking);
+
+    throw error;
+  }
+
   let confirmation: StrSubmissionConfirmation;
 
   try {
     confirmation = await submitToStrApi(payload);
   } catch (error) {
-    // STR might have accepted the application before the error
     await markUnknown(supabase, tracking.id);
     throw error;
   }
