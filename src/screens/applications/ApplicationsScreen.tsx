@@ -10,7 +10,12 @@ import Section from "../../components/layout/Section";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 
-import { APPLICATION_STATUS_LABELS } from "../../constants/applications/applications.ts";
+import {
+  APPLICATION_STATUS_LABELS,
+  EXTERNAL_PROVIDER_STATUS_LABELS,
+  EXTERNAL_SUBMISSION_STATE_LABELS,
+} from "../../constants/applications/applications.ts";
+
 import { getMyApplications } from "../../services/applications/applicationServices";
 import type { ApplicationSummary } from "../../types/applications";
 
@@ -72,6 +77,51 @@ export default function ApplicationsScreen() {
       month: "short",
       year: "numeric",
     });
+  };
+
+  // Resolve the application status displayed to the applicant
+  const getApplicationStatusLabel = (
+      application: ApplicationSummary
+  ): string => {
+    const externalSubmission = application.externalSubmission;
+
+    // Applications without external submissions retain their internal status
+    if (!externalSubmission) {
+      return APPLICATION_STATUS_LABELS[application.status];
+    }
+
+    // A confirmed submission should display the latest provider status
+    if (externalSubmission.submissionState === "submitted") {
+      if (externalSubmission.providerStatus) {
+        return EXTERNAL_PROVIDER_STATUS_LABELS[
+            externalSubmission.providerStatus
+            ];
+      }
+
+      return EXTERNAL_SUBMISSION_STATE_LABELS.submitted;
+    }
+
+    // Pending, failed and uncertain submissions are displayed separately
+    return EXTERNAL_SUBMISSION_STATE_LABELS[
+        externalSubmission.submissionState
+        ];
+  };
+
+  // Resolve the timestamp associated with the displayed application status
+  const getApplicationUpdatedAt = (
+      application: ApplicationSummary
+  ): string => {
+    const externalSubmission = application.externalSubmission;
+
+    if (externalSubmission?.submissionState === "submitted") {
+      return (
+          externalSubmission.providerUpdatedAt ??
+          externalSubmission.submittedAt ??
+          application.updatedAt
+      );
+    }
+
+    return application.updatedAt;
   };
 
   if (loading) {
@@ -182,9 +232,7 @@ export default function ApplicationsScreen() {
                             </Text>
 
                             <Text className="text-right text-sm font-semibold text-primary">
-                              {t(
-                                  APPLICATION_STATUS_LABELS[application.status],
-                              )}
+                              {t(getApplicationStatusLabel(application))}
                             </Text>
                           </View>
 
@@ -194,7 +242,7 @@ export default function ApplicationsScreen() {
                             </Text>
 
                             <Text className="text-right text-sm font-medium text-foreground">
-                              {formatDate(application.updatedAt)}
+                              {formatDate(getApplicationUpdatedAt(application))}
                             </Text>
                           </View>
                         </View>
