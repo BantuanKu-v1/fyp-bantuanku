@@ -1,4 +1,45 @@
-export type ApplicationStatus = "draft" | "in_progress" | "ready_for_review" | "simulated_submitted";
+export type ApplicationStatus =
+    | "draft"
+    | "in_progress"
+    | "ready_for_review"
+    | "simulated_submitted";
+
+export type ExternalApplicationProvider = "str" | "jkm";
+
+export type ExternalSubmissionState =
+    | "pending"
+    | "submitted"
+    | "failed"
+    | "unknown";
+
+export type StrProviderStatus =
+    | "submitted"
+    | "under_review"
+    | "approved"
+    | "rejected";
+
+export type JkmProviderStatus =
+    | "submitted"
+    | "under_review"
+    | "additional_information_required"
+    | "approved"
+    | "rejected"
+    | "cancelled";
+
+export type ExternalProviderStatus =
+    | StrProviderStatus
+    | JkmProviderStatus;
+
+export interface ExternalApplicationSubmission {
+  provider: ExternalApplicationProvider;
+  submissionState: ExternalSubmissionState;
+  providerApplicationId: string | null;
+  referenceNo: string | null;
+  providerStatus: ExternalProviderStatus | null;
+  submittedAt: string | null;
+  providerUpdatedAt: string | null;
+  lastSyncedAt: string | null;
+}
 
 export type ApplicationSummary = {
   id: string;
@@ -12,6 +53,7 @@ export type ApplicationSummary = {
   simulatedSubmittedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  externalSubmission?: ExternalApplicationSubmission | null;
 };
 
 export interface StrSubmissionResult {
