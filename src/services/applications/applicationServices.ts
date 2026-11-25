@@ -1,6 +1,25 @@
-import { supabase} from "../../lib/supabase";
+import { supabase } from "../../lib/supabase";
 import { getCurrentProfileId } from "../profile/profileService";
-import type { ApplicationSummary, ApplicationStatus } from "../../types/applications";
+
+import type {
+  ApplicationSummary,
+  ApplicationStatus,
+  ExternalApplicationProvider,
+  ExternalApplicationSubmission,
+  ExternalSubmissionState,
+  ExternalProviderStatus,
+} from "../../types/applications";
+
+interface ExternalSubmissionRow {
+  provider: ExternalApplicationProvider;
+  submission_state: ExternalSubmissionState;
+  provider_application_id: string | null;
+  reference_no: string | null;
+  provider_status: string | null;
+  submitted_at: string | null;
+  provider_updated_at: string | null;
+  last_synced_at: string | null;
+}
 
 interface ApplicationRow {
   id: string;
@@ -16,6 +35,71 @@ interface ApplicationRow {
     name: string;
     agency: string;
   } | null;
+  external_application_submissions?: ExternalSubmissionRow[] | null;
+}
+
+// Validate external provider statuses before exposing them to the UI
+function normalizeProviderStatus(
+    provider: ExternalApplicationProvider,
+    status: string | null,
+): ExternalProviderStatus | null {
+  switch (status) {
+    case "submitted":
+    case "under_review":
+    case "approved":
+    case "rejected":
+      return status;
+
+    case "additional_information_required":
+    case "cancelled":
+      return provider === "jkm" ? status : null;
+
+    default:
+      return null;
+  }
+}
+
+// Convert an external submission database row into the frontend model
+function toExternalSubmission(
+    submission: ExternalSubmissionRow,
+): ExternalApplicationSubmission {
+  return {
+    provider: submission.provider,
+    submissionState: submission.submission_state,
+    providerApplicationId: submission.provider_application_id,
+    referenceNo: submission.reference_no,
+    providerStatus: normalizeProviderStatus(
+        submission.provider,
+        submission.provider_status,
+    ),
+    submittedAt: submission.submitted_at,
+    providerUpdatedAt: submission.provider_updated_at,
+    lastSyncedAt: submission.last_synced_at,
+  };
+}
+
+// Select the external submission belonging to the application's provider
+function getExternalSubmission(
+    application: ApplicationRow,
+): ExternalApplicationSubmission | null {
+  const programCode = application.aid_programs?.code
+      .trim()
+      .toUpperCase();
+
+  if (!programCode) {
+    return null;
+  }
+
+  const provider: ExternalApplicationProvider =
+      programCode === "STR" ? "str" : "jkm";
+
+  const submission = application.external_application_submissions?.find(
+      (item) => item.provider === provider,
+  );
+
+  return submission
+      ? toExternalSubmission(submission)
+      : null;
 }
 
 export async function getMyApplications(): Promise<ApplicationSummary[]> {
@@ -36,6 +120,16 @@ export async function getMyApplications(): Promise<ApplicationSummary[]> {
         code,
         name,
         agency
+      ),
+      external_application_submissions (
+        provider,
+        submission_state,
+        provider_application_id,
+        reference_no,
+        provider_status,
+        submitted_at,
+        provider_updated_at,
+        last_synced_at
       )
     `)
       .eq("profile_id", profileId)
@@ -58,6 +152,7 @@ export async function getMyApplications(): Promise<ApplicationSummary[]> {
         simulatedSubmittedAt: application.simulated_submitted_at,
         createdAt: application.created_at,
         updatedAt: application.updated_at,
+        externalSubmission: getExternalSubmission(application),
       }),
   );
 }
@@ -87,7 +182,7 @@ export async function getOrCreateStrApplication(): Promise<ApplicationSummary> {
 
   // Convert a db application row into ApplicationSummary
   const toApplicationSummary = (
-      application: Omit<ApplicationRow, "aid_programs">
+      application: Omit<ApplicationRow, "aid_programs">,
   ): ApplicationSummary => ({
     id: application.id,
     profileId: application.profile_id,
