@@ -498,8 +498,19 @@ const zh = {
       statuses: {
         draft: "草稿",
         inProgress: "填写中",
-        readyForReview: "待提交审核",
+        readyForReview: "待确认",
         submitted: "已提交",
+        underReview: "审核中",
+        additionalInformationRequired: "需要补充资料",
+        approved: "已批准",
+        rejected: "未获批准",
+        cancelled: "已取消",
+      },
+
+      submissionStates: {
+        pending: "等待提交",
+        failed: "提交失败",
+        unknown: "提交状态未确认",
       },
 
       empty: {
