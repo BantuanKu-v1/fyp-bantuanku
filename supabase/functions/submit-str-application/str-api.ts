@@ -1,8 +1,13 @@
-import { externalApiRequest, getExternalApiConfig } from "../_shared/external-api.ts";
+import {
+  ExternalApiError,
+  externalApiRequest,
+  getExternalApiConfig,
+} from "../_shared/external-api.ts";
 import { HttpError } from "../_shared/response.ts";
 import type { StrApplicationPayload } from "./str-mapper.ts";
 
-export type StrApplicationStatus = "submitted" | "under_review" | "approved" | "rejected";
+export type StrApplicationStatus =
+    "submitted" | "under_review" | "approved" | "rejected";
 
 export interface StrSubmissionConfirmation {
   id: string;
@@ -18,7 +23,8 @@ export interface StrStatusResponse {
   updatedAt: string;
 }
 
-export interface StrRecoveredApplication extends StrSubmissionConfirmation {
+export interface StrRecoveredApplication
+    extends StrSubmissionConfirmation {
   externalApplicationId: string;
   updatedAt: string;
 }
@@ -30,6 +36,12 @@ const STR_STATUSES: readonly StrApplicationStatus[] = [
   "rejected",
 ];
 
+// STR rejects these requests before creating an application
+const STR_SUBMISSION_REJECTION_MESSAGES: readonly string[] = [
+  "Invalid JSON request body",
+  "Invalid application data",
+];
+
 function getStrApiConfig() {
   return getExternalApiConfig(
       "STR_API_BASE_URL",
@@ -37,7 +49,9 @@ function getStrApiConfig() {
   );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(
+    value: unknown,
+): value is Record<string, unknown> {
   return (
       typeof value === "object" &&
       value !== null &&
@@ -68,6 +82,34 @@ function isValidDateTime(value: unknown): value is string {
           value,
       ) &&
       Number.isFinite(Date.parse(value))
+  );
+}
+
+// Identify definitive submission rejections based on the STR Mock API's known response contract
+export function isDefinitiveStrSubmissionRejection(
+    error: unknown,
+): boolean {
+  return (
+      error instanceof ExternalApiError &&
+      error.upstreamStatus === 400 &&
+      error.upstreamSuccess === false &&
+      error.redirected === false &&
+      error.upstreamMessage !== null &&
+      STR_SUBMISSION_REJECTION_MESSAGES.includes(
+          error.upstreamMessage,
+      )
+  );
+}
+
+// Only accept the expected STR application-not-found response
+function isStrApplicationNotFoundResponse(
+    value: unknown,
+): boolean {
+  return (
+      isRecord(value) &&
+      value.success === false &&
+      value.message === "Application not found" &&
+      (value.data === undefined || value.data === null)
   );
 }
 
@@ -121,9 +163,10 @@ function validateStrStatusResponse(
 
 function validateStrRecoveredApplication(
     value: unknown,
-    expectedExternalId: string
+    expectedExternalId: string,
 ): StrRecoveredApplication {
-  const confirmation = validateStrSubmissionConfirmation(value);
+  const confirmation =
+      validateStrSubmissionConfirmation(value);
 
   if (
       !isRecord(value) ||
@@ -153,6 +196,7 @@ export async function submitToStrApi(
       {
         method: "POST",
         body: payload,
+        rejectRedirects: true,
       },
   );
 
@@ -167,6 +211,7 @@ export async function getStrApplicationStatus(
       `/api/v1/applications/${encodeURIComponent(providerApplicationId)}/status`,
       {
         method: "GET",
+        rejectRedirects: true,
       },
   );
 
@@ -174,7 +219,7 @@ export async function getStrApplicationStatus(
 }
 
 export async function findStrApplicationByExternalId(
-    externalApplicationId: string
+    externalApplicationId: string,
 ): Promise<StrRecoveredApplication | null> {
   if (!isNonEmptyString(externalApplicationId)) {
     throw new HttpError(
@@ -189,6 +234,9 @@ export async function findStrApplicationByExternalId(
       {
         method: "GET",
         notFoundReturnsNull: true,
+        validateNotFoundResponse:
+        isStrApplicationNotFoundResponse,
+        rejectRedirects: true,
       },
   );
 
