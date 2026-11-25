@@ -493,6 +493,17 @@ const en = {
         inProgress: "In Progress",
         readyForReview: "Ready for Review",
         submitted: "Submitted",
+        underReview: "Under Review",
+        additionalInformationRequired: "Additional Information Required",
+        approved: "Approved",
+        rejected: "Rejected",
+        cancelled: "Cancelled",
+      },
+
+      submissionState: {
+        pending: "Submission Pending",
+        failed: "Submission Failed",
+        unknown: "Submission Unknown",
       },
 
       empty: {
