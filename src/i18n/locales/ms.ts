@@ -492,9 +492,20 @@ const ms = {
 
       statuses: {
         draft: "Draf",
-        inProgress: "Sedang Diisi",
+        inProgress: "Dalam Proses",
         readyForReview: "Sedia untuk Semakan",
         submitted: "Telah Dihantar",
+        underReview: "Dalam Semakan",
+        additionalInformationRequired: "Maklumat Tambahan Diperlukan",
+        approved: "Diluluskan",
+        rejected: "Ditolak",
+        cancelled: "Dibatalkan",
+      },
+
+      submissionStates: {
+        pending: "Penghantaran Belum Selesai",
+        failed: "Penghantaran Gagal",
+        unknown: "Penghantaran Belum Disahkan",
       },
 
       empty: {
