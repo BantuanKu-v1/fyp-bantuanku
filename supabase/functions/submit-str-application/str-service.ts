@@ -11,6 +11,7 @@ import {
 } from "./str-mapper.ts";
 import {
   findStrApplicationByExternalId,
+  isDefinitiveStrSubmissionRejection,
   submitToStrApi,
   type StrSubmissionConfirmation,
 } from "./str-api.ts";
@@ -48,7 +49,7 @@ interface TrackingRecord {
 }
 
 const PROVIDER = "str";
-const STR_APPLICATION_YEAR = 2026;
+const STR_APPLICATION_YEAR = 2027;
 const STALE_PENDING_MS = 2 * 60 * 1000; // 2 minutes
 const MAX_SUPPORTING_DOCUMENTS = 100;
 
@@ -985,7 +986,32 @@ export async function submitStrApplication(
   try {
     confirmation = await submitToStrApi(payload);
   } catch (error) {
-    await markUnknown(supabase, tracking.id);
+    if (isDefinitiveStrSubmissionRejection(error)) {
+      // STR explicitly rejected the request before creating an application
+      // Allow a corrected submission retry
+      await markFailed(supabase, tracking);
+
+      console.info(
+          "[STR] Submission definitively rejected",
+          {
+            applicationId: input.applicationId,
+            submissionsState: "failed",
+          },
+      );
+    } else {
+      // STR might have accepted the application before the error occurred
+      // Preserver duplicate protection
+      await markUnknown(supabase, tracking.id);
+
+      console.warn(
+          "[STR] Submission outcome remains uncertain",
+          {
+            applicationId: input.applicationId,
+            submissionsState: "unknown",
+          },
+      );
+    }
+
     throw error;
   }
 
