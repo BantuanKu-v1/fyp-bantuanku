@@ -8,6 +8,7 @@ import type {
   ExternalApplicationSubmission,
   ExternalSubmissionState,
   ExternalProviderStatus,
+  JkmProgramCode,
 } from "../../types/applications";
 
 interface ExternalSubmissionRow {
@@ -36,6 +37,37 @@ interface ApplicationRow {
     agency: string;
   } | null;
   external_application_submissions?: ExternalSubmissionRow[] | null;
+}
+
+// Validate supported JKM application programmes
+function isJkmProgramCode(
+    value: unknown,
+): value is JkmProgramCode {
+  return (
+      value === "BA" ||
+      value === "BAT" ||
+      value === "BPT" ||
+      value === "BWE"
+  );
+}
+
+// Identify the external provider for a supported programme
+function getExternalProvider(
+    programCode: string,
+): ExternalApplicationProvider | null {
+  const normalizedProgramCode = programCode
+      .trim()
+      .toUpperCase();
+
+  if (normalizedProgramCode === "STR") {
+    return "str";
+  }
+
+  if (isJkmProgramCode(normalizedProgramCode)) {
+    return "jkm";
+  }
+
+  return null;
 }
 
 // Validate external provider statuses before exposing them to the UI
@@ -82,16 +114,17 @@ function toExternalSubmission(
 function getExternalSubmission(
     application: ApplicationRow,
 ): ExternalApplicationSubmission | null {
-  const programCode = application.aid_programs?.code
-      .trim()
-      .toUpperCase();
+  const programCode = application.aid_programs?.code;
 
   if (!programCode) {
     return null;
   }
 
-  const provider: ExternalApplicationProvider =
-      programCode === "STR" ? "str" : "jkm";
+  const provider = getExternalProvider(programCode);
+
+  if (!provider) {
+    return null;
+  }
 
   const submission = application.external_application_submissions?.find(
       (item) => item.provider === provider,
@@ -102,6 +135,7 @@ function getExternalSubmission(
       : null;
 }
 
+// Retrieve all applications belonging to the current applicant
 export async function getMyApplications(): Promise<ApplicationSummary[]> {
   const profileId = await getCurrentProfileId();
 
@@ -157,6 +191,7 @@ export async function getMyApplications(): Promise<ApplicationSummary[]> {
   );
 }
 
+// Retrieve or create an STR application
 export async function getOrCreateStrApplication(): Promise<ApplicationSummary> {
   const profileId = await getCurrentProfileId();
 
@@ -260,6 +295,145 @@ export async function getOrCreateStrApplication(): Promise<ApplicationSummary> {
   if (!created) {
     throw new Error(
         "STR application was not created successfully.",
+    );
+  }
+
+  return toApplicationSummary(created);
+}
+
+// Retrieve or create a JKM application
+export async function getOrCreateJkmApplication(
+    programCode: JkmProgramCode,
+): Promise<ApplicationSummary> {
+  // Validate the requested JKM programme
+  if (!isJkmProgramCode(programCode)) {
+    throw new Error(
+        "Unsupported JKM aid program.",
+    );
+  }
+
+  const profileId = await getCurrentProfileId();
+
+  // Retrieve the requested active JKM aid programme
+  const { data: program, error: programError } = await supabase
+      .from("aid_programs")
+      .select("id, code, name, agency, is_active")
+      .ilike("code", programCode)
+      .eq("is_active", true)
+      .maybeSingle();
+
+  if (programError) {
+    throw new Error(
+        `Unable to retrieve ${programCode} program: ${programError.message}`,
+    );
+  }
+
+  if (!program) {
+    throw new Error(
+        `The ${programCode} aid program is unavailable or inactive.`,
+    );
+  }
+
+  // Convert a db application row into ApplicationSummary
+  const toApplicationSummary = (
+      application: Omit<ApplicationRow, "aid_programs">,
+  ): ApplicationSummary => ({
+    id: application.id,
+    profileId: application.profile_id,
+    programId: application.program_id,
+    programCode: program.code,
+    programName: program.name,
+    agency: program.agency ?? "",
+    status: application.status,
+    currentStep: application.current_step,
+    simulatedSubmittedAt: application.simulated_submitted_at,
+    createdAt: application.created_at,
+    updatedAt: application.updated_at,
+    externalSubmission: getExternalSubmission({
+      ...application,
+      aid_programs: {
+        code: program.code,
+        name: program.name,
+        agency: program.agency ?? "",
+      },
+    }),
+  });
+
+  // Look for an existing unfinished JKM application
+  const { data: existing, error: existingError } = await supabase
+      .from("applications")
+      .select(`
+        id,
+        profile_id,
+        program_id,
+        status,
+        current_step,
+        simulated_submitted_at,
+        created_at,
+        updated_at,
+        external_application_submissions (
+          provider,
+          submission_state,
+          provider_application_id,
+          reference_no,
+          provider_status,
+          submitted_at,
+          provider_updated_at,
+          last_synced_at
+        )
+      `)
+      .eq("profile_id", profileId)
+      .eq("program_id", program.id)
+      .in("status", ["draft", "in_progress", "ready_for_review"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+  if (existingError) {
+    throw new Error(
+        `Unable to retrieve ${programCode} application: ${existingError.message}`,
+    );
+  }
+
+  // Resume the existing application instead of creating a duplicate
+  if (existing) {
+    return toApplicationSummary(
+        existing as unknown as Omit<ApplicationRow, "aid_programs">,
+    );
+  }
+
+  // Create a new JKM application using db defaults:
+  // id = gen_random_uuid()
+  // status = draft
+  // created_at = now()
+  // updated_at = now()
+  const { data: created, error: createError } = await supabase
+      .from("applications")
+      .insert({
+        profile_id: profileId,
+        program_id: program.id,
+      })
+      .select(`
+        id,
+        profile_id,
+        program_id,
+        status,
+        current_step,
+        simulated_submitted_at,
+        created_at,
+        updated_at
+      `)
+      .single();
+
+  if (createError) {
+    throw new Error(
+        `Unable to create ${programCode} application: ${createError.message}`,
+    );
+  }
+
+  if (!created) {
+    throw new Error(
+        `${programCode} application was not created successfully.`,
     );
   }
 
