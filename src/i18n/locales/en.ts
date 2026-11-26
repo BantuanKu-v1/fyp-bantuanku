@@ -500,7 +500,7 @@ const en = {
         cancelled: "Cancelled",
       },
 
-      submissionState: {
+      submissionStates: {
         pending: "Submission Pending",
         failed: "Submission Failed",
         unknown: "Submission Unknown",
