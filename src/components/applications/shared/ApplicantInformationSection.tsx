@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-import CollapsibleSection from "../../components/layout/CollapsibleSection";
-import ApplicationDetailRow from "./ApplicationDetailRow";
+import CollapsibleSection from "../../layout/CollapsibleSection.tsx";
+import ApplicationDetailRow from "./ApplicationDetailRow.tsx";
 
-import { formatDate } from "../../utils/dateUtils";
+import { formatDate } from "../../../utils/dateUtils.ts";
 
 export type ApplicantInformation = {
   fullName: string | null;
