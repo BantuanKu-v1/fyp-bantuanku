@@ -6,6 +6,8 @@ type CollapsibleSectionProps = {
   title: string;
   children: ReactNode;
   description?: string;
+  summary?: ReactNode;
+  summaryAlwaysVisible?: boolean;
   defaultExpanded?: boolean;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
@@ -17,6 +19,8 @@ export default function CollapsibleSection({
     title,
     children,
     description,
+    summary,
+    summaryAlwaysVisible = false,
     defaultExpanded = false,
     expanded: controlledExpanded,
     onExpandedChange,
@@ -26,6 +30,12 @@ export default function CollapsibleSection({
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
 
   const expanded = controlledExpanded ?? internalExpanded;
+
+  const showSummary =
+      summary !== undefined &&
+      summary !== null &&
+      summary !== false &&
+      (summaryAlwaysVisible || !expanded);
 
   const handleToggle = () => {
     if (disabled) {
@@ -43,31 +53,31 @@ export default function CollapsibleSection({
 
   return (
       <View
-        className={
-          hasError
-            ? "overflow-hidden rounded-xl border border-destructive bg-card"
-            : "overflow-hidden rounded-xl border border-border bg-card"
-        }
+          className={
+            hasError
+                ? "overflow-hidden rounded-xl border border-destructive bg-card"
+                : "overflow-hidden rounded-xl border border-border bg-card"
+          }
       >
         <Pressable
-          onPress={handleToggle}
-          disabled={disabled}
-          accessibilityRole="button"
-          accessibilityState={{ expanded, disabled }}
-          accessibilityLabel={title}
-          className={
-            disabled
-              ? "flex-row items-center justify-between px-4 py-4 opacity-50"
-              : "flex-row items-center justify-between px-4 py-4"
-          }
+            onPress={handleToggle}
+            disabled={disabled}
+            accessibilityRole="button"
+            accessibilityState={{ expanded, disabled }}
+            accessibilityLabel={title}
+            className={
+              disabled
+                  ? "flex-row items-center justify-between px-4 py-4 opacity-50"
+                  : "flex-row items-center justify-between px-4 py-4"
+            }
         >
           <View className="mr-3 flex-1">
             <Text
-              className={
-                hasError
-                  ? "text-base font-semibold text-destructive"
-                  : "text-base font-semibold text-foreground"
-              }
+                className={
+                  hasError
+                      ? "text-base font-semibold text-destructive"
+                      : "text-base font-semibold text-foreground"
+                }
             >
               {title}
             </Text>
@@ -91,6 +101,12 @@ export default function CollapsibleSection({
             )}
           </View>
         </Pressable>
+
+        {showSummary && (
+            <View className="px-4 pb-4">
+              {summary}
+            </View>
+        )}
 
         {expanded && (
             <View className="border-t border-border px-4 py-5">
