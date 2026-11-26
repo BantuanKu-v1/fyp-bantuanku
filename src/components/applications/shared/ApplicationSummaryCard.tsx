@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
 import { FileText } from "lucide-react-native";
 
-import Card from "../../components/ui/Card";
-import Badge from "../../components/ui/Badge";
+import Card from "../../ui/Card.tsx";
+import Badge from "../../ui/Badge.tsx";
 
 export type ApplicationSummaryCardProps = {
   programCode: string;
