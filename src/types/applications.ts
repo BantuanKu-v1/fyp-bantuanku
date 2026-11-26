@@ -265,3 +265,21 @@ export type JkmApplicationDraftData =
     | BatApplicationDraftData
     | BptApplicationDraftData
     | BweApplicationDraftData;
+
+export interface JkmApplicantReview {
+  programCode: JkmProgramCode;
+
+  fullName: string | null;
+  identificationNo: string | null;
+  dateOfBirth: string | null;
+  citizenship: string | null;
+
+  profileComplete: boolean;
+  addressComplete: boolean;
+
+  householdRequired: boolean;
+  householdComplete: boolean;
+  householdMembersComplete: boolean;
+
+  profileReady: boolean;
+}
