@@ -17,9 +17,9 @@ import {
   getStrApplicantReview,
   getStrExternalSubmissionState,
   submitStrApplication
-} from "../../../services/applications/strApplicationService";
+} from "../../../services/applications/str/strApplicationService.ts";
 
-import type { StrExternalSubmissionState } from "../../../services/applications/strApplicationService";
+import type { StrExternalSubmissionState } from "../../../services/applications/str/strApplicationService.ts";
 
 import {
   getApplicationPreliminaryEligibility,

@@ -4,19 +4,19 @@ import {
   FunctionsFetchError,
 } from "@supabase/supabase-js";
 
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase.ts";
 
 import {
   STR_REQUIRED_ADDRESS_FIELDS,
   STR_REQUIRED_PROFILE_FIELDS,
   STR_APPLICATION_LABELS,
-} from "../../constants/applications/strApplication";
+} from "../../../constants/applications/strApplication.ts";
 
 import type {
   ApiResponse,
   StrApplicantReview,
   StrSubmissionResult,
-} from "../../types/applications";
+} from "../../../types/applications.ts";
 
 export type StrExternalSubmissionState =
     | "pending"
