@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { CircleCheck, CircleAlert } from "lucide-react-native";
 
-import Badge from "../../components/ui/Badge";
+import Badge from "../../ui/Badge.tsx";
 
 export type ApplicationReadinessRowProps = {
   label: string;
