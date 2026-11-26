@@ -586,7 +586,392 @@ const zh = {
           submissionUncertain: "无法确认 STR 是否已收到您的申请。请刷新并检查申请状态，再决定是否重试。",
           invalidConfirmation: "STR 服务返回了无效的提交确认。请检查您的申请状态。",
         },
+      },
 
+      jkm: {
+        title: "{{programCode}} 援助申请",
+        description: "请检查您的个人资料，并填写所需信息后提交 JKM 援助申请。",
+
+        sections: {
+          applicationDetails: "申请详情",
+          applicantInformation: "申请人资料",
+          applicationReadiness: "申请准备情况",
+          programSpecificInformation: "援助项目专属资料",
+          supportingDocuments: "证明文件",
+          preliminaryEligibility: "初步资格评估",
+          applicationReview: "申请资料确认",
+          submissionConfirmation: "提交确认",
+        },
+
+        fields: {
+          program: "援助项目",
+          agency: "负责机构",
+          applicationId: "申请编号",
+          status: "申请状态",
+
+          fullName: "姓名",
+          identificationNo: "身份证号码",
+          dateOfBirth: "出生日期",
+          citizenship: "国籍",
+
+          referenceNo: "参考编号",
+          providerApplicationId: "JKM 申请编号",
+          providerStatus: "JKM 申请状态",
+          submittedAt: "提交时间",
+        },
+
+        readiness: {
+          applicant: "申请人资料",
+          address: "居住地址",
+          household: "家庭资料",
+          householdMembers: "家庭成员",
+          programSpecificData: "援助项目专属资料",
+
+          complete: "已完成",
+          incomplete: "未完成",
+          notRequired: "无需填写",
+        },
+
+        buttons: {
+          submit: "提交 JKM 申请",
+          alreadySubmitted: "申请已提交",
+          refresh: "刷新资料",
+          saveDraft: "保存草稿",
+          review: "检查申请资料",
+          checkSubmission: "查询提交状态",
+          confirm: "确认提交",
+          submitting: "正在提交...",
+        },
+
+        messages: {
+          loading: "正在加载您的 JKM 申请...",
+          loadError: "无法加载您的 JKM 申请，请重试。",
+
+          notAvailable: "暂无资料",
+
+          attentionRequired: "需要注意",
+          missingInformation: "请先完善个人资料中缺失的信息，再提交申请。",
+          incompleteApplication: "请填写所需的申请资料后再提交。",
+
+          draftSaved: "您的申请草稿已保存。",
+          draftSaveError: "无法保存您的申请草稿，请重试。",
+
+          reviewDescription: "请在提交申请前检查您的资料及申报内容。",
+
+          confirmTitle: "提交 JKM 申请？",
+          confirmDescription: "请确认您的资料及申报内容准确无误，再向 JKM 提交申请。",
+
+          declaration: "本人确认本申请所提供的资料完整且准确。",
+
+          successTitle: "申请提交成功",
+          successDescription: "您的 JKM 申请已成功提交。参考编号：{{referenceNo}}",
+
+          submissionError: "无法提交 JKM 申请。",
+          submissionUncertain: "暂时无法确认 JKM 申请是否已成功提交，请先查询申请状态后再重试。",
+          invalidConfirmation: "JKM 服务返回了无效的提交确认信息，请查询您的申请状态。",
+
+          invalidProgram: "不支持此 JKM 援助项目。",
+          invalidSubmissionState: "无效的 JKM 外部提交状态。",
+
+          alreadySubmittedTitle: "申请已提交",
+          alreadySubmittedDescription: "您的 JKM 申请已提交，无需重复提交。",
+          existingConfirmation: "这是您之前提交申请时收到的确认信息。",
+
+          pendingTitle: "申请正在提交",
+          pendingDescription: "您的申请正在处理中，请先查询提交状态后再重试。",
+
+          unknownTitle: "提交状态未知",
+          unknownDescription: "目前无法确认 JKM 是否已收到您的申请。在提交状态得到确认之前，您无法修改申请资料。",
+
+          failedTitle: "申请提交失败",
+          failedDescription: "您的申请未能成功提交，请检查申请资料后再重试。",
+
+          applicationLocked: "此申请正在提交、尚未确认提交状态或已完成提交，因此暂时无法修改。",
+
+          eligibilityDisclaimer: "初步资格评估结果并不代表 JKM 已批准您的申请。JKM 可能要求您提供额外资料或进行进一步核实。",
+          simulationDisclaimer: "此申请仅提交至模拟 JKM 服务，用于演示目的。",
+        },
+
+        form: {
+          required: "必填",
+          optional: "选填",
+
+          textPlaceholder: "请输入详细资料",
+          amountPlaceholder: "请输入金额（RM）",
+          countPlaceholder: "请输入整数",
+
+          validation: {
+            required: "此项为必填项。",
+            boolean: "请选择是或否。",
+            select: "请选择有效选项。",
+            number: "请输入有效数字。",
+            nonNegative: "不允许输入负数。",
+            integer: "请输入整数。",
+            date: "请输入有效日期。",
+            identificationNo: "请输入有效的身份证明号码。",
+            maxLength: "输入内容不得超过 {{count}} 个字符。",
+            declarationRequired: "请在提交申请前确认您的申报内容。",
+          },
+        },
+
+        options: {
+          citizenship: {
+            malaysian: "马来西亚公民",
+            nonMalaysian: "非马来西亚公民",
+          },
+
+          relationship: {
+            spouse: "配偶",
+            child: "子女",
+            parent: "父母",
+            sibling: "兄弟姐妹",
+            grandchild: "孙子女",
+            other: "其他",
+          },
+        },
+
+        health: {
+          title: "健康资料",
+
+          isOku: "此人是否为残障人士（OKU）？",
+          okuRegistered: "此人是否已注册为残障人士（OKU）？",
+          disabilityDescription: "残障情况说明",
+
+          hasChronicIllness: "此人是否患有慢性疾病？",
+          chronicIllnessDetails: "慢性疾病详情",
+
+          isBedridden: "此人是否卧床不起？",
+          requiresContinuousTreatment: "此人是否需要持续治疗？",
+          treatmentStartDate: "治疗开始日期",
+        },
+
+        programs: {
+          ba: {
+            title: "一般援助（Bantuan Am）",
+            description: "请提供您目前领取的福利援助及其他特殊情况的资料。",
+
+            sections: {
+              welfareAssistance: "现有福利援助",
+              additionalCircumstances: "其他特殊情况",
+            },
+
+            fields: {
+              receivesOtherJkmMonthlyAssistance: "您目前是否正在领取 JKM 提供的其他每月援助？",
+              currentJkmAssistanceProgram: "目前领取的 JKM 援助项目",
+
+              economicHardship: "您是否面临经济困难？",
+              healthRelatedNeeds: "您是否有额外的健康相关需求？",
+              dependentRelatedNeeds: "您是否有与受抚养人相关的额外需求？",
+              otherCircumstances: "是否有其他需要 JKM 考虑的特殊情况？",
+
+              description: "其他特殊情况说明",
+            },
+
+            validation: {
+              currentProgramRequired: "请输入您目前领取的 JKM 援助项目名称。",
+              inconsistentAssistance: "请检查您所申报的现有 JKM 援助资料。",
+              circumstancesDescriptionRequired: "请说明其他特殊情况。",
+            },
+          },
+
+          bat: {
+            title: "义肢及辅助器具援助（Bantuan Alat Tiruan / Alat Sokongan）",
+            description: "请提供受益人、所申请的辅助器具及相关推荐资料。",
+
+            sections: {
+              beneficiary: "受益人资料",
+              beneficiaryHealth: "受益人健康资料",
+              functionalLimitations: "身体功能受限情况",
+              equipment: "辅助器具资料",
+              recommendation: "推荐资料",
+              additionalJustification: "额外申请理由",
+            },
+
+            fields: {
+              beneficiaryType: "谁将使用所申请的辅助器具？",
+              fullName: "受益人姓名",
+              identificationNo: "受益人身份证明号码",
+              relationshipToApplicant: "与申请人的关系",
+
+              functionalLimitationDescription: "请说明受益人的身体功能受限情况。",
+
+              equipmentType: "辅助器具类型",
+              equipmentDescription: "辅助器具说明",
+              purpose: "辅助器具用途",
+              estimatedCost: "预计器具费用（RM）",
+              supplierName: "供应商名称",
+              quotationAvailable: "是否已有辅助器具报价单？",
+
+              recommendationAvailable: "是否已有相关推荐证明？",
+              recommendingAuthority: "推荐方",
+              recommendationOfficerName: "推荐人员姓名",
+              recommendationInstitution: "推荐机构",
+              recommendationDetails: "推荐详情",
+
+              additionalJustification: "辅助器具额外申请理由",
+            },
+
+            options: {
+              beneficiaryType: {
+                applicant: "本人",
+                dependent: "我的受抚养人",
+              },
+
+              recommendingAuthority: {
+                medicalOfficer: "医务人员",
+                jkmOfficer: "JKM 官员",
+                other: "其他",
+              },
+            },
+
+            messages: {
+              applicantBeneficiary: "您的个人资料及健康资料将作为受益人的资料使用。",
+              dependentBeneficiary: "请提供受抚养人的资料。您的个人健康资料不会用于该受益人。",
+
+              highCostEquipment: "费用超过 RM20,000 的辅助器具需要提供额外申请理由。",
+              recommendationVerification: "JKM 可能需要核实推荐资料及所申请的辅助器具。",
+            },
+
+            validation: {
+              beneficiaryTypeRequired: "请选择受益人类型。",
+              beneficiaryNameRequired: "请输入受益人的姓名。",
+              beneficiaryRelationshipRequired: "请注明受益人与您的关系。",
+              dependentIdentificationConflict: "受抚养人的身份证明号码不得与申请人的身份证明号码相同。",
+
+              equipmentTypeRequired: "请注明辅助器具类型。",
+              equipmentDescriptionRequired: "请说明所申请的辅助器具。",
+              equipmentPurposeRequired: "请说明所申请辅助器具的用途。",
+
+              recommendingAuthorityRequired: "请注明推荐方。",
+              recommendationDetailsRequired: "请提供推荐方的详细资料。",
+              additionalJustificationRequired: "费用超过 RM20,000 的辅助器具必须提供额外申请理由。",
+            },
+          },
+
+          bpt: {
+            title: "护理援助（Bantuan Penjagaan）",
+            description: "请提供患者、照护者及医疗证明的相关资料。",
+
+            sections: {
+              applicationPathway: "申请类别",
+              patient: "患者资料",
+              patientHealth: "患者健康资料",
+              caregiver: "照护者资料",
+              medicalConfirmation: "医疗证明",
+              additionalInformation: "补充资料",
+            },
+
+            fields: {
+              applicationPathway: "您将以哪种身份申请此项援助？",
+
+              patient: {
+                fullName: "患者姓名",
+                identificationNo: "患者身份证明号码",
+                citizenship: "患者国籍",
+                relationshipToApplicant: "患者与申请人的关系",
+              },
+
+              caregiver: {
+                fullName: "照护者姓名",
+                identificationNo: "照护者身份证明号码",
+                citizenship: "照护者国籍",
+                relationship: "与患者的关系",
+                providesIntensiveCare: "照护者是否提供密集护理？",
+                eligiblePersonsCaredFor: "接受护理的符合资格人数",
+              },
+
+              medicalConfirmation: {
+                medicalConfirmationAvailable: "是否已有医疗证明？",
+                medicalInstitution: "医疗机构",
+                medicalOfficerName: "医务人员姓名",
+                diagnosisDetails: "诊断详情",
+                treatmentDetails: "治疗详情",
+                specialistDetails: "专科医生资料",
+              },
+
+              reasonForSelfApplication: "自行申请的原因",
+              additionalRemarks: "补充说明",
+            },
+
+            options: {
+              applicationPathway: {
+                caregiver: "以照护者身份申请",
+                nonBedriddenPatient: "以非卧床慢性疾病患者身份申请",
+                bedriddenPatientWithoutEligibleCaregiver: "以没有符合资格照护者的卧床患者身份申请",
+              },
+
+              reasonForSelfApplication: {
+                noCaregiver: "没有照护者",
+                nonMalaysianCaregiver: "照护者并非马来西亚公民",
+              },
+            },
+
+            messages: {
+              caregiverPathway: "请提供您所照护患者的资料。",
+              patientPathway: "您的个人资料将作为患者的资料使用。",
+
+              nonBedriddenPatientPathway: "请提供您的慢性疾病及持续治疗资料。",
+              bedriddenPatientPathway: "请说明您在没有符合资格照护者的情况下自行申请的原因。",
+
+              medicalVerification: "JKM 可能要求提供医疗证明，并核实患者的护理安排。",
+            },
+
+            validation: {
+              applicationPathwayRequired: "请选择申请类别。",
+
+              patientNameRequired: "请输入患者姓名。",
+              patientRelationshipRequired: "请注明患者与您的关系。",
+
+              caregiverNameRequired: "请输入照护者姓名。",
+              caregiverInformationRequired: "请完善照护者资料。",
+
+              differentIdentificationRequired: "患者与照护者必须为不同人士。",
+
+              intensiveCareRequired: "照护者必须确认已提供密集护理。",
+              bedriddenPatientRequired: "此申请类别要求患者处于卧床状态。",
+
+              nonBedriddenPatientRequired: "此申请类别要求患者处于非卧床状态。",
+              chronicIllnessRequired: "请确认患者患有慢性疾病。",
+              continuousTreatmentRequired: "请确认患者需要持续治疗。",
+              treatmentStartDateRequired: "请提供治疗开始日期。",
+
+              selfApplicationReasonRequired: "请注明自行申请的原因。",
+              inconsistentCaregiverInformation: "请检查照护者资料及自行申请的原因。",
+            },
+          },
+
+          bwe: {
+            title: "乐龄人士援助（Bantuan Warga Emas）",
+            description: "请提供家庭支持、经济状况及特殊考虑事项的相关资料。",
+
+            sections: {
+              familySupport: "家庭及照护者支持",
+              incomeDeclaration: "收入申报",
+              specialConsideration: "特殊考虑",
+            },
+
+            fields: {
+              hasChildren: "您是否有子女？",
+              dependsOnFamilyOrCaregiver: "您是否依赖家庭成员或照护者的支持？",
+
+              familyOrCaregiverMonthlyIncome: "家庭成员或照护者每月收入（RM）",
+              incomeDeclarationDetails: "额外收入申报详情",
+
+              specialConsiderationRequested: "您是否希望 JKM 给予特殊考虑？",
+              specialConsiderationReason: "申请特殊考虑的原因",
+            },
+
+            messages: {
+              incomeDeclarationHelper: "如您知晓家庭成员或照护者的收入，请提供相关资料。",
+              specialConsiderationHelper: "请说明您希望 JKM 在审核申请时考虑的特殊情况。",
+            },
+
+            validation: {
+              specialConsiderationRequired: "请注明是否申请特殊考虑。",
+              specialConsiderationReasonRequired: "请提供申请特殊考虑的原因。",
+            },
+          },
+        },
       },
     },
 

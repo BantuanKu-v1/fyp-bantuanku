@@ -580,6 +580,392 @@ const en = {
           invalidConfirmation: "The STR service returned an invalid submission confirmation. Please check your application status.",
         },
       },
+
+      jkm: {
+        title: "{{programCode}} Application",
+        description: "Review your information and complete the required details before submitting your JKM application.",
+
+        sections: {
+          applicationDetails: "Application Details",
+          applicantInformation: "Applicant Information",
+          applicationReadiness: "Application Readiness",
+          programSpecificInformation: "Programme-Specific Information",
+          supportingDocuments: "Supporting Documents",
+          preliminaryEligibility: "Preliminary Eligibility",
+          applicationReview: "Application Review",
+          submissionConfirmation: "Submission Confirmation",
+        },
+
+        fields: {
+          program: "Aid Program",
+          agency: "Agency",
+          applicationId: "Application ID",
+          status: "Application Status",
+
+          fullName: "Full Name",
+          identificationNo: "IC Number",
+          dateOfBirth: "Date of Birth",
+          citizenship: "Citizenship",
+
+          referenceNo: "Reference Number",
+          providerApplicationId: "JKM Application ID",
+          providerStatus: "JKM Status",
+          submittedAt: "Submitted At",
+        },
+
+        readiness: {
+          applicant: "Applicant Information",
+          address: "Residential Address",
+          household: "Household Information",
+          householdMembers: "Household Members",
+          programSpecificData: "Programme-Specific Information",
+
+          complete: "Complete",
+          incomplete: "Incomplete",
+          notRequired: "Not Required",
+        },
+
+        buttons: {
+          submit: "Submit JKM Application",
+          alreadySubmitted: "Application Submitted",
+          refresh: "Refresh Information",
+          saveDraft: "Save Draft",
+          review: "Review Application",
+          checkSubmission: "Check Submission Status",
+          confirm: "Confirm Submission",
+          submitting: "Submitting...",
+        },
+
+        messages: {
+          loading: "Loading your JKM application...",
+          loadError: "Unable to load your JKM application. Please try again.",
+
+          notAvailable: "Not available",
+
+          attentionRequired: "Attention Required",
+          missingInformation: "Complete the missing information in your profile before submitting.",
+          incompleteApplication: "Please complete the required application information before submitting.",
+
+          draftSaved: "Your application draft has been saved.",
+          draftSaveError: "Unable to save your application draft. Please try again.",
+
+          reviewDescription: "Please review your information and declarations before submitting your application.",
+
+          confirmTitle: "Submit JKM Application?",
+          confirmDescription: "Please confirm that your information and declarations are accurate before submitting your application to JKM.",
+
+          declaration: "I confirm that the information provided in this application is complete and accurate.",
+
+          successTitle: "Application Submitted",
+          successDescription: "Your JKM application was submitted successfully. Reference number: {{referenceNo}}",
+
+          submissionError: "Unable to submit the JKM application.",
+          submissionUncertain: "The JKM submission could not be confirmed. Please check your application status before trying again.",
+          invalidConfirmation: "The JKM service returned an invalid submission confirmation. Please check your application status.",
+
+          invalidProgram: "Unsupported JKM aid programme.",
+          invalidSubmissionState: "Invalid JKM external submission state.",
+
+          alreadySubmittedTitle: "Application Already Submitted",
+          alreadySubmittedDescription: "Your JKM application has already been submitted. You do not need to submit it again.",
+          existingConfirmation: "This is the confirmation from your previous submission.",
+
+          pendingTitle: "Submission Pending",
+          pendingDescription: "Your application submission is being processed. Please check its status before trying again.",
+
+          unknownTitle: "Submission Status Unknown",
+          unknownDescription: "We could not confirm whether JKM received your application. Your application information cannot be edited until the submission status is resolved.",
+
+          failedTitle: "Submission Failed",
+          failedDescription: "Your application was not submitted successfully. Review your information before trying again.",
+
+          applicationLocked: "This application cannot be edited because its submission is pending, unconfirmed or already completed.",
+
+          eligibilityDisclaimer: "Your preliminary eligibility result does not guarantee JKM approval. JKM may require additional information or verification.",
+          simulationDisclaimer: "This application is submitted to a simulated JKM service for demonstration purposes only.",
+        },
+
+        form: {
+          required: "Required",
+          optional: "Optional",
+
+          textPlaceholder: "Enter details",
+          amountPlaceholder: "Enter amount (RM)",
+          countPlaceholder: "Enter a whole number",
+
+          validation: {
+            required: "This field is required.",
+            boolean: "Please select Yes or No.",
+            select: "Please select an available option.",
+            number: "Enter a valid number.",
+            nonNegative: "Negative values are not allowed.",
+            integer: "Enter a whole number.",
+            date: "Enter a valid date.",
+            identificationNo: "Enter a valid identification number.",
+            maxLength: "Enter no more than {{count}} characters.",
+            declarationRequired: "Please confirm your declaration before submitting.",
+          },
+        },
+
+        options: {
+          citizenship: {
+            malaysian: "Malaysian",
+            nonMalaysian: "Non-Malaysian",
+          },
+
+          relationship: {
+            spouse: "Spouse",
+            child: "Child",
+            parent: "Parent",
+            sibling: "Sibling",
+            grandchild: "Grandchild",
+            other: "Other",
+          },
+        },
+
+        health: {
+          title: "Health Information",
+
+          isOku: "Is this person a Person with Disabilities (OKU)?",
+          okuRegistered: "Is this person registered as OKU?",
+          disabilityDescription: "Disability Description",
+
+          hasChronicIllness: "Does this person have a chronic illness?",
+          chronicIllnessDetails: "Chronic Illness Details",
+
+          isBedridden: "Is this person bedridden?",
+          requiresContinuousTreatment: "Does this person require continuous treatment?",
+          treatmentStartDate: "Treatment Start Date",
+        },
+
+        programs: {
+          ba: {
+            title: "Bantuan Am",
+            description: "Provide information about your existing welfare assistance and additional circumstances.",
+
+            sections: {
+              welfareAssistance: "Existing Welfare Assistance",
+              additionalCircumstances: "Additional Circumstances",
+            },
+
+            fields: {
+              receivesOtherJkmMonthlyAssistance: "Are you currently receiving other monthly assistance from JKM?",
+              currentJkmAssistanceProgram: "Current JKM Assistance Programme",
+
+              economicHardship: "Are you experiencing economic hardship?",
+              healthRelatedNeeds: "Do you have additional health-related needs?",
+              dependentRelatedNeeds: "Do you have additional needs related to your dependents?",
+              otherCircumstances: "Are there other circumstances that JKM should consider?",
+
+              description: "Additional Circumstances Description",
+            },
+
+            validation: {
+              currentProgramRequired: "Please provide the name of your current JKM assistance programme.",
+              inconsistentAssistance: "Please review your existing JKM assistance declaration.",
+              circumstancesDescriptionRequired: "Please describe the other circumstances.",
+            },
+          },
+
+          bat: {
+            title: "Bantuan Alat Tiruan / Alat Sokongan",
+            description: "Provide information about the beneficiary, requested equipment and supporting recommendation.",
+
+            sections: {
+              beneficiary: "Beneficiary Information",
+              beneficiaryHealth: "Beneficiary Health Information",
+              functionalLimitations: "Functional Limitations",
+              equipment: "Equipment Information",
+              recommendation: "Recommendation Information",
+              additionalJustification: "Additional Justification",
+            },
+
+            fields: {
+              beneficiaryType: "Who will receive the requested equipment?",
+              fullName: "Beneficiary Full Name",
+              identificationNo: "Beneficiary Identification Number",
+              relationshipToApplicant: "Relationship to Applicant",
+
+              functionalLimitationDescription: "Describe the beneficiary's functional limitations.",
+
+              equipmentType: "Equipment Type",
+              equipmentDescription: "Equipment Description",
+              purpose: "Purpose of Equipment",
+              estimatedCost: "Estimated Equipment Cost (RM)",
+              supplierName: "Supplier Name",
+              quotationAvailable: "Is an equipment quotation available?",
+
+              recommendationAvailable: "Is a supporting recommendation available?",
+              recommendingAuthority: "Recommending Authority",
+              recommendationOfficerName: "Recommending Officer's Name",
+              recommendationInstitution: "Recommending Institution",
+              recommendationDetails: "Recommendation Details",
+
+              additionalJustification: "Additional Equipment Justification",
+            },
+
+            options: {
+              beneficiaryType: {
+                applicant: "Myself",
+                dependent: "My Dependent",
+              },
+
+              recommendingAuthority: {
+                medicalOfficer: "Medical Officer",
+                jkmOfficer: "JKM Officer",
+                other: "Other",
+              },
+            },
+
+            messages: {
+              applicantBeneficiary: "Your personal and health information will be used for the beneficiary.",
+              dependentBeneficiary: "Provide the dependent beneficiary's information. Your own health information will not be used for this person.",
+
+              highCostEquipment: "Equipment exceeding RM20,000 requires additional justification.",
+              recommendationVerification: "JKM may need to verify the recommendation and requested equipment.",
+            },
+
+            validation: {
+              beneficiaryTypeRequired: "Please select a beneficiary type.",
+              beneficiaryNameRequired: "Please provide the beneficiary's full name.",
+              beneficiaryRelationshipRequired: "Please specify the beneficiary's relationship to you.",
+              dependentIdentificationConflict: "The dependent beneficiary must not have the same identification number as the applicant.",
+
+              equipmentTypeRequired: "Please specify the equipment type.",
+              equipmentDescriptionRequired: "Please describe the requested equipment.",
+              equipmentPurposeRequired: "Please explain the purpose of the requested equipment.",
+
+              recommendingAuthorityRequired: "Please specify the recommending authority.",
+              recommendationDetailsRequired: "Please provide details of the recommending authority.",
+              additionalJustificationRequired: "Additional justification is required for equipment exceeding RM20,000.",
+            },
+          },
+
+          bpt: {
+            title: "Bantuan Penjagaan",
+            description: "Provide information about the patient, caregiver and medical confirmation.",
+
+            sections: {
+              applicationPathway: "Application Pathway",
+              patient: "Patient Information",
+              patientHealth: "Patient Health Information",
+              caregiver: "Caregiver Information",
+              medicalConfirmation: "Medical Confirmation",
+              additionalInformation: "Additional Information",
+            },
+
+            fields: {
+              applicationPathway: "How are you applying for this assistance?",
+
+              patient: {
+                fullName: "Patient Full Name",
+                identificationNo: "Patient Identification Number",
+                citizenship: "Patient Citizenship",
+                relationshipToApplicant: "Patient's Relationship to Applicant",
+              },
+
+              caregiver: {
+                fullName: "Caregiver Full Name",
+                identificationNo: "Caregiver Identification Number",
+                citizenship: "Caregiver Citizenship",
+                relationship: "Relationship to Patient",
+                providesIntensiveCare: "Does the caregiver provide intensive care?",
+                eligiblePersonsCaredFor: "Number of Eligible Persons Receiving Care",
+              },
+
+              medicalConfirmation: {
+                medicalConfirmationAvailable: "Is medical confirmation available?",
+                medicalInstitution: "Medical Institution",
+                medicalOfficerName: "Medical Officer's Name",
+                diagnosisDetails: "Diagnosis Details",
+                treatmentDetails: "Treatment Details",
+                specialistDetails: "Specialist Details",
+              },
+
+              reasonForSelfApplication: "Reason for Self-Application",
+              additionalRemarks: "Additional Remarks",
+            },
+
+            options: {
+              applicationPathway: {
+                caregiver: "Applying as a caregiver",
+                nonBedriddenPatient: "Applying as a non-bedridden patient with a chronic illness",
+                bedriddenPatientWithoutEligibleCaregiver: "Applying as a bedridden patient without an eligible caregiver",
+              },
+
+              reasonForSelfApplication: {
+                noCaregiver: "No caregiver is available",
+                nonMalaysianCaregiver: "The caregiver is not a Malaysian citizen",
+              },
+            },
+
+            messages: {
+              caregiverPathway: "Provide information about the patient you are caring for.",
+              patientPathway: "Your personal information will be used as the patient's information.",
+
+              nonBedriddenPatientPathway: "Provide information about your chronic illness and continuous treatment.",
+              bedriddenPatientPathway: "Provide the reason why you are applying without an eligible caregiver.",
+
+              medicalVerification: "JKM may require medical confirmation and verification of the patient's care arrangements.",
+            },
+
+            validation: {
+              applicationPathwayRequired: "Please select an application pathway.",
+
+              patientNameRequired: "Please provide the patient's full name.",
+              patientRelationshipRequired: "Please specify the patient's relationship to you.",
+
+              caregiverNameRequired: "Please provide the caregiver's full name.",
+              caregiverInformationRequired: "Please complete the caregiver information.",
+
+              differentIdentificationRequired: "The patient and caregiver must be different individuals.",
+
+              intensiveCareRequired: "The caregiver must declare that intensive care is provided.",
+              bedriddenPatientRequired: "This application pathway requires a bedridden patient.",
+
+              nonBedriddenPatientRequired: "This application pathway requires a non-bedridden patient.",
+              chronicIllnessRequired: "Please confirm the patient's chronic illness.",
+              continuousTreatmentRequired: "Please confirm that continuous treatment is required.",
+              treatmentStartDateRequired: "Please provide the treatment start date.",
+
+              selfApplicationReasonRequired: "Please specify the reason for self-application.",
+              inconsistentCaregiverInformation: "Please review the caregiver information and reason for self-application.",
+            },
+          },
+
+          bwe: {
+            title: "Bantuan Warga Emas",
+            description: "Provide information about your family support, financial circumstances and special consideration.",
+
+            sections: {
+              familySupport: "Family and Caregiver Support",
+              incomeDeclaration: "Income Declaration",
+              specialConsideration: "Special Consideration",
+            },
+
+            fields: {
+              hasChildren: "Do you have children?",
+              dependsOnFamilyOrCaregiver: "Do you depend on family members or a caregiver?",
+
+              familyOrCaregiverMonthlyIncome: "Family or Caregiver Monthly Income (RM)",
+              incomeDeclarationDetails: "Additional Income Declaration Details",
+
+              specialConsiderationRequested: "Are you requesting special consideration from JKM?",
+              specialConsiderationReason: "Reason for Special Consideration",
+            },
+
+            messages: {
+              incomeDeclarationHelper: "Provide the family or caregiver income information if known.",
+              specialConsiderationHelper: "Explain any circumstances that you would like JKM to consider when reviewing your application.",
+            },
+
+            validation: {
+              specialConsiderationRequired: "Please indicate whether special consideration is requested.",
+              specialConsiderationReasonRequired: "Please provide a reason for requesting special consideration.",
+            },
+          },
+        },
+      },
     },
 
     eligibility: {
