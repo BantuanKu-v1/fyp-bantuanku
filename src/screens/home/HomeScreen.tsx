@@ -474,6 +474,36 @@ export default function HomeScreen({
             </Pressable>
           </View>
 
+          {/* JKM application integration testing */}
+          <View className="gap-3 rounded-xl border border-border bg-surface p-4">
+            <View className="gap-1">
+              <Text className="text-base font-semibold text-foreground">
+                JKM Application Testing
+              </Text>
+
+              <Text className="text-sm text-muted-foreground">
+                Test the BA application workflow, including draft creation,
+                applicant information validation, submission to the JKM
+                Mock Web, and application status synchronization.
+              </Text>
+            </View>
+
+            <Pressable
+                onPress={() =>
+                    navigation.navigate("JkmApplication", {
+                      programCode: "BA",
+                    })
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Test BA application"
+                className="items-center rounded-xl bg-primary px-4 py-4"
+            >
+              <Text className="font-semibold text-white">
+                Test BA Application
+              </Text>
+            </Pressable>
+          </View>
+
           {/* Overall error */}
           {error && (
               <View className="rounded-lg bg-error-background p-4">
