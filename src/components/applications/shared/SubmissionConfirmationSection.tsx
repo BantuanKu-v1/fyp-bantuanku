@@ -1,113 +1,143 @@
 import { Text, View } from "react-native";
-import { CircleCheck } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
-import CollapsibleSection from "../../layout/CollapsibleSection.tsx";
-import Alert from "../../ui/Alert.tsx";
-import ApplicationDetailRow from "./ApplicationDetailRow.tsx";
+import CollapsibleSection from "../../layout/CollapsibleSection";
+import Alert from "../../ui/Alert";
 
-import { formatDateTime } from "../../../utils/dateUtils.ts";
+import ApplicationDetailRow from "./ApplicationDetailRow";
 
-export type SubmissionConfirmationDetails = {
-  referenceNo: string;
-  providerApplicationId: string | null;
-  providerStatusLabel: string | null;
-  submittedAt: string | null;
-  alreadySubmitted: boolean;
-};
+import { formatDateTime } from "../../../utils/dateUtils";
+import { humanize } from "../../../utils/stringUtils";
 
-export type SubmissionConfirmationLabels = {
-  title: string;
-  referenceNo: string;
-  providerApplicationId: string;
-  providerStatus: string;
-  submittedAt: string;
-  notAvailable: string;
-  existingConfirmation: string;
-};
+import type {
+  ExternalApplicationProvider,
+  JkmSubmissionResult,
+  StrSubmissionResult,
+} from "../../../types/applications";
 
 export type SubmissionConfirmationSectionProps = {
-  confirmation: SubmissionConfirmationDetails;
-  labels: SubmissionConfirmationLabels;
-  language?: string;
+  provider: ExternalApplicationProvider;
+
+  confirmation:
+      | JkmSubmissionResult
+      | StrSubmissionResult
+      | null;
+
+  alreadySubmitted: boolean;
+
   defaultExpanded?: boolean;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
 };
 
 export default function SubmissionConfirmationSection({
+    provider,
     confirmation,
-    labels,
-    language,
+    alreadySubmitted,
     defaultExpanded = false,
     expanded,
     onExpandedChange
 }: SubmissionConfirmationSectionProps) {
-  const submittedAt = formatDateTime(
-      confirmation.submittedAt,
-      language,
-      labels.notAvailable
+  const { t, i18n } = useTranslation();
+
+  const language =
+      i18n.resolvedLanguage ?? i18n.language;
+
+  const notAvailable = t(
+      `applications.${provider}.messages.notAvailable`
   );
 
-  const referenceNo =
-      confirmation.referenceNo.trim() ||
-      labels.notAvailable;
+  if (!confirmation) {
+    if (!alreadySubmitted) {
+      return null;
+    }
+
+    return (
+        <Alert
+            variant="success"
+            title={t(
+                `applications.${provider}.messages.alreadySubmittedTitle`
+            )}
+        >
+          {t(
+              `applications.${provider}.messages.alreadySubmittedDescription`
+          )}
+        </Alert>
+    );
+  }
+
+  const providerStatusLabel = confirmation.providerStatus
+      ? t(
+          `applications.statuses.${confirmation.providerStatus}`,
+          {
+            defaultValue: humanize(
+                confirmation.providerStatus
+            )
+          }
+      )
+      : notAvailable;
 
   return (
       <CollapsibleSection
-          title={labels.title}
+          title={t(
+              `applications.${provider}.sections.submissionConfirmation`
+          )}
           defaultExpanded={defaultExpanded}
           expanded={expanded}
           onExpandedChange={onExpandedChange}
           summaryAlwaysVisible
           summary={
-            <View className="rounded-xl border border-green-200 bg-green-50 p-4">
-              <View className="flex-row items-start gap-3">
-                <CircleCheck
-                    size={24}
-                    color="#16A34A"
-                />
+            <View className="gap-1 rounded-lg border border-green-200 bg-green-50 p-3">
+              <Text className="text-xs font-medium text-green-700">
+                {t(
+                    `applications.${provider}.fields.referenceNo`
+                )}
+              </Text>
 
-                <View className="flex-1 gap-1">
-                  <Text className="text-xs font-medium text-green-700">
-                    {labels.referenceNo}
-                  </Text>
-
-                  <Text
-                      selectable
-                      className="text-base font-bold text-green-900"
-                  >
-                    {referenceNo}
-                  </Text>
-                </View>
-              </View>
+              <Text
+                  className="text-lg font-semibold text-green-800"
+                  selectable
+              >
+                {confirmation.referenceNo}
+              </Text>
             </View>
           }
       >
-        <View>
+        <View className="gap-3">
           <ApplicationDetailRow
-              label={labels.providerApplicationId}
+              label={t(
+                  `applications.${provider}.fields.providerApplicationId`
+              )}
               value={confirmation.providerApplicationId}
-              fallback={labels.notAvailable}
+              fallback={notAvailable}
           />
 
           <ApplicationDetailRow
-              label={labels.providerStatus}
-              value={confirmation.providerStatusLabel}
-              fallback={labels.notAvailable}
+              label={t(
+                  `applications.${provider}.fields.providerStatus`
+              )}
+              value={providerStatusLabel}
+              fallback={notAvailable}
           />
 
           <ApplicationDetailRow
-              label={labels.submittedAt}
-              value={submittedAt}
-              fallback={labels.notAvailable}
+              label={t(
+                  `applications.${provider}.fields.submittedAt`
+              )}
+              value={formatDateTime(
+                  confirmation.submittedAt,
+                  language,
+                  notAvailable
+              )}
+              fallback={notAvailable}
           />
 
           {confirmation.alreadySubmitted && (
-              <View className="mt-3">
-                <Alert variant="info">
-                  {labels.existingConfirmation}
-                </Alert>
-              </View>
+              <Alert variant="info">
+                {t(
+                    `applications.${provider}.messages.existingConfirmation`
+                )}
+              </Alert>
           )}
         </View>
       </CollapsibleSection>
