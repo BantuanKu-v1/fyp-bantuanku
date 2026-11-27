@@ -1,23 +1,18 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
-import Button from "../../ui/Button.tsx";
+import Button from "../../ui/Button";
 
-export type ApplicationSubmissionActionMode =
-    | "submit"
-    | "recover"
-    | "submitted";
+import { confirmApplicationSubmission } from "../../../utils/confirmApplicationSubmission";
 
-export type ApplicationSubmissionActionLabels = {
-  submit: string;
-  recover: string;
-  alreadySubmitted: string;
-  refresh: string;
-  saveDraft?: string;
-};
+import type { ApplicationSubmissionActionMode } from "../../../utils/applicationUtils";
+import type { ExternalApplicationProvider } from "../../../types/applications";
+
+export type { ApplicationSubmissionActionMode } from "../../../utils/applicationUtils";
 
 export type ApplicationSubmissionActionsProps = {
+  provider: ExternalApplicationProvider;
   mode: ApplicationSubmissionActionMode;
-  labels: ApplicationSubmissionActionLabels;
 
   canSubmit: boolean;
   canSave?: boolean;
@@ -34,8 +29,8 @@ export type ApplicationSubmissionActionsProps = {
 };
 
 export default function ApplicationSubmissionActions({
+    provider,
     mode,
-    labels,
     canSubmit,
     canSave = false,
     submitting = false,
@@ -46,26 +41,55 @@ export default function ApplicationSubmissionActions({
     onSaveDraft,
     className = ""
 }: ApplicationSubmissionActionsProps) {
+  const { t } = useTranslation();
+
   const isSubmitted = mode === "submitted";
+  const requiresRecovery = mode === "recover";
 
   const isBusy = submitting || refreshing || saving;
-  const showSaveDraft = mode === "submit" && !!onSaveDraft && !!labels.saveDraft;
-  const submissionDisabled = isSubmitted || !canSubmit || isBusy;
-  const saveDisabled = !showSaveDraft || !canSave || isBusy;
+
+  const showSaveDraft =
+      provider === "jkm" &&
+      mode === "submit" &&
+      !!onSaveDraft;
+
+  const submissionDisabled =
+      isSubmitted || !canSubmit || isBusy;
+
+  const saveDisabled =
+      !showSaveDraft || !canSave || isBusy;
+
+  const recoveryLabel =
+      provider === "jkm"
+          ? t("applications.jkm.buttons.checkSubmission")
+          : t("applications.buttons.retrieveConfirmation", {
+            defaultValue: "Retrieve Submission Confirmation"
+          });
 
   const submissionLabel =
-      mode === "submitted"
-          ? labels.alreadySubmitted
-          : mode === "recover"
-              ? labels.recover
-              : labels.submit;
+      isSubmitted
+          ? t(`applications.${provider}.buttons.alreadySubmitted`)
+          : requiresRecovery
+              ? recoveryLabel
+              : t(`applications.${provider}.buttons.submit`);
 
   const handleSubmit = () => {
     if (submissionDisabled) {
       return;
     }
 
-    void onSubmit();
+    confirmApplicationSubmission({
+      canSubmit: !submissionDisabled,
+      requiresRecovery,
+      title: t(`applications.${provider}.messages.confirmTitle`),
+      description: t(`applications.${provider}.messages.confirmDescription`),
+      cancelLabel:
+          provider === "jkm"
+              ? t("common.cancel")
+              : t("applications.str.buttons.cancel"),
+      confirmLabel: t(`applications.${provider}.buttons.confirm`),
+      onSubmit,
+    });
   };
 
   const handleRefresh = () => {
@@ -95,7 +119,7 @@ export default function ApplicationSubmissionActions({
                 disabled={saveDisabled}
                 onPress={handleSaveDraft}
             >
-              {labels.saveDraft ?? ""}
+              {t("applications.jkm.buttons.saveDraft")}
             </Button>
         )}
 
@@ -118,7 +142,7 @@ export default function ApplicationSubmissionActions({
             disabled={isBusy}
             onPress={handleRefresh}
         >
-          {labels.refresh}
+          {t(`applications.${provider}.buttons.refresh`)}
         </Button>
       </View>
   );
