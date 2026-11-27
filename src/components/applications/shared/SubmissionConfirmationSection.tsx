@@ -48,6 +48,10 @@ export default function SubmissionConfirmationSection({
       labels.notAvailable
   );
 
+  const referenceNo =
+      confirmation.referenceNo.trim() ||
+      labels.notAvailable;
+
   return (
       <CollapsibleSection
           title={labels.title}
@@ -56,7 +60,7 @@ export default function SubmissionConfirmationSection({
           onExpandedChange={onExpandedChange}
           summaryAlwaysVisible
           summary={
-            <View className="rounded-xl border border-success bg-success-background p-4">
+            <View className="rounded-xl border border-green-200 bg-green-50 p-4">
               <View className="flex-row items-start gap-3">
                 <CircleCheck
                     size={24}
@@ -64,23 +68,22 @@ export default function SubmissionConfirmationSection({
                 />
 
                 <View className="flex-1 gap-1">
-                  <Text className="text-sm font-medium text-success">
+                  <Text className="text-xs font-medium text-green-700">
                     {labels.referenceNo}
                   </Text>
 
                   <Text
                       selectable
-                      className="text-base font-semibold text-foreground"
+                      className="text-base font-bold text-green-900"
                   >
-                    {confirmation.referenceNo.trim() ||
-                        labels.notAvailable}
+                    {referenceNo}
                   </Text>
                 </View>
               </View>
             </View>
           }
       >
-        <View className="gap-4">
+        <View>
           <ApplicationDetailRow
               label={labels.providerApplicationId}
               value={confirmation.providerApplicationId}
@@ -100,9 +103,11 @@ export default function SubmissionConfirmationSection({
           />
 
           {confirmation.alreadySubmitted && (
-              <Alert variant="info">
-                {labels.existingConfirmation}
-              </Alert>
+              <View className="mt-3">
+                <Alert variant="info">
+                  {labels.existingConfirmation}
+                </Alert>
+              </View>
           )}
         </View>
       </CollapsibleSection>
