@@ -1,105 +1,157 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
-import CollapsibleSection from "../../layout/CollapsibleSection.tsx";
-import Badge from "../../ui/Badge.tsx";
-import ApplicationDetailRow from "./ApplicationDetailRow.tsx";
+import CollapsibleSection from "../../layout/CollapsibleSection";
+import Badge from "../../ui/Badge";
+import Alert from "../../ui/Alert";
 
-import { formatDateTime } from "../../../utils/dateUtils.ts";
+import ApplicationDetailRow from "./ApplicationDetailRow";
 
-export type PreliminaryEligibilityDetails = {
-  statusLabel: string;
-  statusVariant: "default" | "info" | "success" | "warning" | "error";
-  criteriaVersion: number | string | null;
-  assessedAt: string | null;
-};
+import { formatDateTime } from "../../../utils/dateUtils";
+import { humanize } from "../../../utils/stringUtils";
 
-export type PreliminaryEligibilityLabels = {
-  title: string;
-  status: string;
-  criteriaVersion: string;
-  assessedAt: string;
-  notAvailable: string;
-  notAssessed: string;
-  disclaimer: string;
-};
+import type {
+  ExternalApplicationProvider,
+} from "../../../types/applications";
+
+import type {
+  PreliminaryEligibilitySnapshot,
+} from "../../../types/eligibility";
+
+const ELIGIBILITY_STATUS_VARIANTS = {
+  potentially_eligible: "success",
+  potentially_ineligible: "error",
+  insufficient_information: "warning",
+  manual_verification: "info",
+} as const;
 
 export type PreliminaryEligibilitySectionProps = {
-  assessment: PreliminaryEligibilityDetails | null;
-  labels: PreliminaryEligibilityLabels;
-  language?: string;
+  provider: ExternalApplicationProvider;
+
+  assessment: PreliminaryEligibilitySnapshot | null;
+
+  alreadySubmitted: boolean;
+  requiresRecovery: boolean;
+
   defaultExpanded?: boolean;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
 };
 
 export default function PreliminaryEligibilitySection({
+    provider,
     assessment,
-    labels,
-    language,
+    alreadySubmitted,
+    requiresRecovery,
     defaultExpanded = false,
     expanded,
     onExpandedChange
 }: PreliminaryEligibilitySectionProps) {
-  const statusLabel =
-      assessment?.statusLabel ??
-      labels.notAssessed;
+  const { t, i18n } = useTranslation();
 
-  const statusVariant =
-      assessment?.statusVariant ??
-      "default";
+  const language =
+      i18n.resolvedLanguage ?? i18n.language;
 
-  const assessedAt = formatDateTime(
-      assessment?.assessedAt,
-      language,
-      labels.notAvailable
+  const notAvailable = t(
+      `applications.${provider}.messages.notAvailable`
   );
+
+  const title =
+      provider === "jkm"
+          ? t("applications.jkm.sections.preliminaryEligibility")
+          : t("applications.eligibility.title", {
+            defaultValue: "Preliminary Eligibility"
+          });
+
+  const disclaimer =
+      provider === "jkm"
+          ? t("applications.jkm.messages.eligibilityDisclaimer")
+          : t("applications.eligibility.disclaimer", {
+            defaultValue:
+                "This preliminary assessment is provided by BantuanKu and does not represent an official STR application decision."
+          });
+
+  const notAssessed =
+      requiresRecovery || alreadySubmitted
+          ? t("applications.eligibility.notAvailable", {
+            defaultValue:
+                "No preliminary eligibility assessment is available for this submission."
+          })
+          : t("applications.eligibility.notAssessed", {
+            defaultValue:
+                "Your preliminary eligibility will be assessed before submission."
+          });
+
+  const statusLabel = assessment
+      ? t(
+          `applications.eligibility.statuses.${assessment.status}`,
+          {
+            defaultValue: humanize(assessment.status)
+          }
+      )
+      : null;
+
+  const statusVariant = assessment
+      ? ELIGIBILITY_STATUS_VARIANTS[assessment.status] ?? "default"
+      : "default";
 
   return (
       <CollapsibleSection
-          title={labels.title}
+          title={title}
           defaultExpanded={defaultExpanded}
           expanded={expanded}
           onExpandedChange={onExpandedChange}
+          summaryAlwaysVisible
           summary={
-            <View className="items-start">
-              <Badge variant={statusVariant}>
-                {statusLabel}
-              </Badge>
-            </View>
+            statusLabel ? (
+                <View className="items-start">
+                  <Badge variant={statusVariant}>
+                    {statusLabel}
+                  </Badge>
+                </View>
+            ) : undefined
           }
       >
-        <View>
-          {assessment ? (
+        <View className="gap-3">
+          {assessment && statusLabel ? (
               <>
                 <ApplicationDetailRow
-                    label={labels.status}
+                    label={t("applications.eligibility.status", {
+                      defaultValue: "Eligibility Status"
+                    })}
                     value={statusLabel}
-                    fallback={labels.notAvailable}
+                    fallback={notAvailable}
                 />
 
                 <ApplicationDetailRow
-                    label={labels.criteriaVersion}
+                    label={t("applications.eligibility.criteriaVersion", {
+                      defaultValue: "Criteria Version"
+                    })}
                     value={assessment.criteriaVersion}
-                    fallback={labels.notAvailable}
+                    fallback={notAvailable}
                 />
 
                 <ApplicationDetailRow
-                    label={labels.assessedAt}
-                    value={assessedAt}
-                    fallback={labels.notAvailable}
+                    label={t("applications.eligibility.assessedAt", {
+                      defaultValue: "Assessed At"
+                    })}
+                    value={formatDateTime(
+                        assessment.assessedAt,
+                        language,
+                        notAvailable
+                    )}
+                    fallback={notAvailable}
                 />
               </>
           ) : (
-              <Text className="py-2 text-sm text-muted-foreground">
-                {labels.notAssessed}
-              </Text>
+              <Alert variant="info">
+                {notAssessed}
+              </Alert>
           )}
 
-          <View className="mt-3 rounded-lg bg-surface p-3">
-            <Text className="text-sm leading-5 text-muted-foreground">
-              {labels.disclaimer}
-            </Text>
-          </View>
+          <Alert variant="info">
+            {disclaimer}
+          </Alert>
         </View>
       </CollapsibleSection>
   );
