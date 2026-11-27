@@ -8,12 +8,15 @@ export type ApplicationReadinessRequirement = {
   id: string;
   label: string;
   complete: boolean;
+  notRequired?: boolean;
 };
 
 export type ApplicationReadinessLabels = {
   title: string;
   complete: string;
   incomplete: string;
+  notRequired?: string;
+  missingInformation?: string;
 };
 
 export type ApplicationReadinessSectionProps = {
@@ -31,9 +34,13 @@ export default function ApplicationReadinessSection({
     expanded,
     onExpandedChange
 }: ApplicationReadinessSectionProps) {
-  const totalCount = requirements.length;
+  const requiredRequirements = requirements.filter(
+      (requirement) => !requirement.notRequired
+  );
 
-  const completedCount = requirements.filter(
+  const totalCount = requiredRequirements.length;
+
+  const completedCount = requiredRequirements.filter(
       (requirement) => requirement.complete
   ).length;
 
@@ -51,19 +58,19 @@ export default function ApplicationReadinessSection({
           summary={
             <View className="gap-2">
               <View className="flex-row items-center justify-between">
-                <Text
-                    className={
-                      isComplete
-                          ? "text-sm font-medium text-success"
-                          : "text-sm font-medium text-muted-foreground"
-                    }
-                >
+                <Text className="text-sm text-muted-foreground">
                   {isComplete
                       ? labels.complete
                       : labels.incomplete}
                 </Text>
 
-                <Text className="text-sm font-semibold text-foreground">
+                <Text
+                    className={
+                      isComplete
+                          ? "text-sm font-bold text-green-700"
+                          : "text-sm font-bold text-amber-700"
+                    }
+                >
                   {completedCount}/{totalCount}
                 </Text>
               </View>
@@ -77,7 +84,7 @@ export default function ApplicationReadinessSection({
             </View>
           }
       >
-        <View className="gap-4">
+        <View>
           {requirements.map((requirement) => (
               <ApplicationReadinessRow
                   key={requirement.id}
@@ -85,8 +92,16 @@ export default function ApplicationReadinessSection({
                   complete={requirement.complete}
                   completeLabel={labels.complete}
                   incompleteLabel={labels.incomplete}
+                  notRequired={requirement.notRequired}
+                  notRequiredLabel={labels.notRequired}
               />
           ))}
+
+          {!isComplete && labels.missingInformation && (
+              <Text className="mt-2 text-sm leading-5 text-amber-700">
+                {labels.missingInformation}
+              </Text>
+          )}
         </View>
       </CollapsibleSection>
   );
