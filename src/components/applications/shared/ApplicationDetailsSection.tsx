@@ -1,69 +1,78 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
-import CollapsibleSection from "../../layout/CollapsibleSection.tsx";
-import ApplicationDetailRow from "./ApplicationDetailRow.tsx";
+import CollapsibleSection from "../../layout/CollapsibleSection";
+import ApplicationDetailRow from "./ApplicationDetailRow";
 
-export type ApplicationDetails = {
-  programName: string;
-  agency: string;
-  applicationId: string;
-  statusLabel: string;
-};
+import {
+  APPLICATION_STATUS_LABELS
+} from "../../../constants/applications/applications";
 
-export type ApplicationDetailsLabels = {
-  title: string;
-  program: string;
-  agency: string;
-  applicationId: string;
-  status: string;
-  notAvailable: string;
-};
+import type {
+  ApplicationSummary,
+  ExternalApplicationProvider
+} from "../../../types/applications";
 
 export type ApplicationDetailsSectionProps = {
-  application: ApplicationDetails;
-  labels: ApplicationDetailsLabels;
+  provider: ExternalApplicationProvider;
+  application: ApplicationSummary | null;
+
   defaultExpanded?: boolean;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
 };
 
 export default function ApplicationDetailsSection({
+    provider,
     application,
-    labels,
     defaultExpanded = false,
     expanded,
     onExpandedChange
 }: ApplicationDetailsSectionProps) {
+  const { t } = useTranslation();
+
+  if (!application) {
+    return null;
+  }
+
+  const notAvailable = t(
+      `applications.${provider}.messages.notAvailable`
+  );
+
+  const statusLabel = t(
+      APPLICATION_STATUS_LABELS[application.status]
+  );
+
   return (
       <CollapsibleSection
-          title={labels.title}
+          title={t(`applications.${provider}.sections.applicationDetails`)}
           defaultExpanded={defaultExpanded}
           expanded={expanded}
           onExpandedChange={onExpandedChange}
       >
-        <View>
+        <View className="gap-3">
           <ApplicationDetailRow
-              label={labels.program}
+              label={t(`applications.${provider}.fields.program`)}
               value={application.programName}
-              fallback={labels.notAvailable}
+              fallback={notAvailable}
           />
 
           <ApplicationDetailRow
-              label={labels.agency}
+              label={t(`applications.${provider}.fields.agency`)}
               value={application.agency}
-              fallback={labels.notAvailable}
+              fallback={notAvailable}
           />
 
           <ApplicationDetailRow
-              label={labels.applicationId}
-              value={application.applicationId}
-              fallback={labels.notAvailable}
+              label={t(`applications.${provider}.fields.applicationId`)}
+              value={application.id}
+              fallback={notAvailable}
           />
 
           <ApplicationDetailRow
-              label={labels.status}
-              value={application.statusLabel}
-              fallback={labels.notAvailable}
+              label={t(`applications.${provider}.fields.status`)}
+              value={statusLabel}
+              fallback={notAvailable}
           />
         </View>
       </CollapsibleSection>
