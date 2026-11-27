@@ -5,23 +5,19 @@ import BooleanField from "../../../ui/BooleanField.tsx";
 import Input from "../../../ui/Input.tsx";
 import Divider from "../../../ui/Divider.tsx";
 
-import {
-  JKM_APPLICATION_LABELS,
-} from "../../../../constants/applications/jkmApplication.ts";
-
 import type {
   BaApplicationSpecificData,
-  BaAdditionalCircumstances,
-} from "../../../../types/applications.ts";
+  BaAdditionalCircumstances
+} from "../../../../types/applications";
 
 const CIRCUMSTANCE_FIELDS = [
   "economicHardship",
   "healthRelatedNeeds",
   "dependentRelatedNeeds",
-  "otherCircumstances",
-] as const satisfies readonly (keyof BaAdditionalCircumstances)[];
+  "otherCircumstances"
+] as const;
 
-type BaCircumstanceField = typeof CIRCUMSTANCE_FIELDS[number];
+type CircumstanceField = typeof CIRCUMSTANCE_FIELDS[number];
 
 export type BaApplicationFormProps = {
   data: BaApplicationSpecificData;
@@ -36,9 +32,6 @@ export default function BaApplicationForm({
 }: BaApplicationFormProps) {
   const { t } = useTranslation();
 
-  const labels = JKM_APPLICATION_LABELS;
-  const baLabels = labels.programs.ba;
-
   const updateAssistance = (value: boolean) => {
     if (disabled) {
       return;
@@ -48,8 +41,8 @@ export default function BaApplicationForm({
       ...data,
       receivesOtherJkmMonthlyAssistance: value,
       currentJkmAssistanceProgram: value
-          ? data.currentJkmAssistanceProgram
-          : null,
+          ? data.currentJkmAssistanceProgram ?? null
+          : null
     });
   };
 
@@ -60,30 +53,30 @@ export default function BaApplicationForm({
 
     onChange({
       ...data,
-      currentJkmAssistanceProgram: value,
+      currentJkmAssistanceProgram: value
     });
   };
 
   const updateCircumstance = (
-      field: BaCircumstanceField,
-      value: boolean,
+      field: CircumstanceField,
+      value: boolean
   ) => {
     if (disabled) {
       return;
     }
 
+    const additionalCircumstances: BaAdditionalCircumstances = {
+      ...data.additionalCircumstances,
+      [field]: value
+    };
+
     onChange({
       ...data,
-      additionalCircumstances: {
-        ...data.additionalCircumstances,
-        [field]: value,
-      },
+      additionalCircumstances
     });
   };
 
-  const updateCircumstancesDescription = (
-      value: string,
-  ) => {
+  const updateCircumstancesDescription = (value: string) => {
     if (disabled) {
       return;
     }
@@ -92,85 +85,74 @@ export default function BaApplicationForm({
       ...data,
       additionalCircumstances: {
         ...data.additionalCircumstances,
-        description: value,
-      },
+        description: value
+      }
     });
   };
 
   return (
-      <View className="gap-5">
+      <View className="gap-4">
         <Text className="text-sm leading-5 text-muted-foreground">
-          {t(`${baLabels}.description`)}
+          {t("applications.jkm.programs.ba.description")}
         </Text>
 
-        <View className="gap-4">
-          <Text className="text-base font-semibold text-foreground">
-            {t(`${baLabels}.sections.welfareAssistance`)}
-          </Text>
+        <Text className="text-sm font-semibold text-foreground">
+          {t("applications.jkm.programs.ba.sections.welfareAssistance")}
+        </Text>
 
-          <BooleanField
-              label={t(
-                  `${baLabels}.fields.receivesOtherJkmMonthlyAssistance`
-              )}
-              value={data.receivesOtherJkmMonthlyAssistance}
-              yesLabel={t(labels.options.yes)}
-              noLabel={t(labels.options.no)}
-              onChange={updateAssistance}
-              disabled={disabled}
-              required
-          />
+        <BooleanField
+            label={t("applications.jkm.programs.ba.fields.receivesOtherJkmMonthlyAssistance")}
+            value={data.receivesOtherJkmMonthlyAssistance}
+            yesLabel={t("applications.jkm.options.yes")}
+            noLabel={t("applications.jkm.options.no")}
+            disabled={disabled}
+            required
+            onChange={updateAssistance}
+        />
 
-          {data.receivesOtherJkmMonthlyAssistance === true && (
-              <Input
-                  label={t(
-                      `${baLabels}.fields.currentJkmAssistanceProgram`
-                  )}
-                  value={data.currentJkmAssistanceProgram ?? ""}
-                  onChangeText={updateCurrentProgram}
-                  placeholder={t(labels.form.textPlaceholder)}
-                  editable={!disabled}
-                  maxLength={200}
-                  required
-              />
-          )}
-        </View>
+        {data.receivesOtherJkmMonthlyAssistance === true && (
+            <Input
+                label={t("applications.jkm.programs.ba.fields.currentJkmAssistanceProgram")}
+                value={data.currentJkmAssistanceProgram ?? ""}
+                placeholder={t("applications.jkm.form.textPlaceholder")}
+                onChangeText={updateCurrentProgram}
+                editable={!disabled}
+                maxLength={200}
+                required
+            />
+        )}
 
         <Divider />
 
-        <View className="gap-4">
-          <Text className="text-base font-semibold text-foreground">
-            {t(`${baLabels}.sections.additionalCircumstances`)}
-          </Text>
+        <Text className="text-sm font-semibold text-foreground">
+          {t("applications.jkm.programs.ba.sections.additionalCircumstances")}
+        </Text>
 
-          {CIRCUMSTANCE_FIELDS.map((field) => (
-              <BooleanField
-                  key={field}
-                  label={t(`${baLabels}.fields.${field}`)}
-                  value={data.additionalCircumstances?.[field]}
-                  yesLabel={t(labels.options.yes)}
-                  noLabel={t(labels.options.no)}
-                  onChange={(value) => {
-                    updateCircumstance(field, value);
-                  }}
-                  disabled={disabled}
-              />
-          ))}
+        {CIRCUMSTANCE_FIELDS.map(field => (
+            <BooleanField
+                key={field}
+                label={t(`applications.jkm.programs.ba.fields.${field}`)}
+                value={data.additionalCircumstances?.[field]}
+                yesLabel={t("applications.jkm.options.yes")}
+                noLabel={t("applications.jkm.options.no")}
+                disabled={disabled}
+                onChange={value => updateCircumstance(field, value)}
+            />
+        ))}
 
-          <Input
-              label={t(`${baLabels}.fields.description`)}
-              value={data.additionalCircumstances?.description ?? ""}
-              onChangeText={updateCircumstancesDescription}
-              placeholder={t(labels.form.textPlaceholder)}
-              editable={!disabled}
-              required={
-                  data.additionalCircumstances?.otherCircumstances === true
-              }
-              multiline
-              textAlignVertical="top"
-              maxLength={3000}
-              className="min-h-24"
-          />
-        </View>
+        <Input
+            label={t("applications.jkm.programs.ba.fields.description")}
+            value={data.additionalCircumstances?.description ?? ""}
+            placeholder={t("applications.jkm.form.textPlaceholder")}
+            onChangeText={updateCircumstancesDescription}
+            editable={!disabled}
+            required={data.additionalCircumstances?.otherCircumstances === true}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            maxLength={3000}
+            className="min-h-24"
+        />
       </View>
   );
 }
