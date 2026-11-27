@@ -1,54 +1,99 @@
 import { Text, View } from "react-native";
-import { CircleCheck, CircleAlert } from "lucide-react-native";
-
-import Badge from "../../ui/Badge.tsx";
+import {
+  Check,
+  AlertCircle,
+  Minus,
+} from "lucide-react-native";
 
 export type ApplicationReadinessRowProps = {
   label: string;
   complete: boolean;
   completeLabel: string;
   incompleteLabel: string;
+  notRequired?: boolean;
+  notRequiredLabel?: string;
   className?: string;
 };
 
 export default function ApplicationReadinessRow({
-  label,
-  complete,
-  completeLabel,
-  incompleteLabel,
-  className = ""
+    label,
+    complete,
+    completeLabel,
+    incompleteLabel,
+    notRequired = false,
+    notRequiredLabel,
+    className = ""
 }: ApplicationReadinessRowProps) {
+  const indicatorClassName = notRequired
+      ? "bg-gray-100"
+      : complete
+          ? "bg-green-100"
+          : "bg-amber-100";
+
+  const statusClassName = notRequired
+      ? "text-muted-foreground"
+      : complete
+          ? "text-green-700"
+          : "text-amber-700";
+
+  const statusLabel = notRequired
+      ? notRequiredLabel ?? "Not required"
+      : complete
+          ? completeLabel
+          : incompleteLabel;
+
   return (
       <View
           className={`
-          flex-row
-          items-center
-          justify-between
-          gap-3
-          ${className}
-        `}
+            flex-row
+            items-center
+            gap-3
+            py-2
+            ${className}
+          `}
       >
-        <View className="flex-1 flex-row items-center gap-2">
-          {complete ? (
-              <CircleCheck
-                  size={18}
-                  color="#16A34A"
+        <View
+            className={`
+              h-6
+              w-6
+              items-center
+              justify-center
+              rounded-full
+              ${indicatorClassName}
+            `}
+        >
+          {notRequired ? (
+              <Minus
+                  size={14}
+                  color="#6B7280"
+              />
+          ) : complete ? (
+              <Check
+                  size={14}
+                  color="#15803D"
               />
           ) : (
-              <CircleAlert
-                  size={18}
-                  color="#D97706"
+              <AlertCircle
+                  size={14}
+                  color="#B45309"
               />
           )}
-
-          <Text className="flex-1 text-sm text-foreground">
-            {label}
-          </Text>
         </View>
 
-        <Badge variant={complete ? "success" : "warning"}>
-          {complete ? completeLabel : incompleteLabel}
-        </Badge>
+        <Text className="flex-1 text-sm text-foreground">
+          {label}
+        </Text>
+
+        <Text
+            className={`
+              text-right
+              text-xs
+              font-medium
+              ${statusClassName}
+            `}
+        >
+          {statusLabel}
+        </Text>
       </View>
   );
 }
