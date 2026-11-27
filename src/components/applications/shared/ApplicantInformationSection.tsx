@@ -1,98 +1,94 @@
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
-import CollapsibleSection from "../../layout/CollapsibleSection.tsx";
-import ApplicationDetailRow from "./ApplicationDetailRow.tsx";
+import CollapsibleSection from "../../layout/CollapsibleSection";
+import ApplicationDetailRow from "./ApplicationDetailRow";
 
-import { formatDate } from "../../../utils/dateUtils.ts";
+import { formatDate } from "../../../utils/dateUtils";
 
-export type ApplicantInformation = {
-  fullName: string | null;
-  identificationNo: string | null;
-  dateOfBirth: string | null;
-  citizenship: string | null;
-};
-
-export type ApplicantInformationLabels = {
-  title: string;
-  fullName: string;
-  identificationNo: string;
-  dateOfBirth: string;
-  citizenship: string;
-  notProvided: string;
-};
+import type {
+  ExternalApplicationProvider,
+  JkmApplicantReview,
+  StrApplicantReview,
+} from "../../../types/applications";
 
 export type ApplicantInformationSectionProps = {
-  applicant: ApplicantInformation;
-  labels: ApplicantInformationLabels;
-  language?: string;
+  provider: ExternalApplicationProvider;
+
+  applicant:
+      | JkmApplicantReview
+      | StrApplicantReview
+      | null;
+
   defaultExpanded?: boolean;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
 };
 
 export default function ApplicantInformationSection({
-  applicant,
-  labels,
-  language,
-  defaultExpanded = false,
-  expanded,
-  onExpandedChange
+    provider,
+    applicant,
+    defaultExpanded = false,
+    expanded,
+    onExpandedChange
 }: ApplicantInformationSectionProps) {
-  const fullName =
-      applicant.fullName?.trim() ||
-      labels.notProvided;
+  const { t, i18n } = useTranslation();
 
-  const identificationNo =
-      applicant.identificationNo?.trim() ||
-      labels.notProvided;
+  const language =
+      i18n.resolvedLanguage ?? i18n.language;
 
-  const dateOfBirth = formatDate(
-      applicant.dateOfBirth,
-      language,
-      labels.notProvided
-  );
+  if (!applicant) {
+    return null;
+  }
+
+  const notProvided = t("common.notProvided");
 
   return (
       <CollapsibleSection
-          title={labels.title}
+          title={t(`applications.${provider}.sections.applicantInformation`)}
           defaultExpanded={defaultExpanded}
           expanded={expanded}
           onExpandedChange={onExpandedChange}
+          summaryAlwaysVisible
           summary={
             <View className="gap-1">
-              <Text className="text-sm font-semibold text-foreground">
-                {fullName}
+              <Text className="text-base font-semibold text-foreground">
+                {applicant.fullName?.trim() || notProvided}
               </Text>
 
-              <Text className="text-xs text-muted-foreground">
-                {identificationNo}
+              <Text className="text-sm text-muted-foreground">
+                {applicant.identificationNo?.trim() || notProvided}
               </Text>
             </View>
           }
       >
-        <View>
+        <View className="gap-3">
           <ApplicationDetailRow
-              label={labels.fullName}
+              label={t(`applications.${provider}.fields.fullName`)}
               value={applicant.fullName}
-              fallback={labels.notProvided}
+              fallback={notProvided}
           />
 
           <ApplicationDetailRow
-              label={labels.identificationNo}
+              label={t(`applications.${provider}.fields.identificationNo`)}
               value={applicant.identificationNo}
-              fallback={labels.notProvided}
+              fallback={notProvided}
           />
 
           <ApplicationDetailRow
-              label={labels.dateOfBirth}
-              value={dateOfBirth}
-              fallback={labels.notProvided}
+              label={t(`applications.${provider}.fields.dateOfBirth`)}
+              value={formatDate(
+                  applicant.dateOfBirth,
+                  language,
+                  notProvided
+              )}
+              fallback={notProvided}
           />
 
           <ApplicationDetailRow
-              label={labels.citizenship}
+              label={t(`applications.${provider}.fields.citizenship`)}
               value={applicant.citizenship}
-              fallback={labels.notProvided}
+              fallback={notProvided}
           />
         </View>
       </CollapsibleSection>
