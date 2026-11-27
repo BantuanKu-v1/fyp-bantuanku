@@ -254,10 +254,10 @@ function visibleAnswers(
 }
 
 export default function EligibilityQuestionnaire({
-                                                   programCode,
-                                                   onSaved,
-                                                   onCancel,
-                                                 }: Props) {
+    programCode,
+    onSaved,
+    onCancel
+}: Props) {
   const { t } = useTranslation();
 
   const [answers, setAnswers] = useState<Answers>({});
