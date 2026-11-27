@@ -41,10 +41,12 @@ export default function PreliminaryEligibilitySection({
     onExpandedChange
 }: PreliminaryEligibilitySectionProps) {
   const statusLabel =
-      assessment?.statusLabel ?? labels.notAssessed;
+      assessment?.statusLabel ??
+      labels.notAssessed;
 
   const statusVariant =
-      assessment?.statusVariant ?? "default";
+      assessment?.statusVariant ??
+      "default";
 
   const assessedAt = formatDateTime(
       assessment?.assessedAt,
@@ -66,26 +68,34 @@ export default function PreliminaryEligibilitySection({
             </View>
           }
       >
-        <View className="gap-4">
-          <ApplicationDetailRow
-              label={labels.status}
-              value={statusLabel}
-              fallback={labels.notAvailable}
-          />
+        <View>
+          {assessment ? (
+              <>
+                <ApplicationDetailRow
+                    label={labels.status}
+                    value={statusLabel}
+                    fallback={labels.notAvailable}
+                />
 
-          <ApplicationDetailRow
-              label={labels.criteriaVersion}
-              value={assessment?.criteriaVersion}
-              fallback={labels.notAvailable}
-          />
+                <ApplicationDetailRow
+                    label={labels.criteriaVersion}
+                    value={assessment.criteriaVersion}
+                    fallback={labels.notAvailable}
+                />
 
-          <ApplicationDetailRow
-              label={labels.assessedAt}
-              value={assessedAt}
-              fallback={labels.notAvailable}
-          />
+                <ApplicationDetailRow
+                    label={labels.assessedAt}
+                    value={assessedAt}
+                    fallback={labels.notAvailable}
+                />
+              </>
+          ) : (
+              <Text className="py-2 text-sm text-muted-foreground">
+                {labels.notAssessed}
+              </Text>
+          )}
 
-          <View className="rounded-lg bg-surface p-3">
+          <View className="mt-3 rounded-lg bg-surface p-3">
             <Text className="text-sm leading-5 text-muted-foreground">
               {labels.disclaimer}
             </Text>
