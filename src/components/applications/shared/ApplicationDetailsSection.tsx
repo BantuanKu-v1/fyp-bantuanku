@@ -41,7 +41,7 @@ export default function ApplicationDetailsSection({
           expanded={expanded}
           onExpandedChange={onExpandedChange}
       >
-        <View className="gap-4">
+        <View>
           <ApplicationDetailRow
               label={labels.program}
               value={application.programName}
