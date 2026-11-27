@@ -1,86 +1,94 @@
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+
+import {
+  APPLICATION_STATUS_LABELS
+} from "../../../constants/applications/applications";
+
+import { humanize } from "../../../utils/stringUtils";
+
+import type {
+  ApplicationSummary,
+  ExternalApplicationProvider,
+  JkmSubmissionResult,
+  StrSubmissionResult
+} from "../../../types/applications";
 
 export type ApplicationSummaryCardProps = {
-  programCode: string;
-  programName: string;
-  agency: string;
-  statusLabel: string;
-  applicationId?: string;
-  applicationIdLabel?: string;
-  description?: string;
+  provider: ExternalApplicationProvider;
+  application: ApplicationSummary | null;
+
+  confirmation?:
+      | JkmSubmissionResult
+      | StrSubmissionResult
+      | null;
+
   className?: string;
 };
 
 export default function ApplicationSummaryCard({
-    programCode,
-    programName,
-    agency,
-    statusLabel,
-    applicationId,
-    applicationIdLabel,
-    description,
+    provider,
+    application,
+    confirmation = null,
     className = ""
 }: ApplicationSummaryCardProps) {
+  const { t } = useTranslation();
+
+  if (!application) {
+    return null;
+  }
+
+  const localStatusLabel = t(
+      APPLICATION_STATUS_LABELS[application.status]
+  );
+
+  const providerStatusLabel = confirmation?.providerStatus
+      ? t(`applications.statuses.${confirmation.providerStatus}`, {
+        defaultValue: humanize(confirmation.providerStatus)
+      })
+      : null;
+
+  const statusLabel =
+      provider === "jkm"
+          ? providerStatusLabel ?? localStatusLabel
+          : localStatusLabel;
+
   return (
-      <View
-          className={`
-            gap-3
-            rounded-2xl
-            bg-primary
-            p-4
-            ${className}
-          `}
-      >
+      <View className={`gap-4 rounded-xl bg-primary p-4 ${className}`}>
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1 gap-1">
-            <Text className="text-xs font-medium text-blue-100">
-              {agency}
+            <Text className="text-sm font-medium text-primary-foreground/80">
+              {application.programCode.toUpperCase()}
             </Text>
 
-            <Text className="text-xl font-bold text-white">
-              {programName}
+            <Text className="text-xl font-bold text-primary-foreground">
+              {application.programName}
             </Text>
 
-            <Text className="text-xs font-medium text-blue-100">
-              {programCode}
+            <Text className="text-sm text-primary-foreground/80">
+              {application.agency}
             </Text>
           </View>
 
-          <View className="max-w-[45%] rounded-full bg-white/20 px-3 py-1.5">
-            <Text className="text-center text-xs font-semibold text-white">
+          <View className="rounded-full bg-white/20 px-3 py-1.5">
+            <Text className="text-xs font-medium text-primary-foreground">
               {statusLabel}
             </Text>
           </View>
         </View>
 
-        {description && (
-            <Text className="text-sm leading-5 text-blue-100">
-              {description}
-            </Text>
-        )}
+        <View className="gap-1 border-t border-white/20 pt-3">
+          <Text className="text-xs text-primary-foreground/80">
+            {t(`applications.${provider}.fields.applicationId`)}
+          </Text>
 
-        {applicationId && (
-            <>
-              <View className="h-px bg-white/20" />
-
-              <View className="flex-row items-center justify-between gap-3">
-                {applicationIdLabel && (
-                    <Text className="text-xs text-blue-100">
-                      {applicationIdLabel}
-                    </Text>
-                )}
-
-                <Text
-                    className="flex-1 text-right text-xs font-medium text-white"
-                    numberOfLines={1}
-                    ellipsizeMode="middle"
-                    selectable
-                >
-                  {applicationId}
-                </Text>
-              </View>
-            </>
-        )}
+          <Text
+              className="text-xs font-medium text-primary-foreground"
+              selectable
+          >
+            {application.id}
+          </Text>
+        </View>
       </View>
   );
 }
