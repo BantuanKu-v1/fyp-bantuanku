@@ -12,16 +12,24 @@ export type ApplicationSubmissionActionLabels = {
   recover: string;
   alreadySubmitted: string;
   refresh: string;
+  saveDraft?: string;
 };
 
 export type ApplicationSubmissionActionsProps = {
   mode: ApplicationSubmissionActionMode;
   labels: ApplicationSubmissionActionLabels;
+
   canSubmit: boolean;
+  canSave?: boolean;
+
   submitting?: boolean;
   refreshing?: boolean;
-  onSubmit: () => void;
-  onRefresh: () => void;
+  saving?: boolean;
+
+  onSubmit: () => void | Promise<void>;
+  onRefresh: () => void | Promise<void>;
+  onSaveDraft?: () => void | Promise<void>;
+
   className?: string;
 };
 
@@ -29,20 +37,21 @@ export default function ApplicationSubmissionActions({
     mode,
     labels,
     canSubmit,
+    canSave = false,
     submitting = false,
     refreshing = false,
+    saving = false,
     onSubmit,
     onRefresh,
+    onSaveDraft,
     className = ""
 }: ApplicationSubmissionActionsProps) {
   const isSubmitted = mode === "submitted";
 
-  const isBusy = submitting || refreshing;
-
-  const submissionDisabled =
-      isSubmitted ||
-      !canSubmit ||
-      isBusy;
+  const isBusy = submitting || refreshing || saving;
+  const showSaveDraft = mode === "submit" && !!onSaveDraft && !!labels.saveDraft;
+  const submissionDisabled = isSubmitted || !canSubmit || isBusy;
+  const saveDisabled = !showSaveDraft || !canSave || isBusy;
 
   const submissionLabel =
       mode === "submitted"
@@ -56,7 +65,7 @@ export default function ApplicationSubmissionActions({
       return;
     }
 
-    onSubmit();
+    void onSubmit();
   };
 
   const handleRefresh = () => {
@@ -64,11 +73,32 @@ export default function ApplicationSubmissionActions({
       return;
     }
 
-    onRefresh();
+    void onRefresh();
+  };
+
+  const handleSaveDraft = () => {
+    if (saveDisabled || !onSaveDraft) {
+      return;
+    }
+
+    void onSaveDraft();
   };
 
   return (
       <View className={`w-full gap-3 ${className}`}>
+        {showSaveDraft && (
+            <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                loading={saving}
+                disabled={saveDisabled}
+                onPress={handleSaveDraft}
+            >
+              {labels.saveDraft ?? ""}
+            </Button>
+        )}
+
         <Button
             variant={isSubmitted ? "secondary" : "primary"}
             size="lg"
