@@ -60,17 +60,17 @@ export default function ApplicantInformationSection({
           onExpandedChange={onExpandedChange}
           summary={
             <View className="gap-1">
-              <Text className="text-base font-medium text-foreground">
+              <Text className="text-sm font-semibold text-foreground">
                 {fullName}
               </Text>
 
-              <Text className="text-sm text-muted-foreground">
+              <Text className="text-xs text-muted-foreground">
                 {identificationNo}
               </Text>
             </View>
           }
       >
-        <View className="gap-4">
+        <View>
           <ApplicationDetailRow
               label={labels.fullName}
               value={applicant.fullName}
