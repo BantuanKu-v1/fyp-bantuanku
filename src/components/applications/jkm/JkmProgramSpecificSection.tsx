@@ -4,13 +4,9 @@ import { useTranslation } from "react-i18next";
 import CollapsibleSection from "../../layout/CollapsibleSection.tsx";
 import BaApplicationForm from "./forms/BaApplicationForm.tsx";
 
-import {
-  JKM_APPLICATION_LABELS,
-} from "../../../constants/applications/jkmApplication.ts";
-
 import type {
-  JkmApplicationDraftData,
-} from "../../../types/applications.ts";
+  JkmApplicationDraftData
+} from "../../../types/applications";
 
 export type JkmProgramSpecificSectionProps = {
   data: JkmApplicationDraftData | null;
@@ -31,13 +27,11 @@ export default function JkmProgramSpecificSection({
 }: JkmProgramSpecificSectionProps) {
   const { t } = useTranslation();
 
-  const labels = JKM_APPLICATION_LABELS;
-
   const renderProgramForm = () => {
     if (!data) {
       return (
-          <Text className="text-sm leading-5 text-muted-foreground">
-            {t(labels.messages.notAvailable)}
+          <Text className="text-sm text-muted-foreground">
+            {t("applications.jkm.messages.notAvailable")}
           </Text>
       );
     }
@@ -48,16 +42,12 @@ export default function JkmProgramSpecificSection({
             <BaApplicationForm
                 data={data.programSpecificData}
                 disabled={disabled}
-                onChange={(programSpecificData) => {
-                  if (disabled) {
-                    return;
-                  }
-
-                  onChange({
-                    ...data,
-                    programSpecificData,
-                  });
-                }}
+                onChange={programSpecificData =>
+                    onChange({
+                      ...data,
+                      programSpecificData
+                    })
+                }
             />
         );
 
@@ -65,13 +55,14 @@ export default function JkmProgramSpecificSection({
       case "BPT":
       case "BWE":
         return (
-            <Text className="text-sm leading-5 text-muted-foreground">
-              {t(labels.messages.notAvailable)}
+            <Text className="text-sm text-muted-foreground">
+              {t("applications.jkm.messages.notAvailable")}
             </Text>
         );
 
       default: {
-        // const unsupportedProgram: never = data;
+        const unsupportedProgram: never = data;
+        void unsupportedProgram;
 
         return null;
       }
@@ -80,7 +71,7 @@ export default function JkmProgramSpecificSection({
 
   return (
       <CollapsibleSection
-          title={t(labels.sections.programSpecificInformation)}
+          title={t("applications.jkm.sections.programSpecificInformation")}
           defaultExpanded={defaultExpanded}
           expanded={expanded}
           onExpandedChange={onExpandedChange}
