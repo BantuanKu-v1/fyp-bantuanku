@@ -209,7 +209,7 @@ export default function StrApplicationScreen() {
             requiresRecovery
         ) {
           throw new Error(
-              "This application is not ready for submission."
+              "applications.str.messages.missingInformation"
           );
         }
 
@@ -257,7 +257,7 @@ export default function StrApplicationScreen() {
         defaultValue: message
       });
 
-      setError(translatedMessage);
+      setError(message);
 
       await refreshSubmissionState(application.id);
 
