@@ -103,8 +103,8 @@ export default function BaApplicationForm({
         <BooleanField
             label={t("applications.jkm.programs.ba.fields.receivesOtherJkmMonthlyAssistance")}
             value={data.receivesOtherJkmMonthlyAssistance}
-            yesLabel={t("applications.jkm.options.yes")}
-            noLabel={t("applications.jkm.options.no")}
+            yesLabel={t("common.yes")}
+            noLabel={t("common.no")}
             disabled={disabled}
             required
             onChange={updateAssistance}
@@ -133,8 +133,8 @@ export default function BaApplicationForm({
                 key={field}
                 label={t(`applications.jkm.programs.ba.fields.${field}`)}
                 value={data.additionalCircumstances?.[field]}
-                yesLabel={t("applications.jkm.options.yes")}
-                noLabel={t("applications.jkm.options.no")}
+                yesLabel={t("common.yes")}
+                noLabel={t("common.no")}
                 disabled={disabled}
                 onChange={value => updateCircumstance(field, value)}
             />
