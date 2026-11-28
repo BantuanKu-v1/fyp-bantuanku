@@ -525,6 +525,30 @@ const zh = {
             "无法获取您的申请记录。请检查网络连接后重试。",
       },
 
+      buttons: {
+        retrieveConfirmation: "获取提交确认",
+      },
+
+      eligibility: {
+        title: "初步资格评估",
+
+        status: "资格状态",
+        criteriaVersion: "评估标准版本",
+        assessedAt: "评估时间",
+
+        statuses: {
+          potentially_eligible: "可能符合资格",
+          potentially_ineligible: "可能不符合资格",
+          insufficient_information: "资料不足",
+          manual_verification: "需要人工核实",
+        },
+
+        notAvailable: "此申请暂无初步资格评估结果。",
+        notAssessed: "系统将在提交申请前进行初步资格评估。",
+
+        disclaimer: "此初步资格评估由 BantuanKu 提供，并不代表 STR 的正式申请结果。",
+      },
+
       str: {
         title: "STR 援助申请",
         description: "提交 STR 申请前，请先核对您的资料。",

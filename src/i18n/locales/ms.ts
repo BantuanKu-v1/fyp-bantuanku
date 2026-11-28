@@ -520,6 +520,30 @@ const ms = {
             "Kami tidak dapat mendapatkan senarai permohonan anda. Sila semak sambungan internet dan cuba lagi.",
       },
 
+      buttons: {
+        retrieveConfirmation: "Dapatkan Pengesahan Penghantaran",
+      },
+
+      eligibility: {
+        title: "Penilaian Kelayakan Awal",
+
+        status: "Status Kelayakan",
+        criteriaVersion: "Versi Kriteria",
+        assessedAt: "Tarikh Penilaian",
+
+        statuses: {
+          potentially_eligible: "Berpotensi Layak",
+          potentially_ineligible: "Berpotensi Tidak Layak",
+          insufficient_information: "Maklumat Tidak Mencukupi",
+          manual_verification: "Pengesahan Manual Diperlukan",
+        },
+
+        notAvailable: "Tiada penilaian kelayakan awal tersedia untuk permohonan ini.",
+        notAssessed: "Kelayakan awal anda akan dinilai sebelum permohonan dihantar.",
+
+        disclaimer: "Penilaian awal ini disediakan oleh BantuanKu dan tidak mewakili keputusan rasmi permohonan STR.",
+      },
+
       str: {
         title: "Permohonan STR",
         description: "Semak maklumat anda sebelum menghantar permohonan STR.",

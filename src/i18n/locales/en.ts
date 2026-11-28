@@ -518,6 +518,30 @@ const en = {
             "We couldn't retrieve your applications. Please check your connection and try again.",
       },
 
+      buttons: {
+        retrieveConfirmation: "Retrieve Submission Confirmation",
+      },
+
+      eligibility: {
+        title: "Preliminary Eligibility",
+
+        status: "Eligibility Status",
+        criteriaVersion: "Criteria Version",
+        assessedAt: "Assessed At",
+
+        statuses: {
+          potentially_eligible: "Potentially Eligible",
+          potentially_ineligible: "Potentially Ineligible",
+          insufficient_information: "Insufficient Information",
+          manual_verification: "Manual Verification Required",
+        },
+
+        notAvailable: "No preliminary eligibility assessment is available for this submission.",
+        notAssessed: "Your preliminary eligibility will be assessed before submission.",
+
+        disclaimer: "This preliminary assessment is provided by BantuanKu and does not represent an official STR application decision.",
+      },
+
       str: {
         title: "STR Application",
         description: "Review your information before submitting your STR application.",
