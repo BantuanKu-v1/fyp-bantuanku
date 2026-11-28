@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import Screen from "../../layout/Screen";
@@ -31,7 +31,7 @@ export default function ApplicationScreenLayout({
   const { t } = useTranslation();
 
   return (
-      <Screen>
+      <Screen scroll={false}>
         <ScreenHeader
             title={t(`applications.${provider}.title`, {
               programCode
@@ -47,14 +47,27 @@ export default function ApplicationScreenLayout({
             <>
               <ScrollView
                   className="flex-1"
-                  contentContainerClassName="gap-3 px-4 pb-6 pt-3"
+                  contentContainerClassName="gap-3 pb-6 pt-3"
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode={
+                    Platform.OS === "ios"
+                        ? "interactive"
+                        : "on-drag"
+                  }
+                  automaticallyAdjustKeyboardInsets={
+                      Platform.OS === "ios"
+                  }
+                  contentInsetAdjustmentBehavior="never"
+                  bounces={false}
+                  alwaysBounceVertical={false}
               >
                 {error && (
                     <Alert
                         variant="error"
-                        title={t(`applications.${provider}.messages.attentionRequired`)}
+                        title={t(
+                            `applications.${provider}.messages.attentionRequired`
+                        )}
                     >
                       {t(error, { defaultValue: error })}
                     </Alert>
@@ -64,7 +77,7 @@ export default function ApplicationScreenLayout({
               </ScrollView>
 
               {actions && (
-                  <View className="border-t border-border bg-background px-4 pb-4 pt-3">
+                  <View className="border-t border-border bg-background pb-4 pt-3">
                     {actions}
                   </View>
               )}
