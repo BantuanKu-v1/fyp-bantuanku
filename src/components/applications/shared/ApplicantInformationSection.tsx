@@ -34,14 +34,26 @@ export default function ApplicantInformationSection({
 }: ApplicantInformationSectionProps) {
   const { t, i18n } = useTranslation();
 
-  const language =
-      i18n.resolvedLanguage ?? i18n.language;
+  const language = i18n.resolvedLanguage ?? i18n.language;
 
   if (!applicant) {
     return null;
   }
 
   const notProvided = t("common.notProvided");
+
+  const citizenship = applicant.citizenship?.trim();
+
+  const normalizedCitizenship = citizenship
+      ?.toLowerCase()
+      .replace(/[\s_-]/g, "");
+
+  const citizenshipLabel =
+      normalizedCitizenship === "malaysian"
+          ? t("profile.personalInformation.malaysian")
+          : normalizedCitizenship === "nonmalaysian"
+              ? t("profile.personalInformation.nonMalaysian")
+              : citizenship || notProvided;
 
   return (
       <CollapsibleSection
@@ -87,7 +99,7 @@ export default function ApplicantInformationSection({
 
           <ApplicationDetailRow
               label={t(`applications.${provider}.fields.citizenship`)}
-              value={applicant.citizenship}
+              value={citizenshipLabel}
               fallback={notProvided}
           />
         </View>
