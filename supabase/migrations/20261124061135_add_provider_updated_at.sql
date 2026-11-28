@@ -1,0 +1,2 @@
+alter table public.external_application_submissions
+add column provider_updated_at timestamptz;

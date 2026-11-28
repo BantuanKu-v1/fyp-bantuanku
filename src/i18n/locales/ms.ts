@@ -492,9 +492,20 @@ const ms = {
 
       statuses: {
         draft: "Draf",
-        inProgress: "Sedang Diisi",
+        inProgress: "Dalam Proses",
         readyForReview: "Sedia untuk Semakan",
         submitted: "Telah Dihantar",
+        underReview: "Dalam Semakan",
+        additionalInformationRequired: "Maklumat Tambahan Diperlukan",
+        approved: "Diluluskan",
+        rejected: "Ditolak",
+        cancelled: "Dibatalkan",
+      },
+
+      submissionStates: {
+        pending: "Penghantaran Belum Selesai",
+        failed: "Penghantaran Gagal",
+        unknown: "Penghantaran Belum Disahkan",
       },
 
       empty: {
@@ -507,6 +518,30 @@ const ms = {
         loadTitle: "Tidak Dapat Memuatkan Permohonan",
         loadDescription:
             "Kami tidak dapat mendapatkan senarai permohonan anda. Sila semak sambungan internet dan cuba lagi.",
+      },
+
+      buttons: {
+        retrieveConfirmation: "Dapatkan Pengesahan Penghantaran",
+      },
+
+      eligibility: {
+        title: "Penilaian Kelayakan Awal",
+
+        status: "Status Kelayakan",
+        criteriaVersion: "Versi Kriteria",
+        assessedAt: "Tarikh Penilaian",
+
+        statuses: {
+          potentially_eligible: "Berpotensi Layak",
+          potentially_ineligible: "Berpotensi Tidak Layak",
+          insufficient_information: "Maklumat Tidak Mencukupi",
+          manual_verification: "Pengesahan Manual Diperlukan",
+        },
+
+        notAvailable: "Tiada penilaian kelayakan awal tersedia untuk permohonan ini.",
+        notAssessed: "Kelayakan awal anda akan dinilai sebelum permohonan dihantar.",
+
+        disclaimer: "Penilaian awal ini disediakan oleh BantuanKu dan tidak mewakili keputusan rasmi permohonan STR.",
       },
 
       str: {
@@ -570,7 +605,392 @@ const ms = {
           submissionUncertain: "Kami tidak dapat mengesahkan sama ada STR telah menerima permohonan anda. Muat semula dan semak status sebelum mencuba lagi.",
           invalidConfirmation: "Perkhidmatan STR mengembalikan pengesahan penghantaran yang tidak sah. Sila semak status permohonan anda.",
         },
+      },
 
+      jkm: {
+        title: "Permohonan {{programCode}}",
+        description: "Semak maklumat anda dan lengkapkan butiran yang diperlukan sebelum menghantar permohonan JKM anda.",
+
+        sections: {
+          applicationDetails: "Butiran Permohonan",
+          applicantInformation: "Maklumat Pemohon",
+          applicationReadiness: "Kesediaan Permohonan",
+          programSpecificInformation: "Maklumat Khusus Program",
+          supportingDocuments: "Dokumen Sokongan",
+          preliminaryEligibility: "Kelayakan Awal",
+          applicationReview: "Semakan Permohonan",
+          submissionConfirmation: "Pengesahan Penghantaran",
+        },
+
+        fields: {
+          program: "Program Bantuan",
+          agency: "Agensi",
+          applicationId: "ID Permohonan",
+          status: "Status Permohonan",
+
+          fullName: "Nama Penuh",
+          identificationNo: "Nombor Kad Pengenalan",
+          dateOfBirth: "Tarikh Lahir",
+          citizenship: "Kewarganegaraan",
+
+          referenceNo: "Nombor Rujukan",
+          providerApplicationId: "ID Permohonan JKM",
+          providerStatus: "Status JKM",
+          submittedAt: "Tarikh Penghantaran",
+        },
+
+        readiness: {
+          applicant: "Maklumat Pemohon",
+          address: "Alamat Kediaman",
+          household: "Maklumat Isi Rumah",
+          householdMembers: "Ahli Isi Rumah",
+          programSpecificData: "Maklumat Khusus Program",
+
+          complete: "Lengkap",
+          incomplete: "Tidak Lengkap",
+          notRequired: "Tidak Diperlukan",
+        },
+
+        buttons: {
+          submit: "Hantar Permohonan JKM",
+          alreadySubmitted: "Permohonan Telah Dihantar",
+          refresh: "Muat Semula Maklumat",
+          saveDraft: "Simpan Draf",
+          review: "Semak Permohonan",
+          checkSubmission: "Semak Status Penghantaran",
+          confirm: "Sahkan Penghantaran",
+          submitting: "Sedang menghantar...",
+        },
+
+        messages: {
+          loading: "Sedang memuatkan permohonan JKM anda...",
+          loadError: "Permohonan JKM anda tidak dapat dimuatkan. Sila cuba lagi.",
+
+          notAvailable: "Tidak tersedia",
+
+          attentionRequired: "Perhatian Diperlukan",
+          missingInformation: "Lengkapkan maklumat yang belum diisi dalam profil anda sebelum menghantar permohonan.",
+          incompleteApplication: "Sila lengkapkan maklumat permohonan yang diperlukan sebelum menghantar.",
+
+          draftSaved: "Draf permohonan anda telah disimpan.",
+          draftSaveError: "Draf permohonan anda tidak dapat disimpan. Sila cuba lagi.",
+
+          reviewDescription: "Sila semak maklumat dan pengisytiharan anda sebelum menghantar permohonan.",
+
+          confirmTitle: "Hantar Permohonan JKM?",
+          confirmDescription: "Sila pastikan maklumat dan pengisytiharan anda adalah tepat sebelum menghantar permohonan kepada JKM.",
+
+          declaration: "Saya mengesahkan bahawa maklumat yang diberikan dalam permohonan ini adalah lengkap dan tepat.",
+
+          successTitle: "Permohonan Berjaya Dihantar",
+          successDescription: "Permohonan JKM anda telah berjaya dihantar. Nombor rujukan: {{referenceNo}}",
+
+          submissionError: "Permohonan JKM tidak dapat dihantar.",
+          submissionUncertain: "Penghantaran permohonan JKM tidak dapat disahkan. Sila semak status permohonan anda sebelum mencuba lagi.",
+          invalidConfirmation: "Perkhidmatan JKM memberikan pengesahan penghantaran yang tidak sah. Sila semak status permohonan anda.",
+
+          invalidProgram: "Program bantuan JKM tidak disokong.",
+          invalidSubmissionState: "Status penghantaran luaran JKM tidak sah.",
+
+          alreadySubmittedTitle: "Permohonan Telah Dihantar",
+          alreadySubmittedDescription: "Permohonan JKM anda telah dihantar. Anda tidak perlu menghantarnya semula.",
+          existingConfirmation: "Ini ialah pengesahan daripada penghantaran permohonan anda yang terdahulu.",
+
+          pendingTitle: "Penghantaran Belum Selesai",
+          pendingDescription: "Penghantaran permohonan anda sedang diproses. Sila semak statusnya sebelum mencuba lagi.",
+
+          unknownTitle: "Status Penghantaran Tidak Diketahui",
+          unknownDescription: "Kami tidak dapat mengesahkan sama ada JKM telah menerima permohonan anda. Maklumat permohonan tidak boleh disunting sehingga status penghantaran disahkan.",
+
+          failedTitle: "Penghantaran Gagal",
+          failedDescription: "Permohonan anda tidak berjaya dihantar. Semak maklumat anda sebelum mencuba lagi.",
+
+          applicationLocked: "Permohonan ini tidak boleh disunting kerana penghantarannya sedang diproses, belum disahkan atau telah selesai.",
+
+          eligibilityDisclaimer: "Keputusan kelayakan awal anda tidak menjamin kelulusan JKM. JKM mungkin memerlukan maklumat tambahan atau pengesahan.",
+          simulationDisclaimer: "Permohonan ini dihantar kepada perkhidmatan simulasi JKM untuk tujuan demonstrasi sahaja.",
+        },
+
+        form: {
+          required: "Wajib",
+          optional: "Pilihan",
+
+          textPlaceholder: "Masukkan butiran",
+          amountPlaceholder: "Masukkan jumlah (RM)",
+          countPlaceholder: "Masukkan nombor bulat",
+
+          validation: {
+            required: "Medan ini wajib diisi.",
+            boolean: "Sila pilih Ya atau Tidak.",
+            select: "Sila pilih pilihan yang tersedia.",
+            number: "Masukkan nombor yang sah.",
+            nonNegative: "Nilai negatif tidak dibenarkan.",
+            integer: "Masukkan nombor bulat.",
+            date: "Masukkan tarikh yang sah.",
+            identificationNo: "Masukkan nombor pengenalan yang sah.",
+            maxLength: "Masukkan tidak lebih daripada {{count}} aksara.",
+            declarationRequired: "Sila sahkan pengisytiharan anda sebelum menghantar permohonan.",
+          },
+        },
+
+        options: {
+          citizenship: {
+            malaysian: "Warganegara Malaysia",
+            nonMalaysian: "Bukan Warganegara Malaysia",
+          },
+
+          relationship: {
+            spouse: "Pasangan",
+            child: "Anak",
+            parent: "Ibu Bapa",
+            sibling: "Adik-beradik",
+            grandchild: "Cucu",
+            other: "Lain-lain",
+          },
+        },
+
+        health: {
+          title: "Maklumat Kesihatan",
+
+          isOku: "Adakah individu ini Orang Kurang Upaya (OKU)?",
+          okuRegistered: "Adakah individu ini berdaftar sebagai OKU?",
+          disabilityDescription: "Keterangan Ketidakupayaan",
+
+          hasChronicIllness: "Adakah individu ini menghidap penyakit kronik?",
+          chronicIllnessDetails: "Butiran Penyakit Kronik",
+
+          isBedridden: "Adakah individu ini terlantar?",
+          requiresContinuousTreatment: "Adakah individu ini memerlukan rawatan berterusan?",
+          treatmentStartDate: "Tarikh Mula Rawatan",
+        },
+
+        programs: {
+          ba: {
+            title: "Bantuan Am",
+            description: "Berikan maklumat tentang bantuan kebajikan sedia ada dan keadaan tambahan anda.",
+
+            sections: {
+              welfareAssistance: "Bantuan Kebajikan Sedia Ada",
+              additionalCircumstances: "Keadaan Tambahan",
+            },
+
+            fields: {
+              receivesOtherJkmMonthlyAssistance: "Adakah anda sedang menerima bantuan bulanan lain daripada JKM?",
+              currentJkmAssistanceProgram: "Program Bantuan JKM Semasa",
+
+              economicHardship: "Adakah anda menghadapi kesukaran ekonomi?",
+              healthRelatedNeeds: "Adakah anda mempunyai keperluan tambahan berkaitan kesihatan?",
+              dependentRelatedNeeds: "Adakah anda mempunyai keperluan tambahan berkaitan tanggungan?",
+              otherCircumstances: "Adakah terdapat keadaan lain yang perlu dipertimbangkan oleh JKM?",
+
+              description: "Keterangan Keadaan Tambahan",
+            },
+
+            validation: {
+              currentProgramRequired: "Sila nyatakan nama program bantuan JKM yang sedang diterima.",
+              inconsistentAssistance: "Sila semak pengisytiharan bantuan JKM sedia ada anda.",
+              circumstancesDescriptionRequired: "Sila terangkan keadaan lain tersebut.",
+            },
+          },
+
+          bat: {
+            title: "Bantuan Alat Tiruan / Alat Sokongan",
+            description: "Berikan maklumat tentang penerima bantuan, peralatan yang dipohon dan sokongan pengesyoran.",
+
+            sections: {
+              beneficiary: "Maklumat Penerima Bantuan",
+              beneficiaryHealth: "Maklumat Kesihatan Penerima Bantuan",
+              functionalLimitations: "Batasan Fungsi",
+              equipment: "Maklumat Peralatan",
+              recommendation: "Maklumat Pengesyoran",
+              additionalJustification: "Justifikasi Tambahan",
+            },
+
+            fields: {
+              beneficiaryType: "Siapakah yang akan menerima peralatan yang dipohon?",
+              fullName: "Nama Penuh Penerima Bantuan",
+              identificationNo: "Nombor Pengenalan Penerima Bantuan",
+              relationshipToApplicant: "Hubungan dengan Pemohon",
+
+              functionalLimitationDescription: "Terangkan batasan fungsi penerima bantuan.",
+
+              equipmentType: "Jenis Peralatan",
+              equipmentDescription: "Keterangan Peralatan",
+              purpose: "Tujuan Penggunaan Peralatan",
+              estimatedCost: "Anggaran Kos Peralatan (RM)",
+              supplierName: "Nama Pembekal",
+              quotationAvailable: "Adakah sebut harga peralatan tersedia?",
+
+              recommendationAvailable: "Adakah pengesyoran sokongan tersedia?",
+              recommendingAuthority: "Pihak yang Memberikan Pengesyoran",
+              recommendationOfficerName: "Nama Pegawai yang Memberikan Pengesyoran",
+              recommendationInstitution: "Institusi yang Memberikan Pengesyoran",
+              recommendationDetails: "Butiran Pengesyoran",
+
+              additionalJustification: "Justifikasi Tambahan Peralatan",
+            },
+
+            options: {
+              beneficiaryType: {
+                applicant: "Diri Sendiri",
+                dependent: "Tanggungan Saya",
+              },
+
+              recommendingAuthority: {
+                medicalOfficer: "Pegawai Perubatan",
+                jkmOfficer: "Pegawai JKM",
+                other: "Lain-lain",
+              },
+            },
+
+            messages: {
+              applicantBeneficiary: "Maklumat peribadi dan kesihatan anda akan digunakan sebagai maklumat penerima bantuan.",
+              dependentBeneficiary: "Berikan maklumat tanggungan yang menerima bantuan. Maklumat kesihatan anda sendiri tidak akan digunakan untuk individu ini.",
+
+              highCostEquipment: "Peralatan yang melebihi RM20,000 memerlukan justifikasi tambahan.",
+              recommendationVerification: "JKM mungkin perlu mengesahkan pengesyoran dan peralatan yang dipohon.",
+            },
+
+            validation: {
+              beneficiaryTypeRequired: "Sila pilih jenis penerima bantuan.",
+              beneficiaryNameRequired: "Sila berikan nama penuh penerima bantuan.",
+              beneficiaryRelationshipRequired: "Sila nyatakan hubungan penerima bantuan dengan anda.",
+              dependentIdentificationConflict: "Nombor pengenalan tanggungan mestilah berbeza daripada nombor pengenalan pemohon.",
+
+              equipmentTypeRequired: "Sila nyatakan jenis peralatan.",
+              equipmentDescriptionRequired: "Sila terangkan peralatan yang dipohon.",
+              equipmentPurposeRequired: "Sila terangkan tujuan penggunaan peralatan yang dipohon.",
+
+              recommendingAuthorityRequired: "Sila nyatakan pihak yang memberikan pengesyoran.",
+              recommendationDetailsRequired: "Sila berikan butiran pihak yang memberikan pengesyoran.",
+              additionalJustificationRequired: "Justifikasi tambahan diperlukan bagi peralatan yang melebihi RM20,000.",
+            },
+          },
+
+          bpt: {
+            title: "Bantuan Penjagaan",
+            description: "Berikan maklumat tentang pesakit, penjaga dan pengesahan perubatan.",
+
+            sections: {
+              applicationPathway: "Kategori Permohonan",
+              patient: "Maklumat Pesakit",
+              patientHealth: "Maklumat Kesihatan Pesakit",
+              caregiver: "Maklumat Penjaga",
+              medicalConfirmation: "Pengesahan Perubatan",
+              additionalInformation: "Maklumat Tambahan",
+            },
+
+            fields: {
+              applicationPathway: "Bagaimanakah anda memohon bantuan ini?",
+
+              patient: {
+                fullName: "Nama Penuh Pesakit",
+                identificationNo: "Nombor Pengenalan Pesakit",
+                citizenship: "Kewarganegaraan Pesakit",
+                relationshipToApplicant: "Hubungan Pesakit dengan Pemohon",
+              },
+
+              caregiver: {
+                fullName: "Nama Penuh Penjaga",
+                identificationNo: "Nombor Pengenalan Penjaga",
+                citizenship: "Kewarganegaraan Penjaga",
+                relationship: "Hubungan dengan Pesakit",
+                providesIntensiveCare: "Adakah penjaga memberikan penjagaan rapi?",
+                eligiblePersonsCaredFor: "Bilangan Individu Layak yang Menerima Penjagaan",
+              },
+
+              medicalConfirmation: {
+                medicalConfirmationAvailable: "Adakah pengesahan perubatan tersedia?",
+                medicalInstitution: "Institusi Perubatan",
+                medicalOfficerName: "Nama Pegawai Perubatan",
+                diagnosisDetails: "Butiran Diagnosis",
+                treatmentDetails: "Butiran Rawatan",
+                specialistDetails: "Butiran Pakar Perubatan",
+              },
+
+              reasonForSelfApplication: "Sebab Permohonan Sendiri",
+              additionalRemarks: "Catatan Tambahan",
+            },
+
+            options: {
+              applicationPathway: {
+                caregiver: "Memohon sebagai penjaga",
+                nonBedriddenPatient: "Memohon sebagai pesakit kronik tidak terlantar",
+                bedriddenPatientWithoutEligibleCaregiver: "Memohon sebagai pesakit terlantar tanpa penjaga yang layak",
+              },
+
+              reasonForSelfApplication: {
+                noCaregiver: "Tiada penjaga",
+                nonMalaysianCaregiver: "Penjaga bukan warganegara Malaysia",
+              },
+            },
+
+            messages: {
+              caregiverPathway: "Berikan maklumat tentang pesakit yang anda jaga.",
+              patientPathway: "Maklumat peribadi anda akan digunakan sebagai maklumat pesakit.",
+
+              nonBedriddenPatientPathway: "Berikan maklumat tentang penyakit kronik dan rawatan berterusan anda.",
+              bedriddenPatientPathway: "Nyatakan sebab anda memohon tanpa penjaga yang layak.",
+
+              medicalVerification: "JKM mungkin memerlukan pengesahan perubatan dan pengesahan mengenai aturan penjagaan pesakit.",
+            },
+
+            validation: {
+              applicationPathwayRequired: "Sila pilih kategori permohonan.",
+
+              patientNameRequired: "Sila berikan nama penuh pesakit.",
+              patientRelationshipRequired: "Sila nyatakan hubungan pesakit dengan anda.",
+
+              caregiverNameRequired: "Sila berikan nama penuh penjaga.",
+              caregiverInformationRequired: "Sila lengkapkan maklumat penjaga.",
+
+              differentIdentificationRequired: "Pesakit dan penjaga mestilah individu yang berbeza.",
+
+              intensiveCareRequired: "Penjaga mesti mengesahkan bahawa penjagaan rapi diberikan.",
+              bedriddenPatientRequired: "Kategori permohonan ini memerlukan pesakit yang terlantar.",
+
+              nonBedriddenPatientRequired: "Kategori permohonan ini memerlukan pesakit yang tidak terlantar.",
+              chronicIllnessRequired: "Sila sahkan penyakit kronik pesakit.",
+              continuousTreatmentRequired: "Sila sahkan bahawa rawatan berterusan diperlukan.",
+              treatmentStartDateRequired: "Sila berikan tarikh mula rawatan.",
+
+              selfApplicationReasonRequired: "Sila nyatakan sebab permohonan sendiri.",
+              inconsistentCaregiverInformation: "Sila semak maklumat penjaga dan sebab permohonan sendiri.",
+            },
+          },
+
+          bwe: {
+            title: "Bantuan Warga Emas",
+            description: "Berikan maklumat tentang sokongan keluarga, keadaan kewangan dan pertimbangan khas.",
+
+            sections: {
+              familySupport: "Sokongan Keluarga dan Penjaga",
+              incomeDeclaration: "Pengisytiharan Pendapatan",
+              specialConsideration: "Pertimbangan Khas",
+            },
+
+            fields: {
+              hasChildren: "Adakah anda mempunyai anak?",
+              dependsOnFamilyOrCaregiver: "Adakah anda bergantung kepada ahli keluarga atau penjaga?",
+
+              familyOrCaregiverMonthlyIncome: "Pendapatan Bulanan Keluarga atau Penjaga (RM)",
+              incomeDeclarationDetails: "Butiran Tambahan Pengisytiharan Pendapatan",
+
+              specialConsiderationRequested: "Adakah anda memohon pertimbangan khas daripada JKM?",
+              specialConsiderationReason: "Sebab Pertimbangan Khas",
+            },
+
+            messages: {
+              incomeDeclarationHelper: "Berikan maklumat pendapatan keluarga atau penjaga jika diketahui.",
+              specialConsiderationHelper: "Terangkan sebarang keadaan yang anda ingin JKM pertimbangkan semasa menyemak permohonan anda.",
+            },
+
+            validation: {
+              specialConsiderationRequired: "Sila nyatakan sama ada pertimbangan khas dipohon.",
+              specialConsiderationReasonRequired: "Sila berikan sebab permohonan pertimbangan khas.",
+            },
+          },
+        },
       },
     },
 

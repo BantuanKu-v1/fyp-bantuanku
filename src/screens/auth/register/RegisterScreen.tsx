@@ -12,8 +12,8 @@ import { useTranslation } from "react-i18next";
 import { SelectedDocument } from "../../../types/documents";
 import { useAuth } from "../../../contexts/AuthContext";
 import { getStoredLanguage } from "../../../i18n/language";
-import { completeRegistration, RegistrationError } from "../../../services/registrationService";
-import { uploadRegistrationDocuments } from "../../../services/documentService";
+import { completeRegistration, RegistrationError } from "../../../services/profile/registrationService.ts";
+import { uploadRegistrationDocuments } from "../../../services/profile/documentService.ts";
 
 import AuthBackground from "../../../components/auth/AuthBackground";
 import Screen from "../../../components/layout/Screen";

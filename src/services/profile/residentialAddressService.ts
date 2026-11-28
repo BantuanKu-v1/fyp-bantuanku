@@ -1,7 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import type { RegisterResidenceFormData } from "../../schemas/registration";
 import { getCurrentProfileId } from "./profileService";
-import { STATE_TERRITORY_MAP } from "../../constants/registration";
+import { STATE_TERRITORY_MAP } from "../../constants/profile/registration.ts";
 
 export type ResidentialAddress = {
   id: string;

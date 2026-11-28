@@ -2,9 +2,9 @@ import { RegistrationDocumentSection, SelectedDocument } from "../../../types/do
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
-import { ALLOWED_DOCUMENT_MIME_TYPES, MAXIMUM_DOCUMENT_FILE_SIZE } from "../../../constants/documents";
+import { ALLOWED_DOCUMENT_MIME_TYPES, MAXIMUM_DOCUMENT_FILE_SIZE } from "../../../constants/profile/documents.ts";
 import { Pressable, Text, View } from "react-native";
-import { REGISTRATION_DOCUMENT_SECTIONS } from "../../../constants/registration";
+import { REGISTRATION_DOCUMENT_SECTIONS } from "../../../constants/profile/registration.ts";
 import { FileText, Plus, RefreshCw, Trash2, Upload } from "lucide-react-native";
 
 import Card from "../../../components/ui/Card";

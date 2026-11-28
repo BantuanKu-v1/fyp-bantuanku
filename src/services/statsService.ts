@@ -1,4 +1,4 @@
-import { DOSM_HOUSEHOLD_INCOME_API_URL, DOSM_HOUSEHOLD_POVERTY_API_URL } from "../constants/api";
+import { DOSM_HOUSEHOLD_INCOME_API_URL, DOSM_HOUSEHOLD_POVERTY_API_URL } from "../constants/api/api.ts";
 
 type HouseholdIncomeApiResult = {
   date: string;

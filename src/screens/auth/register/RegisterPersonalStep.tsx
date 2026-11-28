@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
-import { CitizenshipValue } from "../../../constants/registration";
+import { CitizenshipValue } from "../../../constants/profile/registration.ts";
 import { formatMyKad, getDobFromMyKad } from "../../../utils/myKad";
 
 import Input from "../../../components/ui/Input";

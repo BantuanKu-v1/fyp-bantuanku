@@ -14,7 +14,7 @@ import {
 const STR_FIELD_MAP = {
   "applicant.citizenship": "citizenship",
   "applicant.residenceCountry": "residenceCountry",
-  "applicant.age": "age",
+  "applicant.age": "ageByBirthYear",
   "applicant.monthlyPersonalIncome": "monthlyPersonalIncome",
   "applicant.maritalStatus": "maritalStatus",
   "applicant.isFullTimeIptaIptsStudent": "isFullTimeIptaIptsStudent",

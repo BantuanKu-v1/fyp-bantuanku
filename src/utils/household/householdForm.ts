@@ -7,7 +7,7 @@ import {
   HOUSEHOLD_EMPLOYMENT_KEYS,
   HOUSEHOLD_STUDY_MODE_KEYS,
   HOUSEHOLD_INSTITUTION_TYPE_KEYS
-} from "../../constants/household";
+} from "../../constants/profile/household.ts";
 
 // Check whether a value exists in a dropdown's supported values
 const isHouseholdOption = <T extends string>(

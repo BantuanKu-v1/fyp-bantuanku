@@ -12,7 +12,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Screen from "../../components/layout/Screen";
 import ScreenHeader from "../../components/layout/ScreenHeader";
 
-import { useEligibility } from "../../hooks/useEligibility";
+import { useEligibility } from "../../hooks/eligibility/useEligibility.ts";
 
 import type { HomeStackParamList } from "../../navigation/HomeStackNavigation";
 
@@ -30,7 +30,7 @@ const PROGRAM_NAMES: Record<SupportedProgramCode, string> = {
   BA: "Bantuan Am",
   BAT: "Bantuan Alat Tiruan / Alat Sokongan",
   BPT: "Bantuan Penjagaan",
-  STR: "Sumbangan Tunai Rahmah (2026)",
+  STR: "Sumbangan Tunai Rahmah",
 };
 
 type QuestionnaireProgramCode = "BAT" | "BPT";
@@ -470,6 +470,36 @@ export default function HomeScreen({
             >
               <Text className="font-semibold text-white">
                 Test STR Application
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* JKM application integration testing */}
+          <View className="gap-3 rounded-xl border border-border bg-surface p-4">
+            <View className="gap-1">
+              <Text className="text-base font-semibold text-foreground">
+                JKM Application Testing
+              </Text>
+
+              <Text className="text-sm text-muted-foreground">
+                Test the BA application workflow, including draft creation,
+                applicant information validation, submission to the JKM
+                Mock Web, and application status synchronization.
+              </Text>
+            </View>
+
+            <Pressable
+                onPress={() =>
+                    navigation.navigate("JkmApplication", {
+                      programCode: "BA",
+                    })
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Test BA application"
+                className="items-center rounded-xl bg-primary px-4 py-4"
+            >
+              <Text className="font-semibold text-white">
+                Test BA Application
               </Text>
             </Pressable>
           </View>

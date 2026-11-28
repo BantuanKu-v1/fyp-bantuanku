@@ -8,7 +8,7 @@ import {
   EMPLOYMENT_STATUS_VALUES,
   HOUSEHOLD_RELATIONSHIP_VALUES,
   MYKAD_BIRTHPLACE_CODES,
-} from "../../src/constants/registration";
+} from "../../src/constants/profile/registration.ts";
 
 // Mock translation function
 const t = ((key: string) => key) as TFunction;

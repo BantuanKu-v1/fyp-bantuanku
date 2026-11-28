@@ -9,8 +9,8 @@ import {
   HOUSEHOLD_INSTITUTION_TYPE_KEYS,
   HOUSEHOLD_YES_NO_KEYS,
   HOUSEHOLD_OPTIONAL_YES_NO_KEYS
-} from "../constants/household";
-import { getHouseholdOptions } from "../utils/household/householdOptions";
+} from "../../constants/profile/household.ts";
+import { getHouseholdOptions } from "../../utils/household/householdOptions.ts";
 
 export default function useHouseholdOptions() {
   const { t, i18n } = useTranslation();

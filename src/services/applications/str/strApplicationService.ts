@@ -4,24 +4,41 @@ import {
   FunctionsFetchError,
 } from "@supabase/supabase-js";
 
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase.ts";
 
 import {
   STR_REQUIRED_ADDRESS_FIELDS,
   STR_REQUIRED_PROFILE_FIELDS,
   STR_APPLICATION_LABELS,
-} from "../../constants/applications/strApplication";
+} from "../../../constants/applications/strApplication.ts";
 
 import type {
   ApiResponse,
   StrApplicantReview,
   StrSubmissionResult,
-} from "../../types/applications";
+} from "../../../types/applications.ts";
+
+export type StrExternalSubmissionState =
+    | "pending"
+    | "submitted"
+    | "failed"
+    | "unknown";
 
 function hasValue(value: unknown): boolean {
   return (
       typeof value === "string" &&
       value.trim().length > 0
+  );
+}
+
+function isStrExternalSubmissionState(
+    value: unknown,
+): value is StrExternalSubmissionState {
+  return (
+      value === "pending" ||
+      value === "submitted" ||
+      value === "failed" ||
+      value === "unknown"
   );
 }
 
@@ -36,24 +53,24 @@ export async function getStrApplicantReview(
     supabase
         .from("profiles")
         .select(`
-        full_name,
-        identification_no,
-        date_of_birth,
-        citizenship,
-        household_members_complete
-      `)
+          full_name,
+          identification_no,
+          date_of_birth,
+          citizenship,
+          household_members_complete
+        `)
         .eq("id", profileId)
         .single(),
 
     supabase
         .from("addresses")
         .select(`
-        address_line_1,
-        postcode,
-        city,
-        state_territory,
-        country_code
-      `)
+          address_line_1,
+          postcode,
+          city,
+          state_territory,
+          country_code
+        `)
         .eq("profile_id", profileId)
         .eq("is_primary", true)
         .limit(1)
@@ -62,9 +79,9 @@ export async function getStrApplicantReview(
     supabase
         .from("household_members")
         .select(`
-        full_name,
-        relationship
-      `)
+          full_name,
+          relationship
+        `)
         .eq("profile_id", profileId),
   ]);
 
@@ -111,6 +128,37 @@ export async function getStrApplicantReview(
     addressComplete,
     householdMembersComplete,
   };
+}
+
+export async function getStrExternalSubmissionState(
+    applicationId: string,
+): Promise<StrExternalSubmissionState | null> {
+  const { data, error } = await supabase
+      .from("external_application_submissions")
+      .select(`
+        submission_state
+      `)
+      .eq("application_id", applicationId)
+      .eq("provider", "str")
+      .maybeSingle();
+
+  if (error) {
+    throw new Error(
+        `Unable to retrieve STR submission state: ${error.message}`,
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  if (!isStrExternalSubmissionState(data.submission_state)) {
+    throw new Error(
+        "Invalid STR external submission state.",
+    );
+  }
+
+  return data.submission_state;
 }
 
 export async function submitStrApplication(

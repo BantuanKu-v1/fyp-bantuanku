@@ -186,3 +186,12 @@ export interface EligibilityResult {
   missingInformation: EligibilityConditionResult[];
   manualVerification: string[];
 }
+
+// Preliminary eligibility snapshot persisted with an application
+export interface PreliminaryEligibilitySnapshot {
+  programCode: AidProgramCode;
+  status: EligibilityStatus;
+  criteriaVersion: number;
+  assessedAt: string;
+  // schemeYear?: number;
+}

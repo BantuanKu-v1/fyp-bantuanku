@@ -1,4 +1,4 @@
-import { DOCUMENT_TYPES } from "../constants/documents";
+import { DOCUMENT_TYPES } from "../constants/profile/documents.ts";
 
 export type DocumentType = typeof DOCUMENT_TYPES[number];
 

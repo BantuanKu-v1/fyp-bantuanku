@@ -4,7 +4,7 @@ import {useEffect, useMemo, useState} from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, Text, View } from "react-native";
-import { STATE_TERRITORY_MAP, STATE_TERRITORY_VALUES, StateTerritoryValue } from "../../../constants/registration";
+import { STATE_TERRITORY_MAP, STATE_TERRITORY_VALUES, StateTerritoryValue } from "../../../constants/profile/registration.ts";
 import { lookupPostcode } from "../../../services/postcodeService";
 
 import Input from "../../../components/ui/Input";

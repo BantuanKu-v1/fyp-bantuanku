@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import { assessApplicantEligibility, assessAllApplicantEligibility } from "../services/eligibility/eligibility";
+import { assessApplicantEligibility, assessAllApplicantEligibility } from "../../services/eligibility/eligibility.ts";
 import type {
   ApplicantEligibilityAssessment,
   EligibilityAssessmentOptions,
   ProgramEligibilityCheck,
   SupportedProgramCode,
-} from "../services/eligibility/eligibility";
-import { logEligibilityTestReport } from "../utils/eligibility/eligibilityTestLogger";
+} from "../../services/eligibility/eligibility.ts";
+import { logEligibilityTestReport } from "../../utils/eligibility/eligibilityTestLogger.ts";
 
 interface UseEligibilityReturn {
   assessment: ApplicantEligibilityAssessment | null;

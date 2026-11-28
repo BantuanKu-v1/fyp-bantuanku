@@ -24,7 +24,7 @@ import {
   MARITAL_STATUSES,
   STUDY_MODES,
   STUDY_MODE_KEYS
-} from "../../constants/profile";
+} from "../../constants/profile/profile.ts";
 import {
   formatDateOfBirth,
   formatHomePhone,

@@ -1,5 +1,5 @@
-import { StateTerritoryValue } from "../constants/registration";
-import { DATA_GOV_MY_API_URL } from "../constants/api";
+import { StateTerritoryValue } from "../constants/profile/registration.ts";
+import { DATA_GOV_MY_API_URL } from "../constants/api/api.ts";
 
 type PostcodeApiResult = {
   postcode: string;

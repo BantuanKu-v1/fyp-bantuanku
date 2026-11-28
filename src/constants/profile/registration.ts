@@ -1,4 +1,4 @@
-import {RegistrationDocumentSection} from "../types/documents";
+import {RegistrationDocumentSection} from "../../types/documents.ts";
 
 export const CITIZENSHIP_VALUES = [
   "malaysian",

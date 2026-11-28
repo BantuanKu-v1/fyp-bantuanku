@@ -11,7 +11,7 @@ import {
 import { RegisterResidenceFormData, registerResidenceSchema } from "../../schemas/registration";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { STATE_TERRITORY_MAP, STATE_TERRITORY_VALUES, StateTerritoryValue } from "../../constants/registration";
+import { STATE_TERRITORY_MAP, STATE_TERRITORY_VALUES, StateTerritoryValue } from "../../constants/profile/registration.ts";
 import { lookupPostcode } from "../../services/postcodeService";
 
 import Screen from "../../components/layout/Screen";

@@ -6,7 +6,7 @@ import { ActivityIndicator, View } from "react-native";
 import { AddHouseholdMemberFormData } from "../../../schemas/household";
 import { getHouseholdMember, updateHouseholdMember } from "../../../services/profile/householdService";
 import { mapHouseholdMemberToForm } from "../../../utils/household/householdForm";
-import useHouseholdMemberForm from "../../../hooks/useHouseholdMemberForm";
+import useHouseholdMemberForm from "../../../hooks/household/useHouseholdMemberForm.ts";
 import useUnsavedChanges from "../../../hooks/useUnsavedChanges";
 
 import Screen from "../../../components/layout/Screen";
