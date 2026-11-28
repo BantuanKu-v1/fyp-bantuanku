@@ -2,7 +2,8 @@ import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
-  APPLICATION_STATUS_LABELS
+  APPLICATION_STATUS_LABELS,
+  EXTERNAL_PROVIDER_STATUS_LABELS
 } from "../../../constants/applications/applications";
 
 import { humanize } from "../../../utils/stringUtils";
@@ -10,6 +11,7 @@ import { humanize } from "../../../utils/stringUtils";
 import type {
   ApplicationSummary,
   ExternalApplicationProvider,
+  ExternalProviderStatus,
   JkmSubmissionResult,
   StrSubmissionResult
 } from "../../../types/applications";
@@ -42,10 +44,17 @@ export default function ApplicationSummaryCard({
       APPLICATION_STATUS_LABELS[application.status]
   );
 
-  const providerStatusLabel = confirmation?.providerStatus
-      ? t(`applications.statuses.${confirmation.providerStatus}`, {
-        defaultValue: humanize(confirmation.providerStatus)
-      })
+  const providerStatus = confirmation?.providerStatus;
+
+  const providerStatusLabel = providerStatus
+      ? t(
+          EXTERNAL_PROVIDER_STATUS_LABELS[
+              providerStatus as ExternalProviderStatus
+              ] ?? providerStatus,
+          {
+            defaultValue: humanize(providerStatus)
+          }
+      )
       : null;
 
   const statusLabel =
