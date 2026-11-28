@@ -6,11 +6,16 @@ import Alert from "../../ui/Alert";
 
 import ApplicationDetailRow from "./ApplicationDetailRow";
 
+import {
+  EXTERNAL_PROVIDER_STATUS_LABELS
+} from "../../../constants/applications/applications";
+
 import { formatDateTime } from "../../../utils/dateUtils";
 import { humanize } from "../../../utils/stringUtils";
 
 import type {
   ExternalApplicationProvider,
+  ExternalProviderStatus,
   JkmSubmissionResult,
   StrSubmissionResult,
 } from "../../../types/applications";
@@ -66,13 +71,15 @@ export default function SubmissionConfirmationSection({
     );
   }
 
-  const providerStatusLabel = confirmation.providerStatus
+  const providerStatus = confirmation.providerStatus;
+
+  const providerStatusLabel = providerStatus
       ? t(
-          `applications.statuses.${confirmation.providerStatus}`,
+          EXTERNAL_PROVIDER_STATUS_LABELS[
+              providerStatus as ExternalProviderStatus
+              ] ?? providerStatus,
           {
-            defaultValue: humanize(
-                confirmation.providerStatus
-            )
+            defaultValue: humanize(providerStatus)
           }
       )
       : notAvailable;
