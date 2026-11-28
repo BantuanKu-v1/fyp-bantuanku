@@ -7,6 +7,9 @@ import type {
   ExternalSubmissionState,
 } from "../types/applications";
 
+import type { StrApplicantReview } from "../types/applications";
+import { hasValue } from "./stringUtils.ts";
+
 export type ApplicationSubmissionActionMode =
     | "submit"
     | "recover"
@@ -104,5 +107,17 @@ export function canSubmitApplication({
       !alreadySubmitted &&
       applicationReady &&
       declarationAccepted
+  );
+}
+
+export function isStrApplicantProfileComplete(
+    applicant: StrApplicantReview | null
+): boolean {
+  return (
+      !!applicant &&
+      hasValue(applicant.fullName) &&
+      hasValue(applicant.identificationNo) &&
+      hasValue(applicant.dateOfBirth) &&
+      hasValue(applicant.citizenship)
   );
 }
