@@ -37,15 +37,15 @@ import type {
 import useApplicationSections from "../../../hooks/applications/useApplicationSections";
 import useApplicationSubmission from "../../../hooks/applications/useApplicationSubmission";
 
-import ApplicationScreenLayout from "../../../components/applications/shared/ApplicationScreenLayout.tsx";
-import ApplicationSummaryCard from "../../../components/applications/shared/ApplicationSummaryCard.tsx";
-import ApplicantInformationSection from "../../../components/applications/shared/ApplicantInformationSection.tsx";
-import ApplicationReadinessSection from "../../../components/applications/shared/ApplicationReadinessSection.tsx";
-import PreliminaryEligibilitySection from "../../../components/applications/shared/PreliminaryEligibilitySection.tsx";
-import ApplicationDetailsSection from "../../../components/applications/shared/ApplicationDetailsSection.tsx";
-import SubmissionConfirmationSection from "../../../components/applications/shared/SubmissionConfirmationSection.tsx";
-import ApplicationSubmissionActions from "../../../components/applications/shared/ApplicationSubmissionActions.tsx";
-import ApplicationDeclaration from "../../../components/applications/shared/ApplicationDeclaration.tsx";
+import ApplicationScreenLayout from "../../../components/applications/shared/ApplicationScreenLayout";
+import ApplicationSummaryCard from "../../../components/applications/shared/ApplicationSummaryCard";
+import ApplicantInformationSection from "../../../components/applications/shared/ApplicantInformationSection";
+import ApplicationReadinessSection from "../../../components/applications/shared/ApplicationReadinessSection";
+import PreliminaryEligibilitySection from "../../../components/applications/shared/PreliminaryEligibilitySection";
+import ApplicationDetailsSection from "../../../components/applications/shared/ApplicationDetailsSection";
+import SubmissionConfirmationSection from "../../../components/applications/shared/SubmissionConfirmationSection";
+import ApplicationSubmissionActions from "../../../components/applications/shared/ApplicationSubmissionActions";
+import ApplicationDeclaration from "../../../components/applications/shared/ApplicationDeclaration";
 
 import JkmProgramSpecificSection from "../../../components/applications/jkm/JkmProgramSpecificSection";
 
@@ -58,8 +58,8 @@ interface JkmApplicationScreenProps {
 }
 
 export default function JkmApplicationScreen({
-                                               programCode = "BA"
-                                             }: JkmApplicationScreenProps) {
+    programCode = "BA"
+}: JkmApplicationScreenProps) {
   return (
       <JkmApplicationContent
           key={programCode}
@@ -69,8 +69,8 @@ export default function JkmApplicationScreen({
 }
 
 function JkmApplicationContent({
-                                 programCode
-                               }: {
+    programCode
+}: {
   programCode: JkmProgramCode;
 }) {
   const { t } = useTranslation();
@@ -126,17 +126,10 @@ function JkmApplicationContent({
     setShowConfirmationDetails
   } = sections;
 
-  const [applicant, setApplicant] =
-      useState<JkmApplicantReview | null>(null);
-
-  const [applicationData, setApplicationData] =
-      useState<JkmApplicationDraftData | null>(null);
-
-  const [declarationAccepted, setDeclarationAccepted] =
-      useState(false);
-
-  const [showProgramSpecificData, setShowProgramSpecificData] =
-      useState(true);
+  const [applicant, setApplicant] = useState<JkmApplicantReview | null>(null);
+  const [applicationData, setApplicationData] = useState<JkmApplicationDraftData | null>(null);
+  const [declarationAccepted, setDeclarationAccepted] = useState(false);
+  const [showProgramSpecificData, setShowProgramSpecificData] = useState(true);
 
   const loadApplication = useCallback(async () => {
     if (operationRef.current) {
