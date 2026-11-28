@@ -12,7 +12,7 @@ import {
   HOUSEHOLD_EMPLOYMENT_KEYS,
   HOUSEHOLD_STUDY_MODE_KEYS,
   HOUSEHOLD_INSTITUTION_TYPE_KEYS,
-} from "../../src/constants/household";
+} from "../../src/constants/profile/household.ts";
 
 // Test data
 const firstKey = <T extends string>(

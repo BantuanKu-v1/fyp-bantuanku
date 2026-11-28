@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AddHouseholdMemberFormData, addHouseholdMemberSchema } from "../schemas/household";
-import { formatMyKad, getDobFromMyKad, getGenderFromMyKad } from "../utils/myKad";
+import { AddHouseholdMemberFormData, addHouseholdMemberSchema } from "../../schemas/household.ts";
+import { formatMyKad, getDobFromMyKad, getGenderFromMyKad } from "../../utils/myKad.ts";
 
 type UseHouseholdMemberFormOptions = {
   initialized?: boolean;

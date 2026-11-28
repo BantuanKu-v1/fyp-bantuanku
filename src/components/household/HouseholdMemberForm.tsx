@@ -1,8 +1,8 @@
 import { Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
-import useHouseholdMemberForm from "../../hooks/useHouseholdMemberForm";
-import useHouseholdOptions from "../../hooks/useHouseholdOptions";
+import useHouseholdMemberForm from "../../hooks/household/useHouseholdMemberForm.ts";
+import useHouseholdOptions from "../../hooks/household/useHouseholdOptions.ts";
 import { toYesNoValue, fromYesNoValue } from "../../utils/household/householdOptions";
 
 import Input from "../ui/Input";

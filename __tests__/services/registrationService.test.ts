@@ -6,7 +6,7 @@ import {
   afterEach,
   jest,
 } from "@jest/globals";
-import { completeRegistration, RegistrationError } from "../../src/services/registrationService";
+import { completeRegistration, RegistrationError } from "../../src/services/profile/registrationService.ts";
 import type { RegisterFormData } from "../../src/schemas/auth";
 import type {
   RegisterPersonalFormData,
@@ -14,7 +14,7 @@ import type {
   RegisterHouseholdIncomeFormData,
 } from "../../src/schemas/registration";
 import type { SupportedLanguage } from "../../src/i18n/types";
-import { STATE_TERRITORY_MAP } from "../../src/constants/registration";
+import { STATE_TERRITORY_MAP } from "../../src/constants/profile/registration.ts";
 import { getGenderFromMyKad } from "../../src/utils/myKad";
 import { supabase } from "../../src/lib/supabase";
 

@@ -308,7 +308,7 @@ metadata and the relative Storage object path.
 Multiple documents with the same `document_type` may belong to the same profile. This supports cases such as users 
 providing multiple income proof documents.
 
-`document_type` uses the controlled document type vocabulary defined by the application in `src/constants/documents.ts`.
+`document_type` uses the controlled document type vocabulary defined by the application in `../../src/constants/profile/documents.ts`.
 The database currently stores the value as `TEXT`, while the application layer restricts it through the `DocumentType` 
 TypeScript type.
 

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { AddHouseholdMemberFormData } from "../../../schemas/household";
 import { createHouseholdMember } from "../../../services/profile/householdService";
-import useHouseholdMemberForm from "../../../hooks/useHouseholdMemberForm";
+import useHouseholdMemberForm from "../../../hooks/household/useHouseholdMemberForm.ts";
 import useUnsavedChanges from "../../../hooks/useUnsavedChanges";
 
 import Screen from "../../../components/layout/Screen";

@@ -12,7 +12,7 @@ import {
   INCOME_SOURCE_VALUES,
   MYKAD_BIRTHPLACE_CODES,
   STATE_TERRITORY_VALUES,
-} from "../../src/constants/registration";
+} from "../../src/constants/profile/registration.ts";
 
 // Mock translation function
 const t = ((key: string) => key) as TFunction;

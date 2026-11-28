@@ -5,18 +5,18 @@ import type {
   ExternalSubmissionState,
   JkmSubmissionResult,
   StrSubmissionResult,
-} from "../types/applications";
+} from "../../types/applications.ts";
 
 import type {
   PreliminaryEligibilitySnapshot,
-} from "../types/eligibility";
+} from "../../types/eligibility.ts";
 
 import {
   isApplicationSubmitted,
   isExistingSubmission,
   getApplicationSubmissionActionMode,
   canSubmitApplication,
-} from "../utils/applicationUtils";
+} from "../../utils/applicationUtils.ts";
 
 type ApplicationSubmissionResult =
     | JkmSubmissionResult

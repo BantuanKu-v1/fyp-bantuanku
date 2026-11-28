@@ -7,7 +7,7 @@ import {
   jest,
 } from "@jest/globals";
 import { lookupPostcode } from "../../src/services/postcodeService";
-import { DATA_GOV_MY_API_URL } from "../../src/constants/api";
+import { DATA_GOV_MY_API_URL } from "../../src/constants/api/api.ts";
 
 type PostcodeApiResult = {
   postcode: string;

@@ -9,9 +9,9 @@ import {
 import {
   uploadRegistrationDocument,
   uploadRegistrationDocuments,
-} from "../../src/services/documentService";
+} from "../../src/services/profile/documentService.ts";
 import type { SelectedDocument } from "../../src/types/documents";
-import { DOCUMENT_BUCKET } from "../../src/constants/documents";
+import { DOCUMENT_BUCKET } from "../../src/constants/profile/documents.ts";
 import { supabase } from "../../src/lib/supabase";
 import * as Crypto from "expo-crypto";
 

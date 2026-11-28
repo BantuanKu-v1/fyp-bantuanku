@@ -6,7 +6,7 @@ import {
   INCOME_SOURCE_VALUES,
   MYKAD_BIRTHPLACE_CODES,
   STATE_TERRITORY_VALUES
-} from "../constants/registration";
+} from "../constants/profile/registration.ts";
 import { householdMemberSchema } from "./household";
 
 export const mobileNumberSchema = (t: TFunction) => z

@@ -1,6 +1,6 @@
-import { SelectedDocument } from "../types/documents";
-import { supabase } from "../lib/supabase";
-import { DOCUMENT_BUCKET } from "../constants/documents";
+import { SelectedDocument } from "../../types/documents.ts";
+import { supabase } from "../../lib/supabase.ts";
+import { DOCUMENT_BUCKET } from "../../constants/profile/documents.ts";
 import * as Crypto from "expo-crypto";
 
 const getFileExtension = (

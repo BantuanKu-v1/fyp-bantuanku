@@ -12,7 +12,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Screen from "../../components/layout/Screen";
 import ScreenHeader from "../../components/layout/ScreenHeader";
 
-import { useEligibility } from "../../hooks/useEligibility";
+import { useEligibility } from "../../hooks/eligibility/useEligibility.ts";
 
 import type { HomeStackParamList } from "../../navigation/HomeStackNavigation";
 

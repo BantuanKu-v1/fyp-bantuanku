@@ -12,7 +12,7 @@ import {
 import { supabase } from "../../../src/lib/supabase";
 import { getCurrentProfileId } from "../../../src/services/profile/profileService";
 import type { RegisterResidenceFormData } from "../../../src/schemas/registration";
-import { STATE_TERRITORY_MAP } from "../../../src/constants/registration";
+import { STATE_TERRITORY_MAP } from "../../../src/constants/profile/registration.ts";
 
 jest.mock("../../../src/lib/supabase", () => ({
   supabase: {

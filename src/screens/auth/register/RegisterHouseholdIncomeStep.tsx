@@ -5,7 +5,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, Text, View } from "react-native";
 import {ChevronDown, ChevronUp, Plus, Trash2} from "lucide-react-native";
-import { EmploymentStatusValue, HouseholdRelationshipValue, IncomeSourceValue } from "../../../constants/registration";
+import { EmploymentStatusValue, HouseholdRelationshipValue, IncomeSourceValue } from "../../../constants/profile/registration.ts";
 
 import Select from "../../../components/ui/Select";
 import Input from "../../../components/ui/Input";

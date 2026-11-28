@@ -9,7 +9,7 @@ import {
   HOUSEHOLD_CITIZENSHIP_KEYS, HOUSEHOLD_EMPLOYMENT_KEYS,
   HOUSEHOLD_GENDER_KEYS, HOUSEHOLD_INSTITUTION_TYPE_KEYS,
   HOUSEHOLD_RELATIONSHIP_KEYS, HOUSEHOLD_STUDY_MODE_KEYS
-} from "../../../constants/household";
+} from "../../../constants/profile/household.ts";
 
 import Screen from "../../../components/layout/Screen";
 import ScreenHeader from "../../../components/layout/ScreenHeader";

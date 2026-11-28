@@ -5,7 +5,7 @@ import {
   EMPLOYMENT_STATUS_VALUES,
   HOUSEHOLD_RELATIONSHIP_VALUES,
   MYKAD_BIRTHPLACE_CODES
-} from "../constants/registration";
+} from "../constants/profile/registration.ts";
 import { getDobFromMyKad } from "../utils/myKad";
 
 export const householdMemberSchema = (t: TFunction) => z.object({
