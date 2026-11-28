@@ -6,7 +6,7 @@ import Alert from "../../ui/Alert";
 
 import ApplicationReadinessRow from "./ApplicationReadinessRow";
 
-import { hasValue } from "../../../utils/stringUtils";
+import { isStrApplicantProfileComplete } from "../../../utils/applicationUtils";
 
 import type {
   JkmApplicantReview,
@@ -60,10 +60,7 @@ export default function ApplicationReadinessSection(
   const profileComplete =
       props.provider === "jkm"
           ? props.applicant?.profileComplete === true
-          : hasValue(applicant.fullName) &&
-          hasValue(applicant.identificationNo) &&
-          hasValue(applicant.dateOfBirth) &&
-          hasValue(applicant.citizenship);
+          : isStrApplicantProfileComplete(props.applicant);
 
   const householdRequired =
       props.provider === "jkm"
